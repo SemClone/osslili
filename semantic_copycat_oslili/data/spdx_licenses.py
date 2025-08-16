@@ -236,6 +236,39 @@ class SPDXLicenseData:
         if self._bundled_data and 'aliases' in self._bundled_data:
             return self._bundled_data['aliases'].get(license_name)
     
+    def _normalize_text(self, text: str) -> str:
+        """
+        Normalize text for comparison.
+        Removes whitespace variations, punctuation, and case differences.
+        """
+        if not text:
+            return ""
+        
+        import re
+        
+        # Convert to lowercase
+        normalized = text.lower()
+        
+        # Remove URLs
+        normalized = re.sub(r'https?://[^\s]+', '', normalized)
+        
+        # Remove email addresses
+        normalized = re.sub(r'\S+@\S+', '', normalized)
+        
+        # Remove punctuation except for essential ones
+        normalized = re.sub(r'[^\w\s\-]', ' ', normalized)
+        
+        # Normalize whitespace
+        normalized = re.sub(r'\s+', ' ', normalized)
+        
+        # Remove common copyright lines that vary
+        normalized = re.sub(r'copyright.*?\d{4}.*?(?:\n|$)', '', normalized, flags=re.IGNORECASE)
+        
+        # Remove leading/trailing whitespace
+        normalized = normalized.strip()
+        
+        return normalized
+    
     def get_all_license_ids(self) -> List[str]:
         """
         Get all available SPDX license IDs.
