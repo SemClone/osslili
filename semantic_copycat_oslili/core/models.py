@@ -64,8 +64,8 @@ class CopyrightInfo:
 
 @dataclass
 class AttributionResult:
-    """Result of attribution analysis for a package."""
-    purl: str
+    """Result of attribution analysis for a local path."""
+    path: str
     licenses: List[DetectedLicense] = field(default_factory=list)
     copyrights: List[CopyrightInfo] = field(default_factory=list)
     errors: List[str] = field(default_factory=list)
@@ -82,7 +82,7 @@ class AttributionResult:
     
     def to_dict(self) -> Dict[str, Any]:
         return {
-            "purl": self.purl,
+            "path": self.path,
             "package_name": self.package_name,
             "package_version": self.package_version,
             "licenses": [l.to_dict() for l in self.licenses],
@@ -98,7 +98,6 @@ class Config:
     """Configuration for the attribution generator."""
     similarity_threshold: float = 0.97
     max_extraction_depth: int = 10
-    network_timeout: int = 30
     thread_count: int = 4
     verbose: bool = False
     debug: bool = False
@@ -120,8 +119,4 @@ class Config:
         "LGPLv2": "LGPL-2.0",
         "LGPLv3": "LGPL-3.0",
     })
-    spdx_data_url: str = "https://raw.githubusercontent.com/spdx/license-list-data/main/json/licenses.json"
-    clearlydefined_api_url: str = "https://api.clearlydefined.io"
-    pypi_api_url: str = "https://pypi.org/pypi"
-    npm_api_url: str = "https://registry.npmjs.org"
     cache_dir: Optional[str] = None

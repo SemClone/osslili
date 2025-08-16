@@ -15,7 +15,6 @@ from fuzzywuzzy import process as fuzz_process
 from ..core.models import DetectedLicense, DetectionMethod
 from ..core.input_processor import InputProcessor
 from ..data.spdx_licenses import SPDXLicenseData
-from ..data.external_sources import ExternalDataSources
 from .tlsh_detector import TLSHDetector
 
 logger = logging.getLogger(__name__)
@@ -34,7 +33,6 @@ class LicenseDetector:
         self.config = config
         self.input_processor = InputProcessor()
         self.spdx_data = SPDXLicenseData(config)
-        self.external_sources = ExternalDataSources(config)
         self.tlsh_detector = TLSHDetector(config, self.spdx_data)
         
         # License filename patterns

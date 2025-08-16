@@ -61,29 +61,16 @@ def load_config(config_path: Optional[str]) -> Config:
 
 
 def detect_input_type(input_path: str) -> str:
-    """Detect whether input is a purl, file, or directory."""
-    # Check if it's a purl
-    if input_path.startswith("pkg:"):
-        return "purl"
-    
-    # Check if it's a file or directory
+    """Detect whether input is a file or directory."""
     path = Path(input_path)
     if path.exists():
         if path.is_file():
-            # Check if it's a purl list file
-            try:
-                with open(path, 'r') as f:
-                    first_line = f.readline().strip()
-                    if first_line.startswith("pkg:") or first_line.startswith("#"):
-                        return "purl_file"
-            except:
-                pass
             return "local_file"
         elif path.is_dir():
             return "local_dir"
     
-    # Default to treating as purl if not a valid path
-    return "purl"
+    # Path doesn't exist
+    return "invalid"
 
 
 @click.command()
@@ -134,11 +121,6 @@ def detect_input_type(input_path: str) -> str:
     type=int,
     help='Network request timeout in seconds'
 )
-@click.option(
-    '--online',
-    is_flag=True,
-    help='Enable external API sources (ClearlyDefined, PyPI, npm) to supplement local analysis'
-)
 def main(
     input_path: str,
     output_format: str,
@@ -149,20 +131,19 @@ def main(
     config: Optional[str],
     similarity_threshold: Optional[float],
     max_depth: Optional[int],
-    timeout: Optional[int],
-    online: bool
+    timeout: Optional[int]
 ):
     """
-    Generate legal attribution notices from software packages.
+    Scan local source code for license and copyright information.
     
     INPUT can be:
-    - A package URL (purl) like pkg:pypi/requests@2.28.1
-    - A file containing multiple purls (one per line)
-    - A local directory or file path to analyze
+    - A local directory to scan recursively
+    - A local file to analyze
     
-    By default, the tool works offline, downloading and analyzing packages locally.
-    Use --online to enable external API sources (ClearlyDefined, PyPI, npm) for
-    supplemental license and copyright data.
+    The tool performs:
+    - SPDX license identification using regex and fuzzy hashing
+    - Copyright information extraction
+    - License file detection and matching
     """
     
     # Load configuration
@@ -217,27 +198,16 @@ def main(
         # Process input based on type
         results = []
         
-        if input_type == "purl":
-            mode_str = "(online mode)" if online else "(offline mode)"
-            print_info(f"Processing package URL: {input_path} {mode_str}")
-            result = generator.process_purl(input_path, use_external_sources=online)
-            results = [result]
-            
-        elif input_type == "purl_file":
-            mode_str = "(online mode)" if online else "(offline mode)"
-            print_info(f"Processing purl list from: {input_path} {mode_str}")
-            # Process each purl with the online flag
-            with open(input_path, 'r') as f:
-                purls = [line.strip() for line in f if line.strip() and not line.strip().startswith('#')]
-            results = []
-            for purl in purls:
-                result = generator.process_purl(purl, use_external_sources=online)
-                results.append(result)
-            
-        elif input_type in ["local_file", "local_dir"]:
+        if input_type in ["local_file", "local_dir"]:
             print_info(f"Processing local path: {input_path}")
             result = generator.process_local_path(input_path)
             results = [result]
+        elif input_type == "invalid":
+            print_error(f"Path does not exist: {input_path}")
+            sys.exit(1)
+        else:
+            print_error(f"Unknown input type: {input_type}")
+            sys.exit(1)
         
         # Check for errors
         total_errors = sum(len(r.errors) for r in results)

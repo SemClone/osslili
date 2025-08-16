@@ -1,14 +1,11 @@
 """
-Input processing module for handling purls, files, and local paths.
+Input processing module for handling files and local paths.
 """
 
 import os
 import logging
 from pathlib import Path
 from typing import List, Optional, Tuple
-from urllib.parse import unquote
-
-from packageurl import PackageURL
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +14,7 @@ class InputProcessor:
     """Process and validate various input types."""
     
     @staticmethod
-    def validate_purl(purl_string: str) -> Tuple[bool, Optional[PackageURL], Optional[str]]:
+    def _removed_validate_purl(purl_string: str) -> Tuple[bool, Optional[object], Optional[str]]:
         """
         Validate a purl string.
         
@@ -34,7 +31,7 @@ class InputProcessor:
             return False, None, str(e)
     
     @staticmethod
-    def parse_purl(purl_string: str) -> Optional[PackageURL]:
+    def _removed_parse_purl(purl_string: str) -> Optional[object]:
         """
         Parse a purl string into a PackageURL object.
         
@@ -51,7 +48,7 @@ class InputProcessor:
         return None
     
     @staticmethod
-    def read_purl_file(file_path: str) -> List[str]:
+    def _removed_read_purl_file(file_path: str) -> List[str]:
         """
         Read purls from a file (KissBOM format).
         
@@ -85,7 +82,7 @@ class InputProcessor:
         return purls
     
     @staticmethod
-    def get_package_info(purl: PackageURL) -> dict:
+    def _removed_get_package_info(purl: object) -> dict:
         """
         Extract package information from a PackageURL.
         

@@ -73,7 +73,7 @@ class NoticesFormatter:
             
             for result in packages:
                 # Package header
-                output_lines.append(f"  • {result.purl}")
+                output_lines.append(f"  • {result.path}")
                 
                 # Add copyright statements
                 if result.copyrights:

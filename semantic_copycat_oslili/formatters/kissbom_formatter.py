@@ -54,7 +54,7 @@ class KissBOMFormatter:
                     copyright_strings.append(holder)
             
             package_entry = {
-                "purl": result.purl,
+                "path": result.path,
                 "license": license_id,
                 "copyright": ", ".join(copyright_strings) if copyright_strings else None
             }

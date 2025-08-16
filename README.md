@@ -1,15 +1,15 @@
 # semantic-copycat-oslili
 
-A powerful, accurate, and fast tool for generating legal attribution notices from software packages. Perfect for open source compliance, license auditing, and SBOM generation.
+A powerful, accurate, and fast tool for identifying licenses and copyright information in local source code. Perfect for open source compliance, license auditing, and SBOM generation.
 
 ## What It Does
 
-`semantic-copycat-oslili` automatically analyzes software packages to extract:
-- **License information** - Detects and identifies licenses with 97%+ accuracy
+`semantic-copycat-oslili` automatically analyzes local source code to extract:
+- **License information** - Detects and identifies SPDX licenses with 97%+ accuracy using regex and fuzzy hashing
 - **Copyright statements** - Intelligently extracts copyright holders and years
 - **Attribution notices** - Generates legally compliant attribution documentation
 
-The tool processes packages from various sources (PyPI, npm, local directories) and outputs attribution data in multiple formats suitable for compliance documentation, SBOMs, and legal notices.
+The tool scans local directories and files, identifying license files and extracting copyright information, then outputs attribution data in multiple formats suitable for compliance documentation, SBOMs, and legal notices.
 
 ### Why Use This Tool?
 
@@ -22,13 +22,12 @@ The tool processes packages from various sources (PyPI, npm, local directories) 
 
 ## Key Features
 
-- **Offline-first**: No internet required - includes 700+ SPDX licenses
-- **Universal Input**: Process package URLs, files, or local directories  
-- **High Accuracy**: Three-tier detection with Dice-Sørensen, TLSH, and regex
+- **Offline Operation**: No internet required - includes 700+ SPDX licenses
+- **Local Scanning**: Process local directories and files
+- **High Accuracy**: Multi-tier detection with Dice-Sørensen, TLSH, and regex
 - **Full License Text**: Notices include complete license text for compliance
 - **Fast Processing**: Multi-threaded analysis of multiple packages
 - **Smart Extraction**: Validated copyright detection eliminates false positives
-- **Optional APIs**: Enable online mode for supplemental data when needed
 
 ## Installation
 
@@ -51,23 +50,20 @@ pip install semantic-copycat-oslili[cyclonedx]
 ### CLI Usage
 
 ```bash
-# Process a single package URL (offline by default)
-oslili pkg:pypi/requests@2.28.1
-
-# Enable external API sources with --online
-oslili pkg:pypi/requests@2.28.1 --online
-
-# Process multiple packages from file
-oslili packages.txt -f kissbom -o attribution.json
-
 # Process local directory
 oslili /path/to/source -f notices -o NOTICE.txt
 
+# Scan a specific file
+oslili /path/to/file.py -f kissbom -o attribution.json
+
 # Generate human-readable notices with full license text
-oslili pkg:npm/express@4.18.0 -f notices -o NOTICE.txt
+oslili ./my-project -f notices -o NOTICE.txt
+
+# Export to CycloneDX format
+oslili ./src -f cyclonedx-json -o sbom.json
 
 # With custom configuration and verbose output
-oslili pkg:npm/express@4.18.0 --config config.yaml --verbose
+oslili ./project --config config.yaml --verbose
 ```
 
 ### Library Usage
@@ -78,11 +74,11 @@ from semantic_copycat_oslili import LegalAttributionGenerator
 # Initialize generator
 generator = LegalAttributionGenerator()
 
-# Process a package (offline by default)
-result = generator.process_purl("pkg:pypi/requests@2.28.1")
+# Process a local directory
+result = generator.process_local_path("/path/to/source")
 
-# Process with external API sources
-result = generator.process_purl("pkg:pypi/requests@2.28.1", use_external_sources=True)
+# Process a single file
+result = generator.process_local_path("/path/to/file.py")
 
 # Generate outputs
 kissbom = generator.generate_kissbom([result])
@@ -116,7 +112,6 @@ Create a `config.yaml` file:
 ```yaml
 similarity_threshold: 0.97
 max_extraction_depth: 10
-network_timeout: 30
 thread_count: 4
 custom_aliases:
   "Apache 2": "Apache-2.0"

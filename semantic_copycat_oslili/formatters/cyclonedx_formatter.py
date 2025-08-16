@@ -36,9 +36,9 @@ class CycloneDXFormatter:
             for result in results:
                 component = {
                     "type": "library",
-                    "name": result.package_name or result.purl,
+                    "name": result.package_name or result.path,
                     "version": result.package_version or "unknown",
-                    "purl": result.purl
+                    "path": result.path
                 }
                 
                 # Add licenses
