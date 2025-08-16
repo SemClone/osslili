@@ -387,19 +387,30 @@ class CopyrightExtractor:
             return ""
         
         # Filter out single words that are common programming keywords
-        if ' ' not in holder:  # Single word
-            programming_keywords = {
-                'function', 'return', 'class', 'interface', 'struct',
-                'enum', 'namespace', 'package', 'module', 'import',
-                'export', 'default', 'public', 'private', 'protected',
-                'static', 'final', 'const', 'var', 'let', 'def',
-                'void', 'int', 'string', 'bool', 'boolean', 'float',
-                'double', 'char', 'byte', 'long', 'short', 'null',
-                'nil', 'none', 'true', 'false', 'if', 'else', 'elif',
-                'switch', 'case', 'for', 'while', 'do', 'break',
-                'continue', 'try', 'catch', 'finally', 'throw'
-            }
+        programming_keywords = [
+            'copyright', 'license', 'patent', 'holder', 'owner', 'statement',
+            'information', 'extractor', 'info', 'notice', 'permission',
+            'you', 'your', 'must', 'retain', 'that', 'this', 'with',
+            'evidence', 'found', 'detection', 'patterns', 'regex',
+            'file', 'from', 'name', 'format', 'match', 'future'
+        ]
+        
+        # Check if it's a single word that's a keyword
+        if ' ' not in holder:
             if holder.lower() in programming_keywords:
+                return ""
+        
+        # Filter out phrases that are clearly not copyright holders
+        invalid_phrases = [
+            'copyright', 'license', 'patent', 'you must', 'notice',
+            'owner or entity', 'owner that', 'information', 'extraction',
+            'regex match', 'name format', 'years', 'statement', 
+            'holder', 'owner', 's_from', 's =', 'info"', 's_found',
+            'evidence', 'by source', 's in ', 'you comply', 'their terms'
+        ]
+        
+        for phrase in invalid_phrases:
+            if phrase in holder_lower:
                 return ""
         
         return holder

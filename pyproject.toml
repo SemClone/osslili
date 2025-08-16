@@ -100,8 +100,7 @@ packages = ["semantic_copycat_oslili",
            "semantic_copycat_oslili.detectors",
            "semantic_copycat_oslili.extractors",
            "semantic_copycat_oslili.formatters",
-           "semantic_copycat_oslili.utils",
-           "semantic_copycat_oslili.tests"]
+           "semantic_copycat_oslili.utils"]
 
 [tool.setuptools.package-data]
 semantic_copycat_oslili = ["data/*.json", "data/*.yaml", "data/*.txt"]
