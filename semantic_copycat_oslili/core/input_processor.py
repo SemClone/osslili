@@ -1,123 +1,17 @@
 """
-Input processing module for handling purls, files, and local paths.
+Input processing module for handling files and local paths.
 """
 
 import os
 import logging
 from pathlib import Path
 from typing import List, Optional, Tuple
-from urllib.parse import unquote
-
-from packageurl import PackageURL
 
 logger = logging.getLogger(__name__)
 
 
 class InputProcessor:
     """Process and validate various input types."""
-    
-    @staticmethod
-    def validate_purl(purl_string: str) -> Tuple[bool, Optional[PackageURL], Optional[str]]:
-        """
-        Validate a purl string.
-        
-        Args:
-            purl_string: Package URL string to validate
-            
-        Returns:
-            Tuple of (is_valid, PackageURL object or None, error message or None)
-        """
-        try:
-            purl = PackageURL.from_string(purl_string.strip())
-            return True, purl, None
-        except Exception as e:
-            return False, None, str(e)
-    
-    @staticmethod
-    def parse_purl(purl_string: str) -> Optional[PackageURL]:
-        """
-        Parse a purl string into a PackageURL object.
-        
-        Args:
-            purl_string: Package URL string
-            
-        Returns:
-            PackageURL object or None if invalid
-        """
-        is_valid, purl, error = InputProcessor.validate_purl(purl_string)
-        if is_valid:
-            return purl
-        logger.warning(f"Invalid purl '{purl_string}': {error}")
-        return None
-    
-    @staticmethod
-    def read_purl_file(file_path: str) -> List[str]:
-        """
-        Read purls from a file (KissBOM format).
-        
-        Args:
-            file_path: Path to file containing purls
-            
-        Returns:
-            List of valid purl strings
-        """
-        purls = []
-        
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                for line_num, line in enumerate(f, 1):
-                    line = line.strip()
-                    
-                    # Skip empty lines and comments
-                    if not line or line.startswith('#'):
-                        continue
-                    
-                    # Validate purl
-                    is_valid, purl, error = InputProcessor.validate_purl(line)
-                    if is_valid:
-                        purls.append(line)
-                    else:
-                        logger.warning(f"Line {line_num}: Invalid purl '{line}': {error}")
-        
-        except Exception as e:
-            logger.error(f"Error reading purl file {file_path}: {e}")
-        
-        return purls
-    
-    @staticmethod
-    def get_package_info(purl: PackageURL) -> dict:
-        """
-        Extract package information from a PackageURL.
-        
-        Args:
-            purl: PackageURL object
-            
-        Returns:
-            Dictionary with package information
-        """
-        info = {
-            'type': purl.type,
-            'namespace': purl.namespace,
-            'name': purl.name,
-            'version': purl.version,
-            'qualifiers': purl.qualifiers or {},
-            'subpath': purl.subpath,
-            'purl_string': str(purl)
-        }
-        
-        # Add display name
-        if purl.namespace:
-            info['display_name'] = f"{purl.namespace}/{purl.name}"
-        else:
-            info['display_name'] = purl.name
-        
-        # Add version info
-        if purl.version:
-            info['display_name_with_version'] = f"{info['display_name']}@{purl.version}"
-        else:
-            info['display_name_with_version'] = info['display_name']
-        
-        return info
     
     @staticmethod
     def validate_local_path(path: str) -> Tuple[bool, Optional[Path], Optional[str]]:

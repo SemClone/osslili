@@ -205,7 +205,87 @@ class SPDXLicenseData:
         Returns:
             License information or None
         """
-        return self._license_index.get(license_id.lower())
+        # First check aliases
+        if self._bundled_data and 'aliases' in self._bundled_data:
+            aliased_id = self._bundled_data['aliases'].get(license_id, license_id)
+        else:
+            aliased_id = license_id
+        
+        # Check bundled data directly
+        if self._bundled_data and 'licenses' in self._bundled_data:
+            licenses_dict = self._bundled_data['licenses']
+            if aliased_id in licenses_dict:
+                return {
+                    'licenseId': aliased_id,
+                    **licenses_dict[aliased_id]
+                }
+        
+        # Fall back to index lookup
+        return self._license_index.get(aliased_id.lower())
+    
+    def get_alias(self, license_name: str) -> Optional[str]:
+        """
+        Get canonical SPDX ID for a license alias.
+        
+        Args:
+            license_name: License name or alias
+            
+        Returns:
+            Canonical SPDX ID or None
+        """
+        if self._bundled_data and 'aliases' in self._bundled_data:
+            return self._bundled_data['aliases'].get(license_name)
+    
+    def _normalize_text(self, text: str) -> str:
+        """
+        Normalize text for comparison.
+        Removes whitespace variations, punctuation, and case differences.
+        """
+        if not text:
+            return ""
+        
+        import re
+        
+        # Convert to lowercase
+        normalized = text.lower()
+        
+        # Remove URLs
+        normalized = re.sub(r'https?://[^\s]+', '', normalized)
+        
+        # Remove email addresses
+        normalized = re.sub(r'\S+@\S+', '', normalized)
+        
+        # Remove punctuation except for essential ones
+        normalized = re.sub(r'[^\w\s\-]', ' ', normalized)
+        
+        # Normalize whitespace
+        normalized = re.sub(r'\s+', ' ', normalized)
+        
+        # Remove common copyright lines that vary
+        normalized = re.sub(r'copyright.*?\d{4}.*?(?:\n|$)', '', normalized, flags=re.IGNORECASE)
+        
+        # Remove leading/trailing whitespace
+        normalized = normalized.strip()
+        
+        return normalized
+    
+    def get_all_license_ids(self) -> List[str]:
+        """
+        Get all available SPDX license IDs.
+        
+        Returns:
+            List of all SPDX license IDs
+        """
+        if self._bundled_data and 'licenses' in self._bundled_data:
+            return list(self._bundled_data['licenses'].keys())
+        
+        # Fall back to getting from index
+        license_ids = []
+        for license_info in self.licenses.get('licenses', []):
+            license_id = license_info.get('licenseId')
+            if license_id:
+                license_ids.append(license_id)
+        return license_ids
     
     def get_license_text(self, license_id: str) -> Optional[str]:
         """

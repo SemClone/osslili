@@ -4,15 +4,14 @@ CLI interface for semantic-copycat-oslili.
 
 import sys
 import logging
-import json
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional
 
 import click
 import yaml
 from colorama import init, Fore, Style
 
-from .core.models import Config, OutputFormat
+from .core.models import Config
 from .core.generator import LegalAttributionGenerator
 from .utils.logging import setup_logging
 
@@ -61,39 +60,20 @@ def load_config(config_path: Optional[str]) -> Config:
 
 
 def detect_input_type(input_path: str) -> str:
-    """Detect whether input is a purl, file, or directory."""
-    # Check if it's a purl
-    if input_path.startswith("pkg:"):
-        return "purl"
-    
-    # Check if it's a file or directory
+    """Detect whether input is a file or directory."""
     path = Path(input_path)
     if path.exists():
         if path.is_file():
-            # Check if it's a purl list file
-            try:
-                with open(path, 'r') as f:
-                    first_line = f.readline().strip()
-                    if first_line.startswith("pkg:") or first_line.startswith("#"):
-                        return "purl_file"
-            except:
-                pass
             return "local_file"
         elif path.is_dir():
             return "local_dir"
     
-    # Default to treating as purl if not a valid path
-    return "purl"
+    # Path doesn't exist
+    return "invalid"
 
 
 @click.command()
 @click.argument('input_path', type=str)
-@click.option(
-    '--output-format', '-f',
-    type=click.Choice(['kissbom', 'cyclonedx-json', 'cyclonedx-xml', 'notices']),
-    default='kissbom',
-    help='Output format for attribution data'
-)
 @click.option(
     '--output', '-o',
     type=click.Path(),
@@ -129,40 +109,27 @@ def detect_input_type(input_path: str) -> str:
     type=int,
     help='Maximum archive extraction depth'
 )
-@click.option(
-    '--timeout',
-    type=int,
-    help='Network request timeout in seconds'
-)
-@click.option(
-    '--online',
-    is_flag=True,
-    help='Enable external API sources (ClearlyDefined, PyPI, npm) to supplement local analysis'
-)
 def main(
     input_path: str,
-    output_format: str,
     output: Optional[str],
     verbose: bool,
     debug: bool,
     threads: Optional[int],
     config: Optional[str],
     similarity_threshold: Optional[float],
-    max_depth: Optional[int],
-    timeout: Optional[int],
-    online: bool
+    max_depth: Optional[int]
 ):
     """
-    Generate legal attribution notices from software packages.
+    Scan local source code for license and copyright information.
     
     INPUT can be:
-    - A package URL (purl) like pkg:pypi/requests@2.28.1
-    - A file containing multiple purls (one per line)
-    - A local directory or file path to analyze
+    - A local directory to scan recursively
+    - A local file to analyze
     
-    By default, the tool works offline, downloading and analyzing packages locally.
-    Use --online to enable external API sources (ClearlyDefined, PyPI, npm) for
-    supplemental license and copyright data.
+    The tool performs:
+    - SPDX license identification using regex and fuzzy hashing
+    - Copyright information extraction
+    - License file detection and matching
     """
     
     # Load configuration
@@ -179,8 +146,6 @@ def main(
         cfg.similarity_threshold = similarity_threshold
     if max_depth is not None:
         cfg.max_extraction_depth = max_depth
-    if timeout is not None:
-        cfg.network_timeout = timeout
     
     # Setup logging - only show our logs in verbose mode, not library logs
     if cfg.debug:
@@ -208,7 +173,6 @@ def main(
     
     if cfg.verbose:
         print_info(f"Detected input type: {input_type}")
-        print_info(f"Output format: {output_format}")
     
     try:
         # Initialize generator
@@ -217,44 +181,24 @@ def main(
         # Process input based on type
         results = []
         
-        if input_type == "purl":
-            mode_str = "(online mode)" if online else "(offline mode)"
-            print_info(f"Processing package URL: {input_path} {mode_str}")
-            result = generator.process_purl(input_path, use_external_sources=online)
-            results = [result]
-            
-        elif input_type == "purl_file":
-            mode_str = "(online mode)" if online else "(offline mode)"
-            print_info(f"Processing purl list from: {input_path} {mode_str}")
-            # Process each purl with the online flag
-            with open(input_path, 'r') as f:
-                purls = [line.strip() for line in f if line.strip() and not line.strip().startswith('#')]
-            results = []
-            for purl in purls:
-                result = generator.process_purl(purl, use_external_sources=online)
-                results.append(result)
-            
-        elif input_type in ["local_file", "local_dir"]:
+        if input_type in ["local_file", "local_dir"]:
             print_info(f"Processing local path: {input_path}")
             result = generator.process_local_path(input_path)
             results = [result]
+        elif input_type == "invalid":
+            print_error(f"Path does not exist: {input_path}")
+            sys.exit(1)
+        else:
+            print_error(f"Unknown input type: {input_type}")
+            sys.exit(1)
         
         # Check for errors
         total_errors = sum(len(r.errors) for r in results)
         if total_errors > 0:
             print_warning(f"Encountered {total_errors} errors during processing")
         
-        # Generate output based on format
-        output_data = None
-        
-        if output_format == "kissbom":
-            output_data = json.dumps(generator.generate_kissbom(results), indent=2)
-        elif output_format == "cyclonedx-json":
-            output_data = generator.generate_cyclonedx(results, format="json")
-        elif output_format == "cyclonedx-xml":
-            output_data = generator.generate_cyclonedx(results, format="xml")
-        elif output_format == "notices":
-            output_data = generator.generate_notices(results)
+        # Generate evidence output
+        output_data = generator.generate_evidence(results)
         
         # Write output
         if output:

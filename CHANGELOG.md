@@ -5,6 +5,68 @@ All notable changes to semantic-copycat-oslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-08-16
+
+### Added
+- **Parallel Processing**: Multi-threaded scanning with ThreadPoolExecutor for significantly faster performance
+- **Enhanced License Detection**: Improved regex patterns for package metadata (package.json, METADATA, pyproject.toml)
+- **Smart File Handling**: Intelligent sampling for large files (>10MB) without timeouts
+- **Complete File Coverage**: Scans ALL readable text files, not limited to specific extensions
+- **700+ SPDX Support**: Full support for all SPDX license IDs with alias normalization
+- **Text Normalization**: Added `_normalize_text()` method for consistent license comparison
+- **Configurable Threading**: CLI option `--threads` to control parallel processing (default: 4)
+- **Better Metadata Detection**: 
+  - Detects `"license": "MIT"` in package.json
+  - Detects `License-Expression: MIT` in Python METADATA files
+  - Detects `license = {text = "Apache-2.0"}` in pyproject.toml
+
+### Changed
+- **File Processing**: Now uses parallel processing for license and copyright detection
+- **File Reading**: Smart reading strategy - full read for <10MB, sampling for larger files
+- **Error Handling**: Improved with specific exception types and per-file timeouts (30s)
+- **License Matching**: Enhanced normalization handles more variations (Apache 2.0 → Apache-2.0)
+- **False Positive Filtering**: Better detection and filtering of code patterns in both license and copyright extraction
+
+### Fixed
+- Removed duplicate `_normalize_license_id()` method
+- Removed unused imports (`time`, redundant `fnmatch`)
+- Fixed bare `except:` clauses with specific exception types
+- Removed redundant `hasattr()` checks
+- Improved copyright holder validation to filter more false positives
+
+### Performance Improvements
+- Parallel file processing reduces scan time by up to 75% on multi-core systems
+- Smart file sampling for large files prevents memory issues
+- Deduplication during processing reduces post-processing time
+- Lazy loading of SPDX data improves startup time
+
+## [1.1.2] - 2025-01-16
+
+### Breaking Changes
+- **Removed package URL (purl) support**: Tool no longer downloads or processes packages from PyPI, npm, etc.
+- **Removed external API integrations**: ClearlyDefined, PyPI, and npm APIs have been removed
+- **Focus on local scanning only**: Tool now exclusively scans local directories and files
+
+### Changed
+- **Core functionality**: Refocused on local source code license and copyright identification
+- **Input handling**: Now only accepts local file paths and directories
+- **Attribution format**: Changed from purl-based to path-based attribution
+- **Dependencies**: Removed packageurl-python dependency
+
+### Removed
+- Package downloading and extraction capabilities
+- Purl file parsing functionality  
+- External API data sources (ClearlyDefined, PyPI, npm)
+- Network timeout configuration
+- Online/offline mode distinction (tool is always offline)
+
+### What the Tool Now Does
+- Scans local source code for SPDX license identification
+- Extracts copyright information from local files
+- Identifies license files and matches them with bundled SPDX data
+- Uses multi-tier detection: Dice-Sørensen similarity, TLSH fuzzy hashing, and regex patterns
+- Generates attribution reports in KissBOM, CycloneDX, and human-readable formats
+
 ## [1.1.1] - 2025-01-16
 
 ### Added

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "semantic-copycat-oslili"
-version = "1.1.1"
+version = "1.2.0"
 description = "Legal attribution notice generator for software packages"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -100,8 +100,7 @@ packages = ["semantic_copycat_oslili",
            "semantic_copycat_oslili.detectors",
            "semantic_copycat_oslili.extractors",
            "semantic_copycat_oslili.formatters",
-           "semantic_copycat_oslili.utils",
-           "semantic_copycat_oslili.tests"]
+           "semantic_copycat_oslili.utils"]
 
 [tool.setuptools.package-data]
 semantic_copycat_oslili = ["data/*.json", "data/*.yaml", "data/*.txt"]

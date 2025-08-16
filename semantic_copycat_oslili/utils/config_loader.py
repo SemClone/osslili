@@ -181,10 +181,6 @@ class ConfigLoader:
                 'debug': config.debug,
                 'license_filename_patterns': config.license_filename_patterns,
                 'custom_aliases': config.custom_aliases,
-                'spdx_data_url': config.spdx_data_url,
-                'clearlydefined_api_url': config.clearlydefined_api_url,
-                'pypi_api_url': config.pypi_api_url,
-                'npm_api_url': config.npm_api_url,
             }
             
             if config.cache_dir:
@@ -217,9 +213,6 @@ similarity_threshold: 0.97
 
 # Maximum depth for recursive archive extraction
 max_extraction_depth: 10
-
-# Network request timeout in seconds
-network_timeout: 30
 
 # Number of threads for parallel processing
 thread_count: 4
@@ -257,12 +250,6 @@ custom_aliases:
   "GPLv3": "GPL-3.0"
   "LGPLv2": "LGPL-2.0"
   "LGPLv3": "LGPL-3.0"
-
-# External data source URLs
-spdx_data_url: "https://raw.githubusercontent.com/spdx/license-list-data/main/json/licenses.json"
-clearlydefined_api_url: "https://api.clearlydefined.io"
-pypi_api_url: "https://pypi.org/pypi"
-npm_api_url: "https://registry.npmjs.org"
 
 # Cache directory (optional)
 # cache_dir: "~/.cache/oslili"

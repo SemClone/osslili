@@ -15,7 +15,6 @@ from fuzzywuzzy import process as fuzz_process
 from ..core.models import DetectedLicense, DetectionMethod
 from ..core.input_processor import InputProcessor
 from ..data.spdx_licenses import SPDXLicenseData
-from ..data.external_sources import ExternalDataSources
 from .tlsh_detector import TLSHDetector
 
 logger = logging.getLogger(__name__)
@@ -34,7 +33,6 @@ class LicenseDetector:
         self.config = config
         self.input_processor = InputProcessor()
         self.spdx_data = SPDXLicenseData(config)
-        self.external_sources = ExternalDataSources(config)
         self.tlsh_detector = TLSHDetector(config, self.spdx_data)
         
         # License filename patterns
@@ -66,12 +64,20 @@ class LicenseDetector:
         return [
             # SPDX-License-Identifier: <license>
             re.compile(r'SPDX-License-Identifier:\s*([^\s\n]+)', re.IGNORECASE),
-            # License: <license>
-            re.compile(r'^\s*License:\s*([^\n]+)', re.IGNORECASE | re.MULTILINE),
+            # Python METADATA: License-Expression: <license>
+            re.compile(r'License-Expression:\s*([^\s\n]+)', re.IGNORECASE),
+            # package.json style: "license": "MIT"
+            re.compile(r'"license"\s*:\s*"([^"]+)"', re.IGNORECASE),
+            # pyproject.toml style: license = {text = "Apache-2.0"}
+            re.compile(r'license\s*=\s*\{[^}]*text\s*=\s*"([^"]+)"', re.IGNORECASE),
+            # pyproject.toml style: license = "MIT"
+            re.compile(r'^\s*license\s*=\s*"([^"]+)"', re.IGNORECASE | re.MULTILINE),
+            # General License: <license> (but more restrictive to avoid false positives)
+            re.compile(r'^\s*License:\s*([A-Za-z0-9\-\.]+)', re.IGNORECASE | re.MULTILINE),
             # @license <license>
-            re.compile(r'@license\s+([^\s\n]+)', re.IGNORECASE),
+            re.compile(r'@license\s+([A-Za-z0-9\-\.]+)', re.IGNORECASE),
             # Licensed under <license>
-            re.compile(r'Licensed under (?:the\s+)?([^,\n]+)', re.IGNORECASE),
+            re.compile(r'Licensed under (?:the\s+)?([^,\n]+?)(?:\s+[Ll]icense)?', re.IGNORECASE),
         ]
     
     def detect_licenses(self, path: Path) -> List[DetectedLicense]:
@@ -98,21 +104,57 @@ class LicenseDetector:
         
         logger.info(f"Scanning {len(files_to_scan)} files for licenses")
         
-        # Process files
-        for file_path in files_to_scan:
-            file_licenses = self._detect_licenses_in_file(file_path)
-            
-            for license in file_licenses:
-                # Deduplicate by license ID and confidence
-                key = (license.spdx_id, round(license.confidence, 2))
-                if key not in processed_licenses:
-                    processed_licenses.add(key)
-                    licenses.append(license)
+        # Process files in parallel for better performance
+        max_workers = min(self.config.thread_count if hasattr(self.config, 'thread_count') else 4, len(files_to_scan))
+        
+        if max_workers > 1 and len(files_to_scan) > 1:
+            # Parallel processing
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                # Submit all files for processing
+                future_to_file = {
+                    executor.submit(self._detect_licenses_in_file_safe, file_path): file_path
+                    for file_path in files_to_scan
+                }
+                
+                # Collect results as they complete
+                for future in as_completed(future_to_file):
+                    try:
+                        file_licenses = future.result(timeout=30)  # 30 second timeout per file
+                        for license in file_licenses:
+                            # Deduplicate by license ID and confidence
+                            key = (license.spdx_id, round(license.confidence, 2))
+                            if key not in processed_licenses:
+                                processed_licenses.add(key)
+                                licenses.append(license)
+                    except Exception as e:
+                        file_path = future_to_file[future]
+                        logger.warning(f"Error processing {file_path}: {e}")
+        else:
+            # Sequential processing for single file or small sets
+            for file_path in files_to_scan:
+                try:
+                    file_licenses = self._detect_licenses_in_file(file_path)
+                    for license in file_licenses:
+                        # Deduplicate by license ID and confidence
+                        key = (license.spdx_id, round(license.confidence, 2))
+                        if key not in processed_licenses:
+                            processed_licenses.add(key)
+                            licenses.append(license)
+                except Exception as e:
+                    logger.warning(f"Error processing {file_path}: {e}")
         
         # Sort by confidence
         licenses.sort(key=lambda x: x.confidence, reverse=True)
         
         return licenses
+    
+    def _detect_licenses_in_file_safe(self, file_path: Path) -> List[DetectedLicense]:
+        """Thread-safe wrapper for file license detection."""
+        try:
+            return self._detect_licenses_in_file(file_path)
+        except Exception as e:
+            logger.debug(f"Error in file {file_path}: {e}")
+            return []
     
     def _find_license_files(self, directory: Path) -> List[Path]:
         """Find potential license files in directory."""
@@ -140,32 +182,123 @@ class LicenseDetector:
         return license_files
     
     def _find_source_files(self, directory: Path, limit: int = 100) -> List[Path]:
-        """Find source files to scan for embedded licenses."""
-        source_extensions = [
-            '.py', '.js', '.ts', '.java', '.c', '.cpp', '.h', '.hpp',
-            '.go', '.rs', '.rb', '.php', '.cs', '.swift', '.kt', '.scala',
-            '.md', '.txt', '.json', '.yaml', '.yml', '.toml'
-        ]
-        
+        """Find all readable files to scan for embedded licenses."""
         source_files = []
         count = 0
         
-        for ext in source_extensions:
-            for file_path in directory.rglob(f'*{ext}'):
-                if file_path.is_file():
-                    source_files.append(file_path)
-                    count += 1
-                    if count >= limit:
-                        return source_files
+        # Extensions to skip (binary files, archives, etc.)
+        skip_extensions = {
+            '.pyc', '.pyo', '.pyd', '.so', '.dll', '.dylib', '.exe',
+            '.bin', '.dat', '.db', '.sqlite', '.sqlite3',
+            '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico', '.svg',
+            '.mp3', '.mp4', '.avi', '.mov', '.wav', '.flac',
+            '.zip', '.tar', '.gz', '.bz2', '.xz', '.7z', '.rar',
+            '.whl', '.egg', '.gem', '.jar', '.war', '.ear',
+            '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+            '.ttf', '.otf', '.woff', '.woff2', '.eot',
+            '.class', '.o', '.a', '.lib', '.obj'
+        }
+        
+        # Scan all files recursively
+        for file_path in directory.rglob('*'):
+            if not file_path.is_file():
+                continue
+            
+            # Skip binary/archive files
+            if file_path.suffix.lower() in skip_extensions:
+                continue
+            
+            # Skip hidden files and directories (optional)
+            if any(part.startswith('.') for part in file_path.parts[:-1]):
+                continue
+            
+            # Skip __pycache__ and similar directories
+            if '__pycache__' in file_path.parts or 'node_modules' in file_path.parts:
+                continue
+            
+            # Try to determine if file is text/readable
+            if self._is_readable_file(file_path):
+                source_files.append(file_path)
+                count += 1
+                if count >= limit:
+                    return source_files
         
         return source_files
+    
+    def _read_file_smart(self, file_path: Path) -> str:
+        """
+        Read large files intelligently by sampling beginning and end.
+        License info is usually in the first few KB or at the end.
+        """
+        try:
+            with open(file_path, 'rb') as f:
+                # Read first 100KB
+                beginning = f.read(100 * 1024)
+                
+                # Seek to end and read last 50KB
+                f.seek(0, 2)  # Seek to end
+                file_size = f.tell()
+                if file_size > 150 * 1024:
+                    f.seek(-50 * 1024, 2)  # Seek to 50KB before end
+                    ending = f.read()
+                else:
+                    ending = b''
+                
+                # Combine and decode
+                combined = beginning + b'\n...\n' + ending if ending else beginning
+                
+                # Try to decode
+                try:
+                    return combined.decode('utf-8', errors='ignore')
+                except UnicodeDecodeError:
+                    return combined.decode('latin-1', errors='ignore')
+        except Exception as e:
+            logger.debug(f"Error reading large file {file_path}: {e}")
+            return ""
+    
+    def _is_readable_file(self, file_path: Path) -> bool:
+        """Check if a file is likely readable text."""
+        try:
+            # Try to read first 1KB to check if it's text
+            with open(file_path, 'rb') as f:
+                chunk = f.read(1024)
+                if not chunk:
+                    return True  # Empty files are "readable"
+                
+                # Check for null bytes (binary indicator)
+                if b'\x00' in chunk:
+                    return False
+                
+                # Try to decode as UTF-8
+                try:
+                    chunk.decode('utf-8')
+                    return True
+                except UnicodeDecodeError:
+                    # Try with common encodings
+                    for encoding in ['latin-1', 'cp1252', 'iso-8859-1']:
+                        try:
+                            chunk.decode(encoding)
+                            return True
+                        except UnicodeDecodeError:
+                            continue
+                    return False
+        except (OSError, IOError):
+            return False
     
     def _detect_licenses_in_file(self, file_path: Path) -> List[DetectedLicense]:
         """Detect licenses in a single file."""
         licenses = []
         
-        # Read file content
-        content = self.input_processor.read_text_file(file_path, max_size=1024*1024)  # 1MB limit
+        # Read file content - for large files, read in chunks
+        file_size = file_path.stat().st_size if file_path.exists() else 0
+        
+        # For very large files (>10MB), only read the beginning and end
+        if file_size > 10 * 1024 * 1024:  # 10MB
+            content = self._read_file_smart(file_path)
+        else:
+            # For smaller files, read the whole thing
+            content = self.input_processor.read_text_file(file_path, max_size=file_size if file_size > 0 else 10*1024*1024)
+        
         if not content:
             return licenses
         
@@ -256,12 +389,21 @@ class LicenseDetector:
         licenses = []
         found_ids = set()
         
+        # Skip files that are likely to contain false positives
+        file_name = file_path.name.lower()
+        if any(name in file_name for name in ['spdx_licenses', 'license_detector', 'test_', 'spec.']):
+            return licenses
+        
         for pattern in self.spdx_tag_patterns:
             matches = pattern.findall(content)
             
             for match in matches:
                 # Clean up the match
                 license_id = match.strip()
+                
+                # Skip obvious false positives
+                if self._is_false_positive_license(license_id):
+                    continue
                 
                 # Handle license expressions (AND, OR, WITH)
                 license_ids = self._parse_license_expression(license_id)
@@ -285,16 +427,75 @@ class LicenseDetector:
                                 source_file=str(file_path)
                             ))
                         else:
-                            # Unknown license ID, but still record it
-                            licenses.append(DetectedLicense(
-                                spdx_id=normalized_id,
-                                name=normalized_id,
-                                confidence=0.9,
-                                detection_method=DetectionMethod.TAG.value,
-                                source_file=str(file_path)
-                            ))
+                            # Only record unknown licenses if they look valid
+                            if self._looks_like_valid_license(normalized_id):
+                                licenses.append(DetectedLicense(
+                                    spdx_id=normalized_id,
+                                    name=normalized_id,
+                                    confidence=0.9,
+                                    detection_method=DetectionMethod.TAG.value,
+                                    source_file=str(file_path)
+                                ))
         
         return licenses
+    
+    def _normalize_license_id(self, license_id: str) -> str:
+        """
+        Normalize license ID to match SPDX format.
+        Handles common variations and aliases.
+        """
+        if not license_id:
+            return license_id
+        
+        # Remove whitespace
+        normalized = license_id.strip()
+        
+        # Check aliases first
+        if hasattr(self.spdx_data, 'get_alias'):
+            aliased = self.spdx_data.get_alias(normalized)
+            if aliased:
+                return aliased
+        
+        # Common normalizations
+        replacements = {
+            ' License': '',
+            ' license': '',
+            'Apache ': 'Apache-',
+            'GPL ': 'GPL-',
+            'LGPL ': 'LGPL-',
+            'BSD ': 'BSD-',
+            'MIT ': 'MIT',
+            'Mozilla ': 'MPL-',
+            'Creative Commons ': 'CC-',
+            ' version ': '-',
+            ' Version ': '-',
+            ' v': '-',
+            ' V': '-',
+            'v.': '-',
+            'V.': '-',
+            ' ': '-'
+        }
+        
+        for old, new in replacements.items():
+            normalized = normalized.replace(old, new)
+        
+        # Handle specific cases
+        if normalized.upper() == 'MIT':
+            return 'MIT'
+        elif normalized.upper().startswith('APACHE') and '2' in normalized:
+            return 'Apache-2.0'
+        elif normalized.upper().startswith('GPL') and '3' in normalized:
+            if 'LGPL' in normalized.upper():
+                return 'LGPL-3.0'
+            else:
+                return 'GPL-3.0'
+        elif normalized.upper().startswith('BSD'):
+            if '3' in normalized or 'three' in normalized.lower() or 'new' in normalized.lower():
+                return 'BSD-3-Clause'
+            elif '2' in normalized or 'two' in normalized.lower() or 'simplified' in normalized.lower():
+                return 'BSD-2-Clause'
+        
+        return normalized
     
     def _parse_license_expression(self, expression: str) -> List[str]:
         """Parse SPDX license expression."""
@@ -307,31 +508,6 @@ class LicenseDetector:
         
         return [p.strip() for p in parts if p.strip()]
     
-    def _normalize_license_id(self, license_id: str) -> str:
-        """Normalize license ID using aliases."""
-        aliases = self.spdx_data.get_license_aliases()
-        
-        # Try exact match first
-        if license_id in aliases:
-            return aliases[license_id]
-        
-        # Try case-insensitive match
-        license_lower = license_id.lower()
-        if license_lower in aliases:
-            return aliases[license_lower]
-        
-        # Try fuzzy matching
-        if aliases:
-            match, score = fuzz_process.extractOne(
-                license_id,
-                aliases.keys(),
-                scorer=fuzz.ratio
-            )
-            
-            if score >= 90:  # 90% similarity
-                return aliases[match]
-        
-        return license_id
     
     def _detect_license_from_text(self, text: str, file_path: Path) -> Optional[DetectedLicense]:
         """
@@ -528,3 +704,75 @@ class LicenseDetector:
             )
         
         return None
+    
+    def _is_false_positive_license(self, license_id: str) -> bool:
+        """Check if a detected license ID is likely a false positive."""
+        # Skip empty or too short
+        if not license_id or len(license_id) < 2:
+            return True
+        
+        # Skip if contains regex patterns or code-like syntax
+        false_positive_patterns = [
+            '\\', '{', '}', '[', ']', '(', ')', 
+            '<', '>', '?:', '^', '$', '*', '+',
+            'var;', 'name=', 'original=', 'match=',
+            '.{0', '\\n', '\\s', '\\d'
+        ]
+        
+        for pattern in false_positive_patterns:
+            if pattern in license_id:
+                return True
+        
+        # Skip if it's a sentence or description (too long)
+        if len(license_id) > 100:
+            return True
+        
+        # Skip common false positive phrases
+        false_phrases = [
+            'you comply', 'their terms', 'conditions',
+            'adapt all', 'organizations', 'individuals',
+            'a compatible', 'certification process',
+            'its license review', 'this license',
+            'this public license', 'with a notice'
+        ]
+        
+        license_lower = license_id.lower()
+        for phrase in false_phrases:
+            if phrase in license_lower:
+                return True
+        
+        return False
+    
+    def _looks_like_valid_license(self, license_id: str) -> bool:
+        """Check if a string looks like a valid license identifier."""
+        # Should be alphanumeric with hyphens, dots, or plus
+        if not license_id:
+            return False
+        
+        # Check length (most license IDs are between 2 and 50 chars)
+        if len(license_id) < 2 or len(license_id) > 50:
+            return False
+        
+        # Should mostly contain valid characters
+        valid_chars = set('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-+. ')
+        if not all(c in valid_chars for c in license_id):
+            return False
+        
+        # Common license ID patterns
+        known_patterns = [
+            'MIT', 'BSD', 'Apache', 'GPL', 'LGPL', 'MPL',
+            'ISC', 'CC', 'Unlicense', 'WTFPL', 'Zlib',
+            'Python', 'PHP', 'Ruby', 'Perl', 'PSF'
+        ]
+        
+        license_upper = license_id.upper()
+        for pattern in known_patterns:
+            if pattern in license_upper:
+                return True
+        
+        # Check if it matches common license ID format (e.g., Apache-2.0, GPL-3.0+)
+        import re
+        if re.match(r'^[A-Za-z]+[\-\.]?[0-9]*\.?[0-9]*[\+]?$', license_id):
+            return True
+        
+        return False
