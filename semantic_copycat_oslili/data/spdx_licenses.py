@@ -1,0 +1,371 @@
+"""
+SPDX license data management module.
+Downloads and caches SPDX license list data.
+"""
+
+import json
+import logging
+import hashlib
+import os
+from pathlib import Path
+from typing import Dict, List, Optional, Any
+from datetime import datetime, timedelta
+
+import requests
+
+logger = logging.getLogger(__name__)
+
+
+class SPDXLicenseData:
+    """Manage SPDX license data with caching."""
+    
+    def __init__(self, config):
+        """
+        Initialize SPDX license data manager.
+        
+        Args:
+            config: Configuration object
+        """
+        self.config = config
+        
+        # Path to bundled license data
+        self.bundled_data_file = Path(__file__).parent / "spdx_licenses.json"
+        
+        # Set cache directory for any additional downloads
+        if config.cache_dir:
+            self.cache_dir = Path(config.cache_dir)
+        else:
+            self.cache_dir = Path.home() / ".cache" / "oslili"
+        
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Cache file paths
+        self.licenses_cache_file = self.cache_dir / "spdx_licenses.json"
+        self.license_texts_dir = self.cache_dir / "license_texts"
+        self.license_texts_dir.mkdir(exist_ok=True)
+        
+        # Cache duration (7 days)
+        self.cache_duration = timedelta(days=7)
+        
+        # Loaded data
+        self._bundled_data = None
+        self._licenses = None
+        self._license_texts = {}
+        self._license_index = {}
+        self._aliases = {}
+        self._name_mappings = {}
+    
+    @property
+    def licenses(self) -> Dict[str, Any]:
+        """Get SPDX licenses data (lazy loading)."""
+        if self._licenses is None:
+            self._load_licenses()
+        return self._licenses
+    
+    def _load_licenses(self):
+        """Load SPDX licenses from bundled data, cache, or download."""
+        # First try bundled data
+        if self.bundled_data_file.exists():
+            logger.debug("Loading bundled SPDX license data")
+            try:
+                with open(self.bundled_data_file, 'r', encoding='utf-8') as f:
+                    self._bundled_data = json.load(f)
+                
+                # Extract licenses for compatibility
+                self._licenses = {
+                    "licenses": [
+                        {"licenseId": lid, **info}
+                        for lid, info in self._bundled_data.get("licenses", {}).items()
+                    ]
+                }
+                
+                # Load aliases and mappings
+                self._aliases = self._bundled_data.get("aliases", {})
+                self._name_mappings = self._bundled_data.get("name_mappings", {})
+                
+                logger.debug(f"Loaded {len(self._bundled_data.get('licenses', {}))} bundled licenses")
+                
+                # Build index
+                self._build_license_index()
+                return
+            except Exception as e:
+                logger.warning(f"Failed to load bundled data: {e}")
+        
+        # Fall back to cache or download
+        if self._is_cache_valid(self.licenses_cache_file):
+            logger.debug("Loading SPDX licenses from cache")
+            with open(self.licenses_cache_file, 'r') as f:
+                self._licenses = json.load(f)
+        else:
+            logger.info("Downloading SPDX license list")
+            self._download_licenses()
+        
+        # Build index
+        self._build_license_index()
+    
+    def _is_cache_valid(self, cache_file: Path) -> bool:
+        """Check if cache file is valid and recent."""
+        if not cache_file.exists():
+            return False
+        
+        # Check age
+        mtime = datetime.fromtimestamp(cache_file.stat().st_mtime)
+        age = datetime.now() - mtime
+        
+        return age < self.cache_duration
+    
+    def _download_licenses(self):
+        """Download SPDX license list from GitHub."""
+        try:
+            response = requests.get(
+                self.config.spdx_data_url,
+                timeout=self.config.network_timeout
+            )
+            response.raise_for_status()
+            
+            data = response.json()
+            
+            # Save to cache
+            with open(self.licenses_cache_file, 'w') as f:
+                json.dump(data, f, indent=2)
+            
+            self._licenses = data
+            logger.info(f"Downloaded {len(data.get('licenses', []))} SPDX licenses")
+        
+        except Exception as e:
+            logger.error(f"Failed to download SPDX licenses: {e}")
+            # Try to load stale cache
+            if self.licenses_cache_file.exists():
+                logger.warning("Using stale cache")
+                with open(self.licenses_cache_file, 'r') as f:
+                    self._licenses = json.load(f)
+            else:
+                # Use embedded minimal set
+                self._licenses = self._get_embedded_licenses()
+    
+    def _get_embedded_licenses(self) -> Dict[str, Any]:
+        """Get minimal embedded license set as fallback."""
+        return {
+            "licenses": [
+                {
+                    "licenseId": "MIT",
+                    "name": "MIT License",
+                    "isOsiApproved": True,
+                    "detailsUrl": "https://spdx.org/licenses/MIT.json"
+                },
+                {
+                    "licenseId": "Apache-2.0",
+                    "name": "Apache License 2.0",
+                    "isOsiApproved": True,
+                    "detailsUrl": "https://spdx.org/licenses/Apache-2.0.json"
+                },
+                {
+                    "licenseId": "GPL-3.0",
+                    "name": "GNU General Public License v3.0 only",
+                    "isOsiApproved": True,
+                    "detailsUrl": "https://spdx.org/licenses/GPL-3.0.json"
+                },
+                {
+                    "licenseId": "BSD-3-Clause",
+                    "name": "BSD 3-Clause \"New\" or \"Revised\" License",
+                    "isOsiApproved": True,
+                    "detailsUrl": "https://spdx.org/licenses/BSD-3-Clause.json"
+                },
+                {
+                    "licenseId": "ISC",
+                    "name": "ISC License",
+                    "isOsiApproved": True,
+                    "detailsUrl": "https://spdx.org/licenses/ISC.json"
+                }
+            ]
+        }
+    
+    def _build_license_index(self):
+        """Build index for quick license lookup."""
+        self._license_index = {}
+        
+        for license_info in self.licenses.get('licenses', []):
+            license_id = license_info.get('licenseId')
+            if license_id:
+                # Index by ID (case-insensitive)
+                self._license_index[license_id.lower()] = license_info
+                
+                # Also index by name variations
+                name = license_info.get('name', '')
+                if name:
+                    self._license_index[name.lower()] = license_info
+    
+    def get_license_info(self, license_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Get license information by ID.
+        
+        Args:
+            license_id: SPDX license ID
+            
+        Returns:
+            License information or None
+        """
+        return self._license_index.get(license_id.lower())
+    
+    def get_license_text(self, license_id: str) -> Optional[str]:
+        """
+        Get license text for a specific license.
+        
+        Args:
+            license_id: SPDX license ID
+            
+        Returns:
+            License text or None
+        """
+        # Check memory cache
+        if license_id in self._license_texts:
+            return self._license_texts[license_id]
+        
+        # Check bundled data first
+        if self._bundled_data and license_id in self._bundled_data.get("licenses", {}):
+            bundled_license = self._bundled_data["licenses"][license_id]
+            if "text" in bundled_license and bundled_license["text"]:
+                text = bundled_license["text"]
+                self._license_texts[license_id] = text
+                return text
+        
+        # Check file cache
+        text_file = self.license_texts_dir / f"{license_id}.txt"
+        if text_file.exists():
+            with open(text_file, 'r') as f:
+                text = f.read()
+                self._license_texts[license_id] = text
+                return text
+        
+        # Download license details as last resort
+        license_info = self.get_license_info(license_id)
+        if not license_info:
+            return None
+        
+        details_url = license_info.get('detailsUrl')
+        if not details_url:
+            return None
+        
+        try:
+            logger.debug(f"Downloading license text for {license_id}")
+            response = requests.get(details_url, timeout=self.config.network_timeout)
+            response.raise_for_status()
+            
+            data = response.json()
+            text = data.get('licenseText', '')
+            
+            # Cache the text
+            if text:
+                with open(text_file, 'w') as f:
+                    f.write(text)
+                self._license_texts[license_id] = text
+                return text
+        
+        except Exception as e:
+            logger.debug(f"Failed to download license text for {license_id}: {e}")
+        
+        return None
+    
+    def get_all_license_ids(self) -> List[str]:
+        """Get list of all SPDX license IDs."""
+        return [l.get('licenseId') for l in self.licenses.get('licenses', []) 
+                if l.get('licenseId')]
+    
+    def get_license_aliases(self) -> Dict[str, str]:
+        """
+        Get common license aliases mapped to SPDX IDs.
+        
+        Returns:
+            Dictionary mapping aliases to SPDX IDs
+        """
+        aliases = dict(self.config.custom_aliases)
+        
+        # Add common variations
+        for license_info in self.licenses.get('licenses', []):
+            license_id = license_info.get('licenseId')
+            if not license_id:
+                continue
+            
+            # Add case variations
+            aliases[license_id.lower()] = license_id
+            aliases[license_id.upper()] = license_id
+            
+            # Add common variations
+            if license_id == "Apache-2.0":
+                aliases["Apache 2.0"] = license_id
+                aliases["Apache License 2.0"] = license_id
+                aliases["Apache Software License 2.0"] = license_id
+                aliases["ASL 2.0"] = license_id
+            elif license_id == "MIT":
+                aliases["MIT License"] = license_id
+                aliases["The MIT License"] = license_id
+                aliases["Expat License"] = license_id
+            elif license_id == "BSD-3-Clause":
+                aliases["BSD"] = license_id
+                aliases["BSD License"] = license_id
+                aliases["BSD 3-Clause"] = license_id
+                aliases["New BSD License"] = license_id
+            elif license_id == "GPL-3.0":
+                aliases["GPLv3"] = license_id
+                aliases["GPL v3"] = license_id
+                aliases["GNU GPLv3"] = license_id
+            elif license_id == "LGPL-3.0":
+                aliases["LGPLv3"] = license_id
+                aliases["LGPL v3"] = license_id
+                aliases["GNU LGPLv3"] = license_id
+        
+        return aliases
+    
+    def compute_text_hash(self, text: str, algorithm: str = 'sha256') -> str:
+        """
+        Compute hash of license text for comparison.
+        
+        Args:
+            text: License text
+            algorithm: Hash algorithm to use
+            
+        Returns:
+            Hex digest of hash
+        """
+        # Normalize text for hashing
+        normalized = self._normalize_text(text)
+        
+        if algorithm == 'sha256':
+            hasher = hashlib.sha256()
+        elif algorithm == 'md5':
+            hasher = hashlib.md5()
+        else:
+            hasher = hashlib.sha256()
+        
+        hasher.update(normalized.encode('utf-8'))
+        return hasher.hexdigest()
+    
+    def _normalize_text(self, text: str) -> str:
+        """
+        Normalize license text for comparison.
+        
+        Args:
+            text: Original text
+            
+        Returns:
+            Normalized text
+        """
+        # Remove extra whitespace
+        text = ' '.join(text.split())
+        
+        # Convert to lowercase
+        text = text.lower()
+        
+        # Remove common variable placeholders
+        import re
+        text = re.sub(r'\[year\]|\[yyyy\]|\[name of copyright owner\]|\[fullname\]', '', text)
+        text = re.sub(r'<year>|<name of author>|<organization>', '', text)
+        text = re.sub(r'\{year\}|\{fullname\}|\{email\}', '', text)
+        
+        # Remove punctuation for fuzzy matching
+        text = re.sub(r'[^\w\s]', ' ', text)
+        
+        # Remove extra spaces again
+        text = ' '.join(text.split())
+        
+        return text

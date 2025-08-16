@@ -1,0 +1,127 @@
+"""
+Data models for the semantic-copycat-oslili package.
+"""
+
+from dataclasses import dataclass, field
+from typing import List, Optional, Dict, Any
+from enum import Enum
+
+
+class OutputFormat(Enum):
+    KISSBOM = "kissbom"
+    CYCLONEDX_JSON = "cyclonedx-json"
+    CYCLONEDX_XML = "cyclonedx-xml"
+    NOTICES = "notices"
+
+
+class DetectionMethod(Enum):
+    DICE_SORENSEN = "dice-sorensen"
+    TLSH = "tlsh"
+    ML = "ml"
+    REGEX = "regex"
+    TAG = "tag"
+    FILENAME = "filename"
+
+
+@dataclass
+class DetectedLicense:
+    """Represents a detected license."""
+    spdx_id: str
+    name: str
+    text: Optional[str] = None
+    confidence: float = 0.0
+    detection_method: str = ""
+    source_file: Optional[str] = None
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "spdx_id": self.spdx_id,
+            "name": self.name,
+            "confidence": self.confidence,
+            "detection_method": self.detection_method,
+            "source_file": self.source_file
+        }
+
+
+@dataclass
+class CopyrightInfo:
+    """Represents copyright information."""
+    holder: str
+    years: Optional[List[int]] = None
+    statement: str = ""
+    source_file: Optional[str] = None
+    confidence: float = 0.0
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "holder": self.holder,
+            "years": self.years,
+            "statement": self.statement,
+            "source_file": self.source_file,
+            "confidence": self.confidence
+        }
+
+
+@dataclass
+class AttributionResult:
+    """Result of attribution analysis for a package."""
+    purl: str
+    licenses: List[DetectedLicense] = field(default_factory=list)
+    copyrights: List[CopyrightInfo] = field(default_factory=list)
+    errors: List[str] = field(default_factory=list)
+    confidence_scores: Dict[str, float] = field(default_factory=dict)
+    processing_time: float = 0.0
+    package_name: Optional[str] = None
+    package_version: Optional[str] = None
+    
+    def get_primary_license(self) -> Optional[DetectedLicense]:
+        """Get the license with highest confidence."""
+        if not self.licenses:
+            return None
+        return max(self.licenses, key=lambda x: x.confidence)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "purl": self.purl,
+            "package_name": self.package_name,
+            "package_version": self.package_version,
+            "licenses": [l.to_dict() for l in self.licenses],
+            "copyrights": [c.to_dict() for c in self.copyrights],
+            "errors": self.errors,
+            "confidence_scores": self.confidence_scores,
+            "processing_time": self.processing_time
+        }
+
+
+@dataclass
+class Config:
+    """Configuration for the attribution generator."""
+    similarity_threshold: float = 0.97
+    max_extraction_depth: int = 10
+    network_timeout: int = 30
+    thread_count: int = 4
+    verbose: bool = False
+    debug: bool = False
+    license_filename_patterns: List[str] = field(default_factory=lambda: [
+        "LICENSE*", "LICENCE*", "COPYING*", "NOTICE*",
+        "MIT-LICENSE*", "APACHE-LICENSE*", "BSD-LICENSE*",
+        "UNLICENSE*", "COPYRIGHT*", "3rdpartylicenses.txt",
+        "THIRD_PARTY_NOTICES*"
+    ])
+    custom_aliases: Dict[str, str] = field(default_factory=lambda: {
+        "Apache 2": "Apache-2.0",
+        "Apache 2.0": "Apache-2.0",
+        "Apache License 2.0": "Apache-2.0",
+        "MIT License": "MIT",
+        "BSD License": "BSD-3-Clause",
+        "ISC License": "ISC",
+        "GPLv2": "GPL-2.0",
+        "GPLv3": "GPL-3.0",
+        "LGPLv2": "LGPL-2.0",
+        "LGPLv3": "LGPL-3.0",
+    })
+    spdx_data_url: str = "https://raw.githubusercontent.com/spdx/license-list-data/main/json/licenses.json"
+    clearlydefined_api_url: str = "https://api.clearlydefined.io"
+    pypi_api_url: str = "https://pypi.org/pypi"
+    npm_api_url: str = "https://registry.npmjs.org"
+    cache_dir: Optional[str] = None

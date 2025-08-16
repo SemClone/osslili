@@ -1,0 +1,2798 @@
+{
+  "0BSD": {
+    "hash": "T1A7F09910F68C63BE62F7038532120191F2196EB0B70466A0741490382392FB5147B5AE",
+    "name": "BSD Zero Clause License"
+  },
+  "3D-Slicer-1.0": {
+    "hash": "T13A126337B30413620EC30396954795DAF63BE47CB3AB499A6444E06C337AE74C3B766A",
+    "name": "3D Slicer License v1.0"
+  },
+  "AAL": {
+    "hash": "T19A513212A7482373AFE30285A62AD1C9F32E6038771A95B92855806C3347E7887375AF",
+    "name": "Attribution Assurance License"
+  },
+  "Abstyles": {
+    "hash": "T1EF01D03D83C853761C934A87A5B7D09BF31E907837AB10A1285EC09C07458648339685",
+    "name": "Abstyles License"
+  },
+  "AdaCore-doc": {
+    "hash": "T1C7D0A766535813D484D7084F7941D5CCEB2EB0353F506493251E46DDB703E599272957",
+    "name": "AdaCore Doc License"
+  },
+  "Adobe-2006": {
+    "hash": "T11B31132BA288173304E5128172578A85B22D706063496658D979D21D23FDE7FC376DAA",
+    "name": "Adobe Systems Incorporated Source Code License Agreement"
+  },
+  "Adobe-Display-PostScript": {
+    "hash": "T17D31202BF744536506E70352726394E9733E65BC7321A6AE394DD139039BEE482360FB",
+    "name": "Adobe Display PostScript License"
+  },
+  "Adobe-Glyph": {
+    "hash": "T14831D12F978813B729A70312667754D2A37DA07D372B2548604DC17C26DAD28837B5AD",
+    "name": "Adobe Glyph List License"
+  },
+  "Adobe-Utopia": {
+    "hash": "T1C6F05C47F6E893E146E30741F65BD099506C947CB383FD18AA99E12B10C74A5D578385",
+    "name": "Adobe Utopia Font License"
+  },
+  "ADSL": {
+    "hash": "T195F02EFEF991477A01E102841653858E7B5F7DA0614923D15D51496C27FEBA5C074CB1",
+    "name": "Amazon Digital Services License"
+  },
+  "AFL-1.1": {
+    "hash": "T1AD91012A534D13730B8207A65B1B6ACFF31EC028726FDBD225A881A813F5D74437A5ED",
+    "name": "Academic Free License v1.1"
+  },
+  "AFL-1.2": {
+    "hash": "T10CA1322A934D13730BC303665B1B99CFF31E8029736F9BD224A9909813F5E64437A9ED",
+    "name": "Academic Free License v1.2"
+  },
+  "AFL-2.0": {
+    "hash": "T1BB02242E634D137317C60366AB5B9ADFE31E8028736FD59121A9C0A417F1E7043BA9ED",
+    "name": "Academic Free License v2.0"
+  },
+  "AFL-2.1": {
+    "hash": "T1C402132EA34D137317C20366AB5B9ADFE31E8029736FD59121A980A417F1E70437A9ED",
+    "name": "Academic Free License v2.1"
+  },
+  "AFL-3.0": {
+    "hash": "T1C422142E634D137307C702669B5B99DFE31E8039336F959231A980A417F2E7443BA9DD",
+    "name": "Academic Free License v3.0"
+  },
+  "Afmparse": {
+    "hash": "T19511233FCEC0135706C502562B8346D2933F64AD3450E28C55EF526C275F5BA43B6CA5",
+    "name": "Afmparse License"
+  },
+  "AGPL-1.0": {
+    "hash": "T14362752BA78443F306C202915A4B5CCFB31E947CB22A41656859C16E236BF35C77FBD9",
+    "name": "Affero General Public License v1.0"
+  },
+  "AGPL-1.0-only": {
+    "hash": "T14362752BA78443F306C202915A4B5CCFB31E947CB22A41656859C16E236BF35C77FBD9",
+    "name": "Affero General Public License v1.0 only"
+  },
+  "AGPL-1.0-or-later": {
+    "hash": "T14362752BA78443F306C202915A4B5CCFB31E947CB22A41656859C16E236BF35C77FBD9",
+    "name": "Affero General Public License v1.0 or later"
+  },
+  "AGPL-3.0": {
+    "hash": "T196E2745BA34413B3028202555A4FA8CFF32E9438736A40A56859C15D27B3E79C77FBEE",
+    "name": "GNU Affero General Public License v3.0"
+  },
+  "AGPL-3.0-only": {
+    "hash": "T196E2745BA34413B3028202555A4FA8CFF32E9438736A40A56859C15D27B3E79C77FBEE",
+    "name": "GNU Affero General Public License v3.0 only"
+  },
+  "AGPL-3.0-or-later": {
+    "hash": "T196E2745BA34413B3028202555A4FA8CFF32E9438736A40A56859C15D27B3E79C77FBEE",
+    "name": "GNU Affero General Public License v3.0 or later"
+  },
+  "Aladdin": {
+    "hash": "T185328627A78413B306D201855A4E18DFB31E983CB32A95696C5CC06E236BE75C37FBD9",
+    "name": "Aladdin Free Public License"
+  },
+  "AMD-newlib": {
+    "hash": "T194F08B08738263A60AB303C22D8721D1B31E3AF493265BD03B5A801C5AA79B84035874",
+    "name": "AMD newlib License"
+  },
+  "AMDPLPA": {
+    "hash": "T1A7B1521A538013770BD20193AB5395D9F32A943D7B7754E1289D816C234ADB8C37BAB9",
+    "name": "AMD's plpa_map.c License"
+  },
+  "AML": {
+    "hash": "T18841223DB65803720AD703EE526A55D1B23BA5B83797459078B8C09C235BEB093377ED",
+    "name": "Apple MIT License"
+  },
+  "AML-glslang": {
+    "hash": "T14541216DB1380F330AFF029A7127E5D1B3AB99A8371541416869C56E235BF3483339DD",
+    "name": "AML glslang variant License"
+  },
+  "AMPAS": {
+    "hash": "T10F416439B38813739FE60642F6A685E0F21F846C772666A0645C813C278ED70C33716D",
+    "name": "Academy of Motion Picture Arts and Sciences BSD"
+  },
+  "ANTLR-PD": {
+    "hash": "T19B1125179746027121D200506342BDDFF77BA438B38995923C1CD32C336D975C73AAAE",
+    "name": "ANTLR Software Rights Notice"
+  },
+  "ANTLR-PD-fallback": {
+    "hash": "T13E21102BD74A037021E10010A346B9DFF32BA438738985966C18E22833799B5873EAFD",
+    "name": "ANTLR Software Rights Notice with license fallback"
+  },
+  "any-OSI": {
+    "hash": "T14FB0128FA51598F70B8295A41E225E2D151E0110901605410045436484301BA6490008",
+    "name": "Any OSI License"
+  },
+  "any-OSI-perl-modules": {
+    "hash": "T14BF0A275E646537307C215F9EF6148EDE319627C756B918360CEC0A9153FC3461F63A8",
+    "name": "Any OSI License - Perl Modules"
+  },
+  "Apache-1.0": {
+    "hash": "T198510012F69C537645E302CA251D9AC4B73E9628F7171A517C1C917C32CACBC85372DD",
+    "name": "Apache License 1.0"
+  },
+  "Apache-1.1": {
+    "hash": "T10B411325B25C137305E3039A652D9594B73EA738FB1B46A0781D917C324BCA883B76DD",
+    "name": "Apache License 1.1"
+  },
+  "Apache-2.0": {
+    "hash": "T1F322247BA34C133306C30166A78B98DFF32A903C775A5569505AC07823B7E6583BF6DA",
+    "name": "Apache License 2.0"
+  },
+  "APAFML": {
+    "hash": "T1BCF07D1A2BC227D41CD519DB7321618DB53AC23C2A5DD551718AB04C320541793F0DEA",
+    "name": "Adobe Postscript AFM License"
+  },
+  "APL-1.0": {
+    "hash": "T11113336357C813B34AC203B59F1A55CEF32EE43C36AA60A554CDD16C26AFD24837B2D9",
+    "name": "Adaptive Public License 1.0"
+  },
+  "App-s2p": {
+    "hash": "T149D0A74EDBA492D406E515E6551410ABD11E8C14312604927BD8815E032A7199136E45",
+    "name": "App::s2p License"
+  },
+  "APSL-1.0": {
+    "hash": "T14E8243AF5348137206C302EA5B0E69CFF32E8428766B59615899C16C13A2F74D37B7AD",
+    "name": "Apple Public Source License 1.0"
+  },
+  "APSL-1.1": {
+    "hash": "T1419245AF5344137206C302EA5B4F69CFE32E8428726F59616499C16C2362F74D37B7AD",
+    "name": "Apple Public Source License 1.1"
+  },
+  "APSL-1.2": {
+    "hash": "T1219256AF634813720AC301EA5B0F65DFF31EC428726A5565289D812C23A3F74D37B7A9",
+    "name": "Apple Public Source License 1.2"
+  },
+  "APSL-2.0": {
+    "hash": "T12A9256AF634813721AC301EA5B0F65CFF32EC42C725A55612899816C13B7E74C3BB69D",
+    "name": "Apple Public Source License 2.0"
+  },
+  "Arphic-1999": {
+    "hash": "T1F4E1732B674913B71AC305957F4F44CFD31E642C332A2165147AC0AC23BFE6582FABA9",
+    "name": "Arphic Public License"
+  },
+  "Artistic-1.0": {
+    "hash": "T1AFA1132B938813B215E30962B60D75DEE76F303873268450385ED15C2356D7A83B6AEE",
+    "name": "Artistic License 1.0"
+  },
+  "Artistic-1.0-cl8": {
+    "hash": "T12CA1222B938413B215E30963B60D76DEE76E343873228494385ED15C2356D7A8377AEE",
+    "name": "Artistic License 1.0 w/clause 8"
+  },
+  "Artistic-1.0-Perl": {
+    "hash": "T167C1012B938813B215E309A2B60D75DEE7AE203873329490395ED16C2356D768377EED",
+    "name": "Artistic License 1.0 (Perl)"
+  },
+  "Artistic-2.0": {
+    "hash": "T13F02F02F678853F705D30686FA4A64DEF76E6038373550A1284EC15C236AE7B83739D9",
+    "name": "Artistic License 2.0"
+  },
+  "Artistic-dist": {
+    "hash": "T100C1232BA78813B115E30962B60D75DEE76F6038332644503C5ED15C2366E368377BEE",
+    "name": "Artistic License 1.0 (dist)"
+  },
+  "Aspell-RU": {
+    "hash": "T12FD0A77EC41DF1B59C6341DBA1F620896314C048F7033018D091C18800FF0529674919",
+    "name": "Aspell Russian License"
+  },
+  "ASWF-Digital-Assets-1.0": {
+    "hash": "T11D41D026E35C233305E30697B119D9E9711DB26C336AEA96287D816C33D9EB042731BA",
+    "name": "ASWF Digital Assets License version 1.0"
+  },
+  "ASWF-Digital-Assets-1.1": {
+    "hash": "T12041E236E35C233305E306A7B119D9E9711DB26C336BDA96187D816C73D9EB042721BD",
+    "name": "ASWF Digital Assets License 1.1"
+  },
+  "Baekmuk": {
+    "hash": "T104F0970E8A8453290FF30946B66398C7353E90387313B894F779C4AC12938E083352A8",
+    "name": "Baekmuk License"
+  },
+  "Bahyph": {
+    "hash": "T1F621F127FB8C93A200D101817550E6EFA71FA0B527A185A7345EA2592311A5C49B7AB6",
+    "name": "Bahyph License"
+  },
+  "Barr": {
+    "hash": "T141F026239A504FB06ACD85D9558383F4FF1EE4B17796EDC024DE264A3E5187127BE50C",
+    "name": "Barr License"
+  },
+  "bcrypt-Solar-Designer": {
+    "hash": "T18EF0C047A344837125F24397C09A92C3BB47B0993A2E9C40AD19C5C43F1AA21C9392EA",
+    "name": "bcrypt Solar Designer License"
+  },
+  "Beerware": {
+    "hash": "T147D05E5E3EA0A46A66610614BA008A1B7717D9A5221592EB5081EA51333AB1F56B6CF0",
+    "name": "Beerware License"
+  },
+  "Bitstream-Charter": {
+    "hash": "T1F4F020EBE334A1A1389207AFB76F818D25AD742BB3098F45944CF03C12BE80900F6757",
+    "name": "Bitstream Charter Font License"
+  },
+  "Bitstream-Vera": {
+    "hash": "T1D441432A764823735542036FFB9F91E0F34E729C732AA590787AC02C2392D6443F3AD8",
+    "name": "Bitstream Vera Font License"
+  },
+  "BitTorrent-1.0": {
+    "hash": "T16EB2306AA39813B307C301BA6F1754CFB32F903C766A65A51059906C1376F2C93BB9A9",
+    "name": "BitTorrent Open Source License v1.0"
+  },
+  "BitTorrent-1.1": {
+    "hash": "T199C2206AE79813B307C301666F17A4CFF32FD03C766A65A51049906C1376F2C83BB9A9",
+    "name": "BitTorrent Open Source License v1.1"
+  },
+  "blessing": {
+    "hash": "T118D0A7DD654153D560500E21A2D7130BE76B07786509324B6435B7751333769E47C6DB",
+    "name": "SQLite Blessing"
+  },
+  "BlueOak-1.0.0": {
+    "hash": "T1C7315C6F7759675347E04204BF43615FF60A497C976946B2281A901423F162A02FB8F9",
+    "name": "Blue Oak Model License 1.0.0"
+  },
+  "Boehm-GC": {
+    "hash": "T1D6F09E2DE3DD13F8049206C278DED5DD950F140EB7163984390DC2ED1567864C4A75FA",
+    "name": "Boehm-Demers-Weiser GC License"
+  },
+  "Boehm-GC-without-fee": {
+    "hash": "T152F0AC2EA3A823F925A306C375D980CCA90FA409BB1329902909C19C1217454D936896",
+    "name": "Boehm-Demers-Weiser GC License (without fee)"
+  },
+  "Borceux": {
+    "hash": "T1C9F049168D0CED3D97A204833368D39580A9F5287D3EA0D0B7A5C60B1149F78CF55CB8",
+    "name": "Borceux license"
+  },
+  "Brian-Gladman-2-Clause": {
+    "hash": "T173F0493AA38C5372C9DB06CB76548144B31CD46CB706551139AA503D232FA76D5B39EB",
+    "name": "Brian Gladman 2-Clause License"
+  },
+  "Brian-Gladman-3-Clause": {
+    "hash": "T13C11F02B97CC033345E306C6FA5A91CAF30C556C7B874611383A5069231FD7AC5739EA",
+    "name": "Brian Gladman 3-Clause License"
+  },
+  "BSD-1-Clause": {
+    "hash": "T1BD112032A38C137318FA42C7B659C984B24D5568771A19602C69827C232ED78C8731DE",
+    "name": "BSD 1-Clause License"
+  },
+  "BSD-2-Clause": {
+    "hash": "T1A221FB32A38C037359EB45C7B669D988B24D942C7B0A29102C2E827C236ED78C9731DA",
+    "name": "BSD 2-Clause \"Simplified\" License"
+  },
+  "BSD-2-Clause-Darwin": {
+    "hash": "T169311F33A34D037399EB01CA6669D184F36D893C7B0EA954282A817C230ED75C6735DD",
+    "name": "BSD 2-Clause - Ian Darwin variant"
+  },
+  "BSD-2-Clause-first-lines": {
+    "hash": "T1CB21F036A38C137355EB45C7BA69C584B35DA43C371A29142C2A813C235FD75CA7359E",
+    "name": "BSD 2-Clause - first lines requirement"
+  },
+  "BSD-2-Clause-FreeBSD": {
+    "hash": "T16B312032A78C537399EB0AC7B55DC9C0F30E942C770A2920281D813C235ED34C5B30EA",
+    "name": "BSD 2-Clause FreeBSD License"
+  },
+  "BSD-2-Clause-NetBSD": {
+    "hash": "T17A211E32638C137399FB05C7B669D594F25D956C7B0A29A12C2A823C235ED34C6330DE",
+    "name": "BSD 2-Clause NetBSD License"
+  },
+  "BSD-2-Clause-Patent": {
+    "hash": "T19C512133634C13735AD64187FA6EEDC8F21DD01C7B161415246EC1A8136AC78C6BB5EA",
+    "name": "BSD-2-Clause Plus Patent License"
+  },
+  "BSD-2-Clause-pkgconf-disclaimer": {
+    "hash": "T1DD017B37538893B75AEB45CA794E9188F219883D3B0A19106C2B817C136B936C8775C6",
+    "name": "BSD 2-Clause pkgconf disclaimer variant"
+  },
+  "BSD-2-Clause-Views": {
+    "hash": "T1A131EC32638C037759EB02C7B56DD9C4F3199428771B59512C2D827C235ED78C5771EA",
+    "name": "BSD 2-Clause with views sentence"
+  },
+  "BSD-3-Clause": {
+    "hash": "T15421FE22A38C137319FA41C7B62EE9C8B21D942C771A5A112C6D827C239ED79C5731DA",
+    "name": "BSD 3-Clause \"New\" or \"Revised\" License"
+  },
+  "BSD-3-Clause-acpica": {
+    "hash": "T12B315322A2CC033319EA82CBB14AD9D4F21D947C772E66512C6A827C23DFCB5C4730DA",
+    "name": "BSD 3-Clause acpica variant"
+  },
+  "BSD-3-Clause-Attribution": {
+    "hash": "T1F131FC22A38C133309EB45C7B25EE9D8B21D942C772A5A512C2D816C239FD79C9731EE",
+    "name": "BSD with attribution"
+  },
+  "BSD-3-Clause-Clear": {
+    "hash": "T154311023A38C137359EB02C7F62AD8D4F21D846C771E6A51386D816C23AED78C6731DA",
+    "name": "BSD 3-Clause Clear License"
+  },
+  "BSD-3-Clause-flex": {
+    "hash": "T1ED31622B538843731AE604E7961EE1E9F70C952C7706CA017C5E809C125BCB685B3AD9",
+    "name": "BSD 3-Clause Flex variant"
+  },
+  "BSD-3-Clause-HP": {
+    "hash": "T139210F22A38C137349EB01C6752ED5C4B21C843C771A6A512C69813C239FD75C5735DE",
+    "name": "Hewlett-Packard BSD variant license"
+  },
+  "BSD-3-Clause-LBNL": {
+    "hash": "T13B416622B388233319EA0293A25FC986F21D856C770E1510682D41FC22BFD69C3B34A9",
+    "name": "Lawrence Berkeley National Labs BSD variant license"
+  },
+  "BSD-3-Clause-Modification": {
+    "hash": "T13531FB22A38C037756FA09C3B65DD9D8B21C642C770A5A542C2EC26D23AFD79C0F35E9",
+    "name": "BSD 3-Clause Modification"
+  },
+  "BSD-3-Clause-No-Military-License": {
+    "hash": "T17E311C22A38C137309FA42C7B52EE9C8B21D542C771A5A512C6D827C239ED78C6730EA",
+    "name": "BSD 3-Clause No Military License"
+  },
+  "BSD-3-Clause-No-Nuclear-License": {
+    "hash": "T1F0316637A38823731BD702D7365A51C9F22C592C3B0D5590585F453C036BE3986778FA",
+    "name": "BSD 3-Clause No Nuclear License"
+  },
+  "BSD-3-Clause-No-Nuclear-License-2014": {
+    "hash": "T1DF311022A38C137319FB01C3B52AD5C4F21D946C371E5551286D812C239FE39C2771E9",
+    "name": "BSD 3-Clause No Nuclear License 2014"
+  },
+  "BSD-3-Clause-No-Nuclear-Warranty": {
+    "hash": "T1AE314237A38823731BE742D7364A51C9F22C6928370D5690685F413C036BE3A96778EE",
+    "name": "BSD 3-Clause No Nuclear Warranty"
+  },
+  "BSD-3-Clause-Open-MPI": {
+    "hash": "T142313122A38C037349E646C3F61EE5D8F21D942C772A29102C6D827C23ABD79C5774DE",
+    "name": "BSD 3-Clause Open MPI variant"
+  },
+  "BSD-3-Clause-Sun": {
+    "hash": "T1BA312E3B938C23735AD702DB765E50C8B22C98283B1E2540581E853C135BE7A8A738DE",
+    "name": "BSD 3-Clause Sun Microsystems"
+  },
+  "BSD-4-Clause": {
+    "hash": "T18631DC22B38C133309F646C7A61ED9C8B22DA528B71A6A503C2D816C239FD75C5735DE",
+    "name": "BSD 4-Clause \"Original\" or \"Old\" License"
+  },
+  "BSD-4-Clause-Shortened": {
+    "hash": "T14911E232E7CC53310EE701E3521AA5D5B36D591C770716957C1E407C364E9AA8373ADD",
+    "name": "BSD 4 Clause Shortened"
+  },
+  "BSD-4-Clause-UC": {
+    "hash": "T150311F23A3CC53330AEA01D6A62A96D4B31D992C7B6A5A917C2D417C338FD38C57329D",
+    "name": "BSD-4-Clause (University of California-Specific)"
+  },
+  "BSD-4.3RENO": {
+    "hash": "T179F0DC1B93C09733297401EBFA1AB2B5B30E0AA9B5B142D1FC15847D1686EBD04707C7",
+    "name": "BSD 4.3 RENO License"
+  },
+  "BSD-4.3TAHOE": {
+    "hash": "T133012023E3C8937209A503D3814DB2F5F71E563D77110AE0BC0E502C224BAB841707CA",
+    "name": "BSD 4.3 TAHOE License"
+  },
+  "BSD-Advertising-Acknowledgement": {
+    "hash": "T1D8310D23B3CC13724AEB01C7651A8588B36D692C77161A603D29807C33EFD28C4B3A9D",
+    "name": "BSD Advertising Acknowledgement License"
+  },
+  "BSD-Attribution-HPND-disclaimer": {
+    "hash": "T1CA313353F68C73770BFB414B22A69289F72D8338731555506919902C13CBEBCC2B365E",
+    "name": "BSD with Attribution and HPND disclaimer"
+  },
+  "BSD-Inferno-Nettverk": {
+    "hash": "T12F412311B39823732BFB06D66685C48CF36E24B833697F803919826C334FDB891361A9",
+    "name": "BSD-Inferno-Nettverk"
+  },
+  "BSD-Protection": {
+    "hash": "T1E2C15227AF8423B30AD3C1856B5A8DCFF31E843C776994612859C16D236BE34827F6D9",
+    "name": "BSD Protection License"
+  },
+  "BSD-Source-beginning-file": {
+    "hash": "T194214022A28C137359EA02CBB51AD5C0F24D543C772AA6A12C26813C334EE79C5735DD",
+    "name": "BSD Source Code Attribution - beginning of file variant"
+  },
+  "BSD-Source-Code": {
+    "hash": "T16F210E22A28C133359F902C7A11AD8D0B31D986C772A16912C68822C235AD79C9734DD",
+    "name": "BSD Source Code Attribution"
+  },
+  "BSD-Systemics": {
+    "hash": "T1B4412336B78813771AE704D6B65593C5B22D643C372A59403C6D412C335FD78C273AAE",
+    "name": "Systemics BSD variant license"
+  },
+  "BSD-Systemics-W3Works": {
+    "hash": "T1C7511323A7C813B65AE70493B61582D9F63E642C77275A503C6E815C338FD34C27396E",
+    "name": "Systemics W3Works BSD variant license"
+  },
+  "BSL-1.0": {
+    "hash": "T18121BB29B369033216E20750960E89D6F71F3AB9F3156984BC28E52C2772E64C3FA5E4",
+    "name": "Boost Software License 1.0"
+  },
+  "BUSL-1.1": {
+    "hash": "T1F861232A234413B317C1031A9F4A58CFF32E845C621A97D6A5A9847C13B7D3C57BBAE8",
+    "name": "Business Source License 1.1"
+  },
+  "bzip2-1.0.5": {
+    "hash": "T1D241642A73CC037219F603DB7A1ADEC0F3565A68B32E9781686DC07C379AEB4463159C",
+    "name": "bzip2 and libbzip2 License v1.0.5"
+  },
+  "bzip2-1.0.6": {
+    "hash": "T17331102677CC037319F602DB361A9DC0B25A5A25B71E9784387A807C339BE78863209D",
+    "name": "bzip2 and libbzip2 License v1.0.6"
+  },
+  "C-UDA-1.0": {
+    "hash": "T11461046AB24C033227CB10E1625E96C7D11EE03D3B2A55B658D6C1782317E36673B6DF",
+    "name": "Computational Use of Data Agreement v1.0"
+  },
+  "CAL-1.0": {
+    "hash": "T16E621F67A348137347C30356AF5A61DFF32E947C376A40999065807C27F2A7443BFAAA",
+    "name": "Cryptographic Autonomy License 1.0"
+  },
+  "CAL-1.0-Combined-Work-Exception": {
+    "hash": "T16E621F67A348137347C30356AF5A61DFF32E947C376A40999065807C27F2A7443BFAAA",
+    "name": "Cryptographic Autonomy License 1.0 (Combined Work Exception)"
+  },
+  "Caldera": {
+    "hash": "T1E651FD37A349133706D70297621AD584B23CB428775746503CAD516C63AF938CA77EAD",
+    "name": "Caldera License"
+  },
+  "Caldera-no-preamble": {
+    "hash": "T118310F33B388133209EB02D7711AD994B22DB4283B6B56503C6D417C239FD34CA776AE",
+    "name": "Caldera License (without preamble)"
+  },
+  "Catharon": {
+    "hash": "T12F91327AEF8843721DD2CBA1734685DEF31DA069366947D17849424C23BFA31423F9E9",
+    "name": "Catharon License"
+  },
+  "CATOSL-1.1": {
+    "hash": "T154826232878813734AC30264DB4B9DDAF31ED42CF26954A6049D91AD33AAE74C77F789",
+    "name": "Computer Associates Trusted Open Source License 1.1"
+  },
+  "CC-BY-1.0": {
+    "hash": "T1DD32217A934813731BC202AA6B4F55CFE32F9438376B55A87459805813F3E3443BD6EA",
+    "name": "Creative Commons Attribution 1.0 Generic"
+  },
+  "CC-BY-2.0": {
+    "hash": "T1FB421F7A934817731BC2025A6B4F55CFF32F9438376B55A93499805813F2E3443BEAEA",
+    "name": "Creative Commons Attribution 2.0 Generic"
+  },
+  "CC-BY-2.5": {
+    "hash": "T16F42207AD38817331BC2025A6B4F55CFE32F9438376B55A97459805813F2E3443BE6EA",
+    "name": "Creative Commons Attribution 2.5 Generic"
+  },
+  "CC-BY-2.5-AU": {
+    "hash": "T1B472246AD38817731A92026A574F56CFF32F9078336F55A824A9805813F6F3443BD6FA",
+    "name": "Creative Commons Attribution 2.5 Australia"
+  },
+  "CC-BY-3.0": {
+    "hash": "T18482436AA348137307C3015A9B5F55DFE32F943C362B95A92069C05827F2E7443BE6EE",
+    "name": "Creative Commons Attribution 3.0 Unported"
+  },
+  "CC-BY-3.0-AT": {
+    "hash": "T13C8262134CCB351E959A37B1F7148EEF770C82388364A22ED49CE172F1468F6867E969",
+    "name": "Creative Commons Attribution 3.0 Austria"
+  },
+  "CC-BY-3.0-AU": {
+    "hash": "T1CA625666A388037307D3029AA64F55CFE31F5438373B55A864A9806817B6F7443BE6FE",
+    "name": "Creative Commons Attribution 3.0 Australia"
+  },
+  "CC-BY-3.0-DE": {
+    "hash": "T1528264135CCB351E958E2771F7148EEF730C827C8324A26ED4ACD172F1468F6866E969",
+    "name": "Creative Commons Attribution 3.0 Germany"
+  },
+  "CC-BY-3.0-IGO": {
+    "hash": "T1F872327AE34813730BC301566B4F51DFE32A9438377A95692469C02817B2E7493BF6EE",
+    "name": "Creative Commons Attribution 3.0 IGO"
+  },
+  "CC-BY-3.0-NL": {
+    "hash": "T1D682532374DE232C15C27B89F50C0AAFB79AD12887ACF1FD5C9DDA741092A5E827C9D4",
+    "name": "Creative Commons Attribution 3.0 Netherlands"
+  },
+  "CC-BY-3.0-US": {
+    "hash": "T11452247AA34813330BC2026A6B4F55CFE32E9438377B55A97469805817F2E3443BE5EA",
+    "name": "Creative Commons Attribution 3.0 United States"
+  },
+  "CC-BY-4.0": {
+    "hash": "T16372F02AA344137307C301A7AB5B94CFE22794193A6F9690246DC15C2BB3939937B79F",
+    "name": "Creative Commons Attribution 4.0 International"
+  },
+  "CC-BY-NC-1.0": {
+    "hash": "T19332127A934813731BC2029AAB4F55CFE32F9438376B55A93459805813F3E3443BD6EA",
+    "name": "Creative Commons Attribution Non Commercial 1.0 Generic"
+  },
+  "CC-BY-NC-2.0": {
+    "hash": "T16652227A9348177316D3025AAB8F56CFE32F5438376F55993468805813F2E3443BE6EA",
+    "name": "Creative Commons Attribution Non Commercial 2.0 Generic"
+  },
+  "CC-BY-NC-2.5": {
+    "hash": "T1F152226A934817731AC2025AAB5F95CFE32F5438376F55993468806813F2E3043BE6EA",
+    "name": "Creative Commons Attribution Non Commercial 2.5 Generic"
+  },
+  "CC-BY-NC-3.0": {
+    "hash": "T1A682426AA348137306C3015B9B5F55DFE32F9438372A95A92069C05827F2E7443BE6EE",
+    "name": "Creative Commons Attribution Non Commercial 3.0 Unported"
+  },
+  "CC-BY-NC-3.0-DE": {
+    "hash": "T1119273135CCB351E998E2771F7148EEF730C82788324A26ED4ACD172F1468F6866E969",
+    "name": "Creative Commons Attribution Non Commercial 3.0 Germany"
+  },
+  "CC-BY-NC-4.0": {
+    "hash": "T12F72002AA344137317C301A7AB5B91CFE22794193A6F96D0246DC05C2BB3939937B79F",
+    "name": "Creative Commons Attribution Non Commercial 4.0 International"
+  },
+  "CC-BY-NC-ND-1.0": {
+    "hash": "T1E422137A934813731BC2029A6F4F56CFE32F9478376A55A83459805813F3E3443BE6EA",
+    "name": "Creative Commons Attribution Non Commercial No Derivatives 1.0 Generic"
+  },
+  "CC-BY-NC-ND-2.0": {
+    "hash": "T17242227A9348177316C2025AAF4F95CFE32F5438376F55A934A8805913F2E3043BE6EA",
+    "name": "Creative Commons Attribution Non Commercial No Derivatives 2.0 Generic"
+  },
+  "CC-BY-NC-ND-2.5": {
+    "hash": "T14942227AD348177316C2025AAB4F96CFE32F5438376F55693469815813F2E3043BE6EA",
+    "name": "Creative Commons Attribution Non Commercial No Derivatives 2.5 Generic"
+  },
+  "CC-BY-NC-ND-3.0": {
+    "hash": "T17882436AE348137307C3015A9B4F55DFE32F9438372A85A92469C05927F2E7443BE6EE",
+    "name": "Creative Commons Attribution Non Commercial No Derivatives 3.0 Unported"
+  },
+  "CC-BY-NC-ND-3.0-DE": {
+    "hash": "T1D58262134CCB351E998E3771F7148EEF730C82788364A22ED4ACD176F1468F6856E969",
+    "name": "Creative Commons Attribution Non Commercial No Derivatives 3.0 Germany"
+  },
+  "CC-BY-NC-ND-3.0-IGO": {
+    "hash": "T17272227AE348137307C30156AB4F51DFE32B9438377A95692469C02817B2E7453BF6EA",
+    "name": "Creative Commons Attribution Non Commercial No Derivatives 3.0 IGO"
+  },
+  "CC-BY-NC-ND-4.0": {
+    "hash": "T12A72022AA344137317C301A7AB5B91CFE22794593A6F96C0246DC05C2BB3939937B79F",
+    "name": "Creative Commons Attribution Non Commercial No Derivatives 4.0 International"
+  },
+  "CC-BY-NC-SA-1.0": {
+    "hash": "T1A942126A938817731AC2029A6F4F56CFE32F9438376F65A97458805813F3E3443BD5EA",
+    "name": "Creative Commons Attribution Non Commercial Share Alike 1.0 Generic"
+  },
+  "CC-BY-NC-SA-2.0": {
+    "hash": "T16462116A9388173316D3025AAF8F56CFE32F5438376F55A93458805913F2E3443BE6EA",
+    "name": "Creative Commons Attribution Non Commercial Share Alike 2.0 Generic"
+  },
+  "CC-BY-NC-SA-2.0-DE": {
+    "hash": "T1956240035CCA750E969A37A0FB149EEFB70D82788328B66EA05CD037B1854F7C53D965",
+    "name": "Creative Commons Attribution Non Commercial Share Alike 2.0 Germany"
+  },
+  "CC-BY-NC-SA-2.0-FR": {
+    "hash": "T13082232386C1276206875BA1FB42D7EBD125CA44A348E114D8EFD19B06C993CD3FBBD5",
+    "name": "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 France"
+  },
+  "CC-BY-NC-SA-2.0-UK": {
+    "hash": "T1DF324177D74413730AD20256679B92CFE32E5438373A96D4386D902813F6E3493BE6EA",
+    "name": "Creative Commons Attribution Non Commercial Share Alike 2.0 England and Wales"
+  },
+  "CC-BY-NC-SA-2.5": {
+    "hash": "T19A62216A938817331AC3025AAF4F56CFE32F5438376F55A93458806953F2E3443BD6EA",
+    "name": "Creative Commons Attribution Non Commercial Share Alike 2.5 Generic"
+  },
+  "CC-BY-NC-SA-3.0": {
+    "hash": "T15F92426AA348137306C3015B9B5F95DFE32F943C362B95A52069C05823F2E7443BE6EE",
+    "name": "Creative Commons Attribution Non Commercial Share Alike 3.0 Unported"
+  },
+  "CC-BY-NC-SA-3.0-DE": {
+    "hash": "T1DFA264135CCB351E958E3B71F7148EEF730C82388324A26ED4ACD176F1468F6866E969",
+    "name": "Creative Commons Attribution Non Commercial Share Alike 3.0 Germany"
+  },
+  "CC-BY-NC-SA-3.0-IGO": {
+    "hash": "T17392217AA34813730BC30156AB4F91DFE32B9438377A95652469C06817B2E7443BF6EE",
+    "name": "Creative Commons Attribution Non Commercial Share Alike 3.0 IGO"
+  },
+  "CC-BY-NC-SA-4.0": {
+    "hash": "T1D782F02AA344137317C301A79F5B91CFE22794193A6F9690246DC05C2BB3939937B79F",
+    "name": "Creative Commons Attribution Non Commercial Share Alike 4.0 International"
+  },
+  "CC-BY-ND-1.0": {
+    "hash": "T1B022007A938813731BC2029A6F4F55CFE32F9478376A56A83459805813F3E3443BD6EA",
+    "name": "Creative Commons Attribution No Derivatives 1.0 Generic"
+  },
+  "CC-BY-ND-2.0": {
+    "hash": "T1C832117A934817731BC2025A6B4F95CFF32F9438376B55A93499805813F2E3443BE6EA",
+    "name": "Creative Commons Attribution No Derivatives 2.0 Generic"
+  },
+  "CC-BY-ND-2.5": {
+    "hash": "T17E32107AD34817731BC2025A6B4F95CFE32F9438376B55A93499805813F2E3443BE6EA",
+    "name": "Creative Commons Attribution No Derivatives 2.5 Generic"
+  },
+  "CC-BY-ND-3.0": {
+    "hash": "T17C72426AA348137307C3015A9B4F55DFE32F9438377A85A92069C05927F2E7443BE6EE",
+    "name": "Creative Commons Attribution No Derivatives 3.0 Unported"
+  },
+  "CC-BY-ND-3.0-DE": {
+    "hash": "T1568263134CCB351E959E37B1FB148EEF730C82788364A22ED4ACD172F1468F6856E969",
+    "name": "Creative Commons Attribution No Derivatives 3.0 Germany"
+  },
+  "CC-BY-ND-4.0": {
+    "hash": "T1C472012AA344137307C301E76B5B94CFE22794593A6F9690245DC05C2BB3939937B79F",
+    "name": "Creative Commons Attribution No Derivatives 4.0 International"
+  },
+  "CC-BY-SA-1.0": {
+    "hash": "T11542226A938817731BC2029A6F4F59CFE32F9478366F55A87458805813F3E3443BD5EA",
+    "name": "Creative Commons Attribution Share Alike 1.0 Generic"
+  },
+  "CC-BY-SA-2.0": {
+    "hash": "T160520F7A938817331BC2025A6B8F55CFF32F9438366F65A97458805913F2E3443BD6EA",
+    "name": "Creative Commons Attribution Share Alike 2.0 Generic"
+  },
+  "CC-BY-SA-2.0-UK": {
+    "hash": "T1E2223077D74413330AD2025A679B52CFE32E5478373A96D4386D902813F6E3493BE6EA",
+    "name": "Creative Commons Attribution Share Alike 2.0 England and Wales"
+  },
+  "CC-BY-SA-2.1-JP": {
+    "hash": "T184D05EAF5ED96112079A01C25E72624C351F9722633CB9DE48ADECD4C7983ADE311E52",
+    "name": "Creative Commons Attribution Share Alike 2.1 Japan"
+  },
+  "CC-BY-SA-2.5": {
+    "hash": "T191520F7A938817331BC2025A6B4F55CFF32F9438366B65A97458806913F2E3443FD6EA",
+    "name": "Creative Commons Attribution Share Alike 2.5 Generic"
+  },
+  "CC-BY-SA-3.0": {
+    "hash": "T1E492416AA34813730BC3015A9B5F65DFE32FD43C326B85A52059C05926F2E7443BE6EE",
+    "name": "Creative Commons Attribution Share Alike 3.0 Unported"
+  },
+  "CC-BY-SA-3.0-AT": {
+    "hash": "T176A272134CCA351E959A37B1F7148EEF730D823C8324A22ED49CE176F1468F6866ED69",
+    "name": "Creative Commons Attribution Share Alike 3.0 Austria"
+  },
+  "CC-BY-SA-3.0-DE": {
+    "hash": "T15EA242135CCB351E958E2BB1FB148EEF730C833C8324A26D949CD176F14A4F6866E969",
+    "name": "Creative Commons Attribution Share Alike 3.0 Germany"
+  },
+  "CC-BY-SA-3.0-IGO": {
+    "hash": "T1ED92227BA38813730BC301565B5F61CFE32B9438336A95652429C06917B2E7493BF6EE",
+    "name": "Creative Commons Attribution-ShareAlike 3.0 IGO"
+  },
+  "CC-BY-SA-4.0": {
+    "hash": "T12B82F12AA344137307C301A79B5B94CFE627D4193A6F9690246EC05C2BB3939937B79F",
+    "name": "Creative Commons Attribution Share Alike 4.0 International"
+  },
+  "CC-PDDC": {
+    "hash": "T1D63198A6D3C5233256970736958CA0CBB30B98783767259060DE426C1396EF4867F3FE",
+    "name": "Creative Commons Public Domain Dedication and Certification"
+  },
+  "CC-PDM-1.0": {
+    "hash": "T1D311ADAEC69C13B662D74717D30D40D9F32685367623512838AEC0A621A7B74497F1E5",
+    "name": "Creative    Commons Public Domain Mark 1.0 Universal"
+  },
+  "CC-SA-1.0": {
+    "hash": "T1A1320F7A938817730BC2029A6F4F55CFE32F9438366B55A97458805813F7E3443BD6EA",
+    "name": "Creative Commons Share Alike 1.0 Generic"
+  },
+  "CC0-1.0": {
+    "hash": "T183E176A3D30413321BC60357912A56C9F36B5568332B0590286D92A8279BE75933F7FF",
+    "name": "Creative Commons Zero v1.0 Universal"
+  },
+  "CDDL-1.0": {
+    "hash": "T1427244A7374813730AC302665B1BA5CFF32F942CB62A54A5649EC01C37A6E74C37B59D",
+    "name": "Common Development and Distribution License 1.0"
+  },
+  "CDDL-1.1": {
+    "hash": "T1057244A7774823730AC302665B1BA5CFF32F942CB62A50A5649EC01C37A6E74C37B59D",
+    "name": "Common Development and Distribution License 1.1"
+  },
+  "CDL-1.0": {
+    "hash": "T13902F03E8348037706C30266FB6AA9CFF32E543C367B6555645DC07813A2DB4877A6EA",
+    "name": "Common Documentation License 1.0"
+  },
+  "CDLA-Permissive-1.0": {
+    "hash": "T14822F09BB30C136202CB10F6765B96D6E37EE43C3B6B056214A5C1792322E7467377AE",
+    "name": "Community Data License Agreement Permissive 1.0"
+  },
+  "CDLA-Permissive-2.0": {
+    "hash": "T14D41F1E1B35413A281CB26D6A6575285E27FE43C3BAE149294CAD23C1312D36363FBC9",
+    "name": "Community Data License Agreement Permissive 2.0"
+  },
+  "CDLA-Sharing-1.0": {
+    "hash": "T1CF32009B730C236202CB14F7664BD6D2E37EE43C276B056624A5C17D2322E7466377AA",
+    "name": "Community Data License Agreement Sharing 1.0"
+  },
+  "CECILL-1.0": {
+    "hash": "T1C392552689E823651EC741A1F38787AFE22DC108B15CD315C4DB968E12DA82DF3BF5E5",
+    "name": "CeCILL Free Software License Agreement v1.0"
+  },
+  "CECILL-1.1": {
+    "hash": "T1CE925337B35013B307C6036AAB4E52DFF32ED8BCA67A52902459D06C2316D7893BB6D5",
+    "name": "CeCILL Free Software License Agreement v1.1"
+  },
+  "CECILL-2.0": {
+    "hash": "T181926337735013B30AC7036A9B4E91DAF32ED97CB67A92902459C02C3316D7993B7AD9",
+    "name": "CeCILL Free Software License Agreement v2.0"
+  },
+  "CECILL-2.1": {
+    "hash": "T18CA27537735013B306C7036A9B4E91DAF32EE97CB67A92902059D02C3356D7893B7AD9",
+    "name": "CeCILL Free Software License Agreement v2.1"
+  },
+  "CECILL-B": {
+    "hash": "T156925437735013B30AC3036A9B4E91DAF32ED97CA27A9290205AD05C3356D7897FB6D9",
+    "name": "CeCILL-B Free Software License Agreement"
+  },
+  "CECILL-C": {
+    "hash": "T1E0A25526735013B30BC3036A974E95DAF32AD97CA27692903459D02C3327D78D7BBAD9",
+    "name": "CeCILL-C Free Software License Agreement"
+  },
+  "CERN-OHL-1.1": {
+    "hash": "T19CF113BAEB94137317C30267AB2AD1DFF72A846C376AA110345DC0281356D7493BBADD",
+    "name": "CERN Open Hardware Licence v1.1"
+  },
+  "CERN-OHL-1.2": {
+    "hash": "T1C21223BAEB9413731BC3016BAA2AD1DFF72E405C366AA151305DC0182356D7853BFAED",
+    "name": "CERN Open Hardware Licence v1.2"
+  },
+  "CERN-OHL-P-2.0": {
+    "hash": "T16BF1445BF358137316C202666B5AA1DFF70E802C777A14646429C11C2377AB983BBEED",
+    "name": "CERN Open Hardware Licence Version 2 - Permissive"
+  },
+  "CERN-OHL-S-2.0": {
+    "hash": "T1864266ABE358137307C203675B1A95DFE70E902C776A4458546DC01C2373ABA83BBEE9",
+    "name": "CERN Open Hardware Licence Version 2 - Strongly Reciprocal"
+  },
+  "CERN-OHL-W-2.0": {
+    "hash": "T16742679BE358137316C20336571A95DFE70E902C77660468546DC11C2373ABA83BBEED",
+    "name": "CERN Open Hardware Licence Version 2 - Weakly Reciprocal"
+  },
+  "CFITSIO": {
+    "hash": "T1DA21142AB7C413761AD30BA2785AD4F4F60E6878732966A0788E911C2B05FA5C47E2D5",
+    "name": "CFITSIO License"
+  },
+  "check-cvs": {
+    "hash": "T1ECB02B17078963B00DB380C635F04045E10D4048AB008000015E80442B478738261D54",
+    "name": "check-cvs License"
+  },
+  "checkmk": {
+    "hash": "T161E0AB010ACC82B21BC600E7CBB4528DB32D3A78665704591591C51D127BE35C6B094F",
+    "name": "Checkmk License"
+  },
+  "ClArtistic": {
+    "hash": "T13DD10F2B978413B216E309A2B60D75DEE76E2038363254903D5ED16C231BD7A8377EED",
+    "name": "Clarified Artistic License"
+  },
+  "Clips": {
+    "hash": "T19D111015FB58537726E70341231B4091F32E797CB71A16D07408E2382B95EB442BBAEC",
+    "name": "Clips License"
+  },
+  "CMU-Mach": {
+    "hash": "T137119CA63798732309FF0247639140C6F76F6472B262B9D0B949E028234BD58A33526D",
+    "name": "CMU Mach License"
+  },
+  "CMU-Mach-nodoc": {
+    "hash": "T107F09E57B788236904F3478375A680CAF3636470B3632DD0B81AD4382353C64637B998",
+    "name": "CMU    Mach - no notices-in-documentation variant"
+  },
+  "CNRI-Jython": {
+    "hash": "T1A0817635A34823334BCA03257F16A6DEF32E59BC335E64E12855816C2376E9443FADE9",
+    "name": "CNRI Jython License"
+  },
+  "CNRI-Python": {
+    "hash": "T162618765E348237397CA012D2B6296DFF32D88BC339F18A55415D09C2B67DA403BFDA4",
+    "name": "CNRI Python License"
+  },
+  "CNRI-Python-GPL-Compatible": {
+    "hash": "T13D819361934823B3C7CD012D6B62A6DFF32D88BC33DF18956518D19C172AD64037ADE8",
+    "name": "CNRI Python Open Source GPL Compatible License Agreement"
+  },
+  "COIL-1.0": {
+    "hash": "T10031CE53E2582BB303C642486ECB899EF32E943C3D5D29196409C1242367E78D37FAF9",
+    "name": "Copyfree Open Innovation License"
+  },
+  "Community-Spec-1.0": {
+    "hash": "T1586234B2174913331BC701659F17A5CEE32FC07C7B6A016250AE946C23AF964C77BADA",
+    "name": "Community Specification License 1.0"
+  },
+  "Condor-1.1": {
+    "hash": "T103C183567348033307D203626A2669DFF72F9638762E54407468C12C33D6D7A87BBA9D",
+    "name": "Condor Public License v1.1"
+  },
+  "copyleft-next-0.3.0": {
+    "hash": "T1F6128467234413734AC20297AF9B69CFF32D802C63691165148D816C27FBE79C37BAE9",
+    "name": "copyleft-next 0.3.0"
+  },
+  "copyleft-next-0.3.1": {
+    "hash": "T1E8127267234413734AC20297AB9B69CFF32D802C77691165148D816C27FBE79C37BAE9",
+    "name": "copyleft-next 0.3.1"
+  },
+  "Cornell-Lossless-JPEG": {
+    "hash": "T16011ED26B784D3B5399F4307255086D0B35EA97D776B2B906C49C128130BE54C1753D9",
+    "name": "Cornell Lossless JPEG License"
+  },
+  "CPAL-1.0": {
+    "hash": "T1F4C264AB5748137306C302669B0B95CBF33EC02CA62B5565689DC15C33A6E74C37B6DE",
+    "name": "Common Public Attribution License 1.0"
+  },
+  "CPL-1.0": {
+    "hash": "T1C83245B3678813B24AC20295D74BDAD5F32ED83CB2A91066049D915E339AD31C73F79D",
+    "name": "Common Public License 1.0"
+  },
+  "CPOL-1.02": {
+    "hash": "T10432317F878813B30AC201A96B4E55DFE31F903C367A51656464C02823B2F7583FEAE9",
+    "name": "Code Project Open License 1.02"
+  },
+  "Cronyx": {
+    "hash": "T186F0AC08378C23E96FD2046B9183268DD60EB0B0B3B287507A2981E1321661D8D2BB99",
+    "name": "Cronyx License"
+  },
+  "Crossword": {
+    "hash": "T1DFF09E655A5463BA69C343D9E14DE0E9732E452C3762F55044CEC11C227BD9940B429D",
+    "name": "Crossword License"
+  },
+  "CryptoSwift": {
+    "hash": "T13811021577ACC33215E203EE3A498AC4F72B3A28F25916D5743D908C37DB61511318BC",
+    "name": "CryptoSwift License"
+  },
+  "CrystalStacker": {
+    "hash": "T190119B2FE34022B106E207727659C2872B1E55AAA39172EA107C955C3378A2EC773C99",
+    "name": "CrystalStacker License"
+  },
+  "CUA-OPL-1.0": {
+    "hash": "T12BA257AB674823730AC302669B1B95CFF32ED02CA67A5461549DC11C23B6E74C3BB5DD",
+    "name": "CUA Office Public License v1.0"
+  },
+  "Cube": {
+    "hash": "T16D11E21B3B98C37215F303E93A458D89B3175968F64D57D9B47EC098377A26A4230CA5",
+    "name": "Cube License"
+  },
+  "curl": {
+    "hash": "T144110E5AF11C637A14F20317E26EE0D4F30E6934B7227B907918C1782643EF881745ED",
+    "name": "curl License"
+  },
+  "cve-tou": {
+    "hash": "T16F111037CB8C0B3A85C20793394506EBF36E5479731E4A719508E17D176B950533F2B8",
+    "name": "Common Vulnerability Enumeration ToU License"
+  },
+  "D-FSL-1.0": {
+    "hash": "T1256274A39CCB671C4A477374F6008E9FB31CC56C93197369DC59C17BA1099B1C26EBA8",
+    "name": "Deutsche Freie Software Lizenz"
+  },
+  "DEC-3-Clause": {
+    "hash": "T1EC31122FA34C13B3A4D702C772835586F22ED924370D7F00A9BDC1285396E69C3B6469",
+    "name": "DEC 3-Clause License"
+  },
+  "diffmark": {
+    "hash": "T179B0128F0171012915D002610186558B3414502022929427412287A0132C34390998C5",
+    "name": "diffmark license"
+  },
+  "DL-DE-BY-2.0": {
+    "hash": "T1AC416543E780173A93D62394BD4869DAB79DE12E73298808D56CD5361346C32933E77B",
+    "name": "Data licence Germany \u2013 attribution \u2013 version 2.0"
+  },
+  "DL-DE-ZERO-2.0": {
+    "hash": "T15F210D5396816339A3D722D4A440AACAB76EE22DB30A9D1A810DD6394303433917D72F",
+    "name": "Data licence Germany \u2013 zero \u2013 version 2.0"
+  },
+  "DOC": {
+    "hash": "T1BB919727B350433386D10356F3596A96FF1E6659B36652A5EC4F810C1227E3E833F68E",
+    "name": "DOC License"
+  },
+  "DocBook-DTD": {
+    "hash": "T1102130B7E761037425D34627A04552E6AB2C9454BF4D1D07257EC2B90217E20D33FADD",
+    "name": "DocBook DTD License"
+  },
+  "DocBook-Schema": {
+    "hash": "T1C1110EF6F35103B815E30633609695E4AF1DA058BD596D4B782E82B8123AB50433F6DD",
+    "name": "DocBook Schema License"
+  },
+  "DocBook-Stylesheet": {
+    "hash": "T1A6F00C22E38543781AE70947B84521DCA21CA498AB179C52341EC3FC030FAA9833B6E9",
+    "name": "DocBook Stylesheet License"
+  },
+  "DocBook-XML": {
+    "hash": "T1CE41331AFE1C133219E28376F10EA0D1F31B7978F3265195385CD2AC3652A7882BF9D5",
+    "name": "DocBook XML License"
+  },
+  "Dotseqn": {
+    "hash": "T1E9D0971CBAE017B23DF2506108A0B202042BC068837EE912F5FDBACC339844007D9ED6",
+    "name": "Dotseqn License"
+  },
+  "DRL-1.0": {
+    "hash": "T16431F012E15423B396DB12A1FA9D85D3F71D506C372B2640145EC12C2E25B74433FEE9",
+    "name": "Detection Rule License 1.0"
+  },
+  "DRL-1.1": {
+    "hash": "T1D8312211D25423B396DB12E5FA9D85D3F70E606C372B6280145FC12C3E15B74433BAE9",
+    "name": "Detection Rule License 1.1"
+  },
+  "DSDP": {
+    "hash": "T126413236A3C403B606D201A3BA1962F1F30F6968B7166954B54C905C1306FBA833EBAA",
+    "name": "DSDP License"
+  },
+  "dtoa": {
+    "hash": "T159017B2AF3A852B158E703452992849A775F7DB0BB031681B809C1FD3301EA886398FC",
+    "name": "David M. Gay dtoa License"
+  },
+  "dvipdfm": {
+    "hash": "T14CD0A9202FC81BA60EC82CC0EA107802372118B822E1E22520CCC84C310F422C2F0828",
+    "name": "dvipdfm License"
+  },
+  "ECL-1.0": {
+    "hash": "T16941FF1B635C133206C30B26834E99CFB31E652C775F99823429C1D813B1FA482765DA",
+    "name": "Educational Community License v1.0"
+  },
+  "ECL-2.0": {
+    "hash": "T13232227BA24C133307C302569B8BA8DFF32A943C376A55655059C07813B7E7583BBADA",
+    "name": "Educational Community License v2.0"
+  },
+  "eCos-2.0": {
+    "hash": "T16D31DF594F489B370B8CC3E11B0B90DFC36A66A876684062609A414CA765D7647AFCE8",
+    "name": "eCos license version 2.0"
+  },
+  "EFL-1.0": {
+    "hash": "T14411CC25D3C453FE84D60B873E9491A1633E7039771514E03B89C12E571ED6482779BC",
+    "name": "Eiffel Forum License v1.0"
+  },
+  "EFL-2.0": {
+    "hash": "T16811CC29D3C453FA44E207877E64D2A5B33E7439731965E43B49C12E272DD6082B79BC",
+    "name": "Eiffel Forum License v2.0"
+  },
+  "eGenix": {
+    "hash": "T1F88152AAF34413770ACA03252B5186CEF33E9DB433AE55F12558C06C2761F6503FAA99",
+    "name": "eGenix.com Public License 1.1.0"
+  },
+  "Elastic-2.0": {
+    "hash": "T1BF71436FB309133302C203B56F9F68DFF70B94B8A96941D3581D64682733F2552BB999",
+    "name": "Elastic License 2.0"
+  },
+  "Entessa": {
+    "hash": "T1D6413221F25C273345F303D66D16EAA4F71DA52C771E86502D2941BC3B8EC7C9273299",
+    "name": "Entessa Public License v1.0"
+  },
+  "EPICS": {
+    "hash": "T10E614139B22803B743E20792A75DA5EFF31EA874731B19043429C19C2366E6981F7AD4",
+    "name": "EPICS Open License"
+  },
+  "EPL-1.0": {
+    "hash": "T1DA3254B3678813B24AC60196D78BDAD5F32ED83CB2A91066049D915E339AD31C73F39D",
+    "name": "Eclipse Public License 1.0"
+  },
+  "EPL-2.0": {
+    "hash": "T10C526477678C13B306C202A6DB8BDAD5F32ED43CB26910660499816E23A6D31C77F79D",
+    "name": "Eclipse Public License 2.0"
+  },
+  "ErlPL-1.1": {
+    "hash": "T1FE5234BB574813730AC30256571BD5CFE32F903CA62A5560588AC25C23B7F69C3BB9D9",
+    "name": "Erlang Public License v1.1"
+  },
+  "etalab-2.0": {
+    "hash": "T130E1BDABCDD10A2317D7C3A3B38BC297D83CC504634DD148DC96E64512C5E68A3AF6D9",
+    "name": "Etalab Open License 2.0"
+  },
+  "EUDatagrid": {
+    "hash": "T1E6513155F65C33723DE303B7A21A84DAF72FF43C360A00516459916C236AE38977B59E",
+    "name": "EU DataGrid Software License"
+  },
+  "EUPL-1.0": {
+    "hash": "T1404212BB5744137307D20265974E9ACFE31ED438326BA6547069806823B6D38D3FAAFD",
+    "name": "European Union Public License 1.0"
+  },
+  "EUPL-1.1": {
+    "hash": "T12A4211BB9744137307D10265974E9ACFE31E9438727BA6546069802823B6D34D3FAAFD",
+    "name": "European Union Public License 1.1"
+  },
+  "EUPL-1.2": {
+    "hash": "T18F5201BB97441373079202699B4E96CFE31DD438327BA6546069802827B6D38D3FE9FD",
+    "name": "European Union Public License 1.2"
+  },
+  "Eurosym": {
+    "hash": "T11021031E37D8837315F203BDB60D89C5F3266921B26E57D8702DC09837EAE6642308E8",
+    "name": "Eurosym License"
+  },
+  "Fair": {
+    "hash": "T114D097FBE383037115800042FBF8C28CAB0E00B43A41427B204B61A88270C2001FA9C1",
+    "name": "Fair License"
+  },
+  "FBM": {
+    "hash": "T134E0264763C803A211930783A996F244F72F69BA7A662C947018C2C8C746C6545B8DBB",
+    "name": "Fuzzy Bitmap License"
+  },
+  "FDK-AAC": {
+    "hash": "T17C918423A34853BB53D70205BE2E09CDFB1E7518733A54923C19815C1366D69837BEDE",
+    "name": "Fraunhofer FDK AAC Codec Library"
+  },
+  "Ferguson-Twofish": {
+    "hash": "T1B001894EA649433524D701A36655678BE31C2035B75221A3B82CE288333DA7AD23BF86",
+    "name": "Ferguson Twofish License"
+  },
+  "Frameworx-1.0": {
+    "hash": "T15712012B6758237316D60296BE4616CAF37F643CB3291054345AC16C233AE39E2F77DA",
+    "name": "Frameworx Open License 1.0"
+  },
+  "FreeBSD-DOC": {
+    "hash": "T1BA51422ADB4D133229E70AD3B5999AC4F339902C771B591A245EC16C334BC38C7775E9",
+    "name": "FreeBSD Documentation License"
+  },
+  "FreeImage": {
+    "hash": "T10C7244AB574813730AC302665B1B95CFF32E943CB62A5564588AC11C23B6E78C3BB9DD",
+    "name": "FreeImage Public License v1.0"
+  },
+  "FSFAP": {
+    "hash": "T1ECD0A7671BC4F7941AE204465944C1C9725F082C3A0084A12517C8991B17CF782F0CE1",
+    "name": "FSF All Permissive License"
+  },
+  "FSFAP-no-warranty-disclaimer": {
+    "hash": "T1D3D022270B88B70467E208839018D2CAB25F183C3B0184A2251FC1E9033BCBAC2F0CE2",
+    "name": "FSF All Permissive License (without Warranty)"
+  },
+  "FSFUL": {
+    "hash": "T1B0C0225E3D0887BA0C678F8EA0344070B02B2BF8B4045020B448C184214A428C333488",
+    "name": "FSF Unlimited License"
+  },
+  "FSFULLR": {
+    "hash": "T147D0A79D2A9093F61DA25BD775354092F13B27A8F92020A1711AD184310B47F8332DD8",
+    "name": "FSF Unlimited License (with License Retention)"
+  },
+  "FSFULLRSD": {
+    "hash": "T1B7D0A79D1ED0E7F50DD297C936254087F22B57B8B92021613156D4843B0B1BF8371DD8",
+    "name": "FSF Unlimited License (with License Retention and Short Disclaimer)"
+  },
+  "FSFULLRWD": {
+    "hash": "T1C0F08B198A8993F13EB753CE13E445ACB13F2B687904AD61A58AA00C160F9FA42319C8",
+    "name": "FSF Unlimited License (With License Retention and Warranty Disclaimer)"
+  },
+  "FSL-1.1-ALv2": {
+    "hash": "T19B712327B304137312C703A84A8F54CFF61FB9B872599091785E9464236A76742BFBD9",
+    "name": "Functional Source License, Version 1.1, ALv2 Future License"
+  },
+  "FSL-1.1-MIT": {
+    "hash": "T156815327B308137311D703A4568F54CEF71FB9B873199081785EA968236AB6242BFAD8",
+    "name": "Functional Source License, Version 1.1, MIT Future License"
+  },
+  "FTL": {
+    "hash": "T110C1646B9B8853729AD20A81B7098FDEF31E046C7366A5E1A448917C332AA31C3777D4",
+    "name": "Freetype Project License"
+  },
+  "Furuseth": {
+    "hash": "T1ADF0472532D86331157307CBF149CCD9B71E981876127386319FC3C80705CD6C171487",
+    "name": "Furuseth License"
+  },
+  "fwlw": {
+    "hash": "T10ED02219E7F6BBCC28B00AB23D41E0189BEE90B5BB2818D0B491161E0015E0C3E528A1",
+    "name": "fwlw License"
+  },
+  "Game-Programming-Gems": {
+    "hash": "T110E0267E57CCB27535710FE7BDD85B8DA32F7519E70906616454C1C82336C9AC1B24C6",
+    "name": "Game Programming Gems License"
+  },
+  "GCR-docs": {
+    "hash": "T102316437638053FA25D603CB610A94CAF31E545831194EA42D5EC36C277FFAA857EABC",
+    "name": "Gnome GCR Documentation License"
+  },
+  "GD": {
+    "hash": "T19E51FE2B820E03717BB307CBE3C4586EB239712C7322BD86B459A3D82607CC8C736586",
+    "name": "GD License"
+  },
+  "generic-xts": {
+    "hash": "T146018906F398937158D203A62D5790EFB35F3960BA0342A27611D2BC3702DAA877BDE4",
+    "name": "Generic XTS License"
+  },
+  "GFDL-1.1": {
+    "hash": "T1CD82103A7344237306C30666FA9ED1CFA72E943C76BB9462646DC0AC1366D3883B65DD",
+    "name": "GNU Free Documentation License v1.1"
+  },
+  "GFDL-1.1-invariants-only": {
+    "hash": "T1CD82103A7344237306C30666FA9ED1CFA72E943C76BB9462646DC0AC1366D3883B65DD",
+    "name": "GNU Free Documentation License v1.1 only - invariants"
+  },
+  "GFDL-1.1-invariants-or-later": {
+    "hash": "T1CD82103A7344237306C30666FA9ED1CFA72E943C76BB9462646DC0AC1366D3883B65DD",
+    "name": "GNU Free Documentation License v1.1 or later - invariants"
+  },
+  "GFDL-1.1-no-invariants-only": {
+    "hash": "T1CD82103A7344237306C30666FA9ED1CFA72E943C76BB9462646DC0AC1366D3883B65DD",
+    "name": "GNU Free Documentation License v1.1 only - no invariants"
+  },
+  "GFDL-1.1-no-invariants-or-later": {
+    "hash": "T1CD82103A7344237306C30666FA9ED1CFA72E943C76BB9462646DC0AC1366D3883B65DD",
+    "name": "GNU Free Documentation License v1.1 or later - no invariants"
+  },
+  "GFDL-1.1-only": {
+    "hash": "T1CD82103A7344237306C30666FA9ED1CFA72E943C76BB9462646DC0AC1366D3883B65DD",
+    "name": "GNU Free Documentation License v1.1 only"
+  },
+  "GFDL-1.1-or-later": {
+    "hash": "T1CD82103A7344237306C30666FA9ED1CFA72E943C76BB9462646DC0AC1366D3883B65DD",
+    "name": "GNU Free Documentation License v1.1 or later"
+  },
+  "GFDL-1.2": {
+    "hash": "T1D592113B7344237316C30166BA5ED1CFA72E943C72B7A462646EC0AC2366D3883B65DD",
+    "name": "GNU Free Documentation License v1.2"
+  },
+  "GFDL-1.2-invariants-only": {
+    "hash": "T1D592113B7344237316C30166BA5ED1CFA72E943C72B7A462646EC0AC2366D3883B65DD",
+    "name": "GNU Free Documentation License v1.2 only - invariants"
+  },
+  "GFDL-1.2-invariants-or-later": {
+    "hash": "T1D592113B7344237316C30166BA5ED1CFA72E943C72B7A462646EC0AC2366D3883B65DD",
+    "name": "GNU Free Documentation License v1.2 or later - invariants"
+  },
+  "GFDL-1.2-no-invariants-only": {
+    "hash": "T1D592113B7344237316C30166BA5ED1CFA72E943C72B7A462646EC0AC2366D3883B65DD",
+    "name": "GNU Free Documentation License v1.2 only - no invariants"
+  },
+  "GFDL-1.2-no-invariants-or-later": {
+    "hash": "T1D592113B7344237316C30166BA5ED1CFA72E943C72B7A462646EC0AC2366D3883B65DD",
+    "name": "GNU Free Documentation License v1.2 or later - no invariants"
+  },
+  "GFDL-1.2-only": {
+    "hash": "T1D592113B7344237316C30166BA5ED1CFA72E943C72B7A462646EC0AC2366D3883B65DD",
+    "name": "GNU Free Documentation License v1.2 only"
+  },
+  "GFDL-1.2-or-later": {
+    "hash": "T1D592113B7344237316C30166BA5ED1CFA72E943C72B7A462646EC0AC2366D3883B65DD",
+    "name": "GNU Free Documentation License v1.2 or later"
+  },
+  "GFDL-1.3": {
+    "hash": "T167A2113A7344237316C30266BA5EE1CFA72E903C72B75562246DC1AC2366D3883B75ED",
+    "name": "GNU Free Documentation License v1.3"
+  },
+  "GFDL-1.3-invariants-only": {
+    "hash": "T167A2113A7344237316C30266BA5EE1CFA72E903C72B75562246DC1AC2366D3883B75ED",
+    "name": "GNU Free Documentation License v1.3 only - invariants"
+  },
+  "GFDL-1.3-invariants-or-later": {
+    "hash": "T167A2113A7344237316C30266BA5EE1CFA72E903C72B75562246DC1AC2366D3883B75ED",
+    "name": "GNU Free Documentation License v1.3 or later - invariants"
+  },
+  "GFDL-1.3-no-invariants-only": {
+    "hash": "T167A2113A7344237316C30266BA5EE1CFA72E903C72B75562246DC1AC2366D3883B75ED",
+    "name": "GNU Free Documentation License v1.3 only - no invariants"
+  },
+  "GFDL-1.3-no-invariants-or-later": {
+    "hash": "T167A2113A7344237316C30266BA5EE1CFA72E903C72B75562246DC1AC2366D3883B75ED",
+    "name": "GNU Free Documentation License v1.3 or later - no invariants"
+  },
+  "GFDL-1.3-only": {
+    "hash": "T167A2113A7344237316C30266BA5EE1CFA72E903C72B75562246DC1AC2366D3883B75ED",
+    "name": "GNU Free Documentation License v1.3 only"
+  },
+  "GFDL-1.3-or-later": {
+    "hash": "T167A2113A7344237316C30266BA5EE1CFA72E903C72B75562246DC1AC2366D3883B75ED",
+    "name": "GNU Free Documentation License v1.3 or later"
+  },
+  "Giftware": {
+    "hash": "T11121FE6EF289537A73F003913609A9E9F75A48BC7719C2D4BC16912C63B5B60413B8D5",
+    "name": "Giftware License"
+  },
+  "GL2PS": {
+    "hash": "T163119C2B3BD893B908E30B8329C660CD731EA838720325B1B14DD45C0327D96C2B89E1",
+    "name": "GL2PS License"
+  },
+  "Glide": {
+    "hash": "T1ED32541A5344137306C20261DB4F5CDFF32E5438736A55A96818C0BD23B6E75C7BEAEA",
+    "name": "3dfx Glide License"
+  },
+  "Glulxe": {
+    "hash": "T1DAF0271B4F8066B00DBB0999506AA5CBA72D10207F043E862F1ED18F532A7AEC738F44",
+    "name": "Glulxe License"
+  },
+  "GLWTPL": {
+    "hash": "T1E2111643B72423B762C11354850B99CFF36B69F4A71E74F04449D355222BF36917B598",
+    "name": "Good Luck With That Public License"
+  },
+  "gnuplot": {
+    "hash": "T146210F2E62D853BA58D302C3B2EE50C5B32DC02CB753E0A89009C04C036F4BAC7B69D9",
+    "name": "gnuplot License"
+  },
+  "GPL-1.0": {
+    "hash": "T1E742852FA74443F305C20250568F48DFF31FA878B21E4561585AC15E232BF758A7EBD9",
+    "name": "GNU General Public License v1.0 only"
+  },
+  "GPL-1.0+": {
+    "hash": "T1E742852FA74443F305C20250568F48DFF31FA878B21E4561585AC15E232BF758A7EBD9",
+    "name": "GNU General Public License v1.0 or later"
+  },
+  "GPL-1.0-only": {
+    "hash": "T1E742852FA74443F305C20250568F48DFF31FA878B21E4561585AC15E232BF758A7EBD9",
+    "name": "GNU General Public License v1.0 only"
+  },
+  "GPL-1.0-or-later": {
+    "hash": "T1E742852FA74443F305C20250568F48DFF31FA878B21E4561585AC15E232BF758A7EBD9",
+    "name": "GNU General Public License v1.0 or later"
+  },
+  "GPL-2.0": {
+    "hash": "T18372642E678443B306C202915A4F58DFF32E987CB22A41656859C06E236BF35C77FBD9",
+    "name": "GNU General Public License v2.0 only"
+  },
+  "GPL-2.0+": {
+    "hash": "T16172642A678443B306C202915A4F58DFF32E987CB22A41656859C06E236BF35C77FBD9",
+    "name": "GNU General Public License v2.0 or later"
+  },
+  "GPL-2.0-only": {
+    "hash": "T18372642E678443B306C202915A4F58DFF32E987CB22A41656859C06E236BF35C77FBD9",
+    "name": "GNU General Public License v2.0 only"
+  },
+  "GPL-2.0-or-later": {
+    "hash": "T18372642E678443B306C202915A4F58DFF32E987CB22A41656859C06E236BF35C77FBD9",
+    "name": "GNU General Public License v2.0 or later"
+  },
+  "GPL-2.0-with-autoconf-exception": {
+    "hash": "T11631F12E2A4027B34A831B91535F64DEA33A61DC72B6449720A9C06C3364E38CB379EC",
+    "name": "GNU General Public License v2.0 w/Autoconf exception"
+  },
+  "GPL-2.0-with-bison-exception": {
+    "hash": "T174019E23C740D3B304870B0ABE2D54CA8B57567D6A28C0B355D7E01E369993D87BB9D9",
+    "name": "GNU General Public License v2.0 w/Bison exception"
+  },
+  "GPL-2.0-with-classpath-exception": {
+    "hash": "T15C11AF3F8304267322FB4065F99F90CF9AA750A832579411D0C9C0AD13F2C34F27EA96",
+    "name": "GNU General Public License v2.0 w/Classpath exception"
+  },
+  "GPL-2.0-with-font-exception": {
+    "hash": "T1AFF0F4BF47854A630AD740707F2BC597AA5B11597279A30390FAC01C23E2E348377D68",
+    "name": "GNU General Public License v2.0 w/Font exception"
+  },
+  "GPL-2.0-with-GCC-exception": {
+    "hash": "T170F02B694B48A7F303D702B5192E41CBE2364D28328A0215E4A9C018564B831D3F79EE",
+    "name": "GNU General Public License v2.0 w/GCC Runtime Library exception"
+  },
+  "GPL-3.0": {
+    "hash": "T131E2835BA38413B3028202565A4FA8CFF31E9438736A41A56869C15D23B3E75C77FBED",
+    "name": "GNU General Public License v3.0 only"
+  },
+  "GPL-3.0+": {
+    "hash": "T175E2835BA38413B3028202565A4FA8CFF31E9438736A41A56869C15D23B3E75C77FBED",
+    "name": "GNU General Public License v3.0 or later"
+  },
+  "GPL-3.0-only": {
+    "hash": "T131E2835BA38413B3028202565A4FA8CFF31E9438736A41A56869C15D23B3E75C77FBED",
+    "name": "GNU General Public License v3.0 only"
+  },
+  "GPL-3.0-or-later": {
+    "hash": "T131E2835BA38413B3028202565A4FA8CFF31E9438736A41A56869C15D23B3E75C77FBED",
+    "name": "GNU General Public License v3.0 or later"
+  },
+  "GPL-3.0-with-autoconf-exception": {
+    "hash": "T14C31C25BBA8015B305924B419E7F508DA33E61FDF2610592986BC59D3361D34C7336FE",
+    "name": "GNU General Public License v3.0 w/Autoconf exception"
+  },
+  "GPL-3.0-with-GCC-exception": {
+    "hash": "T18E613175C64C2B7313D303A26A6A01CEA33E94646B6282525CB9C25D3742C31D3777FE",
+    "name": "GNU General Public License v3.0 w/GCC Runtime Library exception"
+  },
+  "Graphics-Gems": {
+    "hash": "T14401FE6B674627351FE123A4AD0A54DFA71EC842F29A9645CC4B016A0332176E6B0E89",
+    "name": "Graphics Gems License"
+  },
+  "gSOAP-1.3b": {
+    "hash": "T11A9287AB2748137306C302A69B1BD5CFF32ED03CB62A55605899C12C23A6E75C3BB5DD",
+    "name": "gSOAP Public License v1.3b"
+  },
+  "gtkbook": {
+    "hash": "T1A2E0CD4C779C773025A017F3E542C787960E516469099795349A938C131FA21D1B7477",
+    "name": "gtkbook License"
+  },
+  "Gutmann": {
+    "hash": "T11DB012DD0F00103D00A182E074178117D1172158660267B35025D2C6232671F845488D",
+    "name": "Gutmann License"
+  },
+  "HaskellReport": {
+    "hash": "T18EF0AC3683D613B310DA4A94B8A875CEE35D453C3B375410204ED26C174E8619BB6BF8",
+    "name": "Haskell Language Report License"
+  },
+  "HDF5": {
+    "hash": "T10CA18422BF0403321BC6C1B7961EAAE7F71E4928B79A0641EC1C006C134EE79937F7A5",
+    "name": "HDF5 License"
+  },
+  "hdparm": {
+    "hash": "T1C2D0951B6100827542D70781C93D368D0720C0305D0C485C8025C06A02337375272DEC",
+    "name": "hdparm License"
+  },
+  "HIDAPI": {
+    "hash": "T1A1B09248B5A867F264C55B95A24872C5724227645A202681202795A822366BE43F09A9",
+    "name": "HIDAPI License"
+  },
+  "Hippocratic-2.1": {
+    "hash": "T120024017A318237317C1239B9F4AA4CFF22E517C373E5554357A806827A697043FABE9",
+    "name": "Hippocratic License 2.1"
+  },
+  "HP-1986": {
+    "hash": "T1E1F0E15197D4837868F30B432A5250DE731EB67CBB0202503009E5AC3309BC24275EE6",
+    "name": "Hewlett-Packard 1986 License"
+  },
+  "HP-1989": {
+    "hash": "T11211D01497980375F5E71383B521209AB12EBB7C7B055050B4ADD278126AB96C336CEA",
+    "name": "Hewlett-Packard 1989 License"
+  },
+  "HPND": {
+    "hash": "T13721D926F3CC133D05B34707A16AE4C8B31DA978B7125661380CD2B81342EE481761EB",
+    "name": "Historical Permission Notice and Disclaimer"
+  },
+  "HPND-DEC": {
+    "hash": "T1A511C226B7C4437518E703536117A0CA7726E9787B52BE9174ACD568334ADA083362E6",
+    "name": "Historical Permission Notice and Disclaimer - DEC variant"
+  },
+  "HPND-doc": {
+    "hash": "T1E6E02B7AD7C8437818B74B93B9AEE0C9B62E6435BE436903740DD1A80705DE0C3396FA",
+    "name": "Historical Permission Notice and Disclaimer - documentation variant"
+  },
+  "HPND-doc-sell": {
+    "hash": "T17DE0556AD7C8437808B34663B96DA0C8B22E6034BE432602700CD1AC0709CA083295FA",
+    "name": "Historical Permission Notice and Disclaimer - documentation sell variant"
+  },
+  "HPND-export-US": {
+    "hash": "T19E111C26B7D453360AF30293352CB4DDB30A987C7B6285A2381CC2BC2246EE147766E9",
+    "name": "HPND with US Government export control warning"
+  },
+  "HPND-export-US-acknowledgement": {
+    "hash": "T15821C16EE7C0073319D601B2672956F6734F98343F5052C4AC0C417C6689EB84B7DB8E",
+    "name": "HPND with US Government export control warning and acknowledgment"
+  },
+  "HPND-export-US-modify": {
+    "hash": "T10621E01AB3D8533609F70267722874DDB31B9878771385A1782DC2E83347AE54736AD9",
+    "name": "HPND with US Government export control warning and modification rqmt"
+  },
+  "HPND-export2-US": {
+    "hash": "T13721BE36E7C4523608B703D7391860E9731EA8B87B525AB1381DC27C1345EE14676AEA",
+    "name": "HPND with US Government export control and 2 disclaimers"
+  },
+  "HPND-Fenneberg-Livingston": {
+    "hash": "T17E01FE26DA94A33409AB1243787580CEB37E0C383B569BA5700CD1A91329EC6C9322E9",
+    "name": "Historical Permission Notice and Disclaimer - Fenneberg-Livingston variant"
+  },
+  "HPND-INRIA-IMAG": {
+    "hash": "T10DF0C007F3C8937508F24748789F50C6771E69B5BF4169E0A404E06C2386AD745352E9",
+    "name": "Historical Permission Notice and Disclaimer    - INRIA-IMAG variant"
+  },
+  "HPND-Intel": {
+    "hash": "T1002102AAE38C137754B70313366A90C4713D6478354B6A50789DD13C12C6EB0833E1C9",
+    "name": "Historical Permission Notice and Disclaimer - Intel variant"
+  },
+  "HPND-Kevlin-Henney": {
+    "hash": "T13EE0AB26F389E3B805B34387B4508885BB1EA974BB03AAE4B208909417168A1913C6A1",
+    "name": "Historical Permission Notice and Disclaimer - Kevlin Henney variant"
+  },
+  "HPND-Markus-Kuhn": {
+    "hash": "T194C08055F288C3BC65F7478435510253B109BFA4F71039D1B451C060131E36A803D554",
+    "name": "Historical Permission Notice and Disclaimer - Markus Kuhn variant"
+  },
+  "HPND-merchantability-variant": {
+    "hash": "T14DE06107D7CC93E415D3078A4DC5C0DA705E942837013A24F84EE16C03065D79134DDA",
+    "name": "Historical Permission Notice and Disclaimer - merchantability variant"
+  },
+  "HPND-MIT-disclaimer": {
+    "hash": "T16E11D016F298133611F30305711EE0C5F319A9387712AA913C09D27C2342FE182795ED",
+    "name": "Historical Permission Notice and Disclaimer with MIT disclaimer"
+  },
+  "HPND-Netrek": {
+    "hash": "T1ECF0973AA388422858B70A4339A4A0CC721EA8387B432962340CD2B80302981863A2F6",
+    "name": "Historical Permission Notice and Disclaimer - Netrek variant"
+  },
+  "HPND-Pbmplus": {
+    "hash": "T1D9E02B2AA7D8926818B7068779A5E08DB21EB839BB437D62B40CD1F803064D282792E5",
+    "name": "Historical Permission Notice and Disclaimer - Pbmplus variant"
+  },
+  "HPND-sell-MIT-disclaimer-xserver": {
+    "hash": "T1EF01DC6AF598237E14E30350312AD480F32EA978BB117A957908D17C2745FE0423A5EC",
+    "name": "Historical Permission Notice and Disclaimer - sell xserver variant with MIT disclaimer"
+  },
+  "HPND-sell-regexpr": {
+    "hash": "T103E0D826B395D3B85CA306962485604DF60FAC3AFE432AE2700881E8120585145252DA",
+    "name": "Historical Permission Notice and Disclaimer - sell regexpr variant"
+  },
+  "HPND-sell-variant": {
+    "hash": "T110110D29F7C8633D05B70312625260D4B32DBA78736566603518C2BC1386FB042775EA",
+    "name": "Historical Permission Notice and Disclaimer - sell variant"
+  },
+  "HPND-sell-variant-MIT-disclaimer": {
+    "hash": "T1DC01EF55FE54233910E3C742321AE089F31E6838770579917904E17C1706AE0813E5F9",
+    "name": "HPND sell variant with MIT disclaimer"
+  },
+  "HPND-sell-variant-MIT-disclaimer-rev": {
+    "hash": "T12B01DC66F258237A50F70705225AE0C4F31EA8387702BEA27D08D5BC2706EE0827A5F9",
+    "name": "HPND sell variant with MIT disclaimer - reverse"
+  },
+  "HPND-UC": {
+    "hash": "T1DFE0AB23E380837008AB066779A25199334E5C65BF830AC0B00CC0B41306EA856392EA",
+    "name": "Historical Permission Notice and Disclaimer - University of California variant"
+  },
+  "HPND-UC-export-US": {
+    "hash": "T1B5F0C027B3C4837108EB05A3B56261D9334E5825BF821AC0B40CC0B41305EE81A786E8",
+    "name": "Historical Permission Notice and Disclaimer - University of California, US export warning"
+  },
+  "HTMLTIDY": {
+    "hash": "T1D221242F678C037029E70296BB5A5CC9F21A5020B24E5BD97C1CC1DC33A6E7AC176569",
+    "name": "HTML Tidy License"
+  },
+  "IBM-pibs": {
+    "hash": "T1B901AB117B8C163696E10593776708CEF30EF9787B668598751A82DC3332479C2B9EB2",
+    "name": "IBM PowerPC Initialization and Boot Software"
+  },
+  "ICU": {
+    "hash": "T160310D0AB35C637B18B30313A21EC4C4F32A347873265A90381DD1B82683DB882B76ED",
+    "name": "ICU License"
+  },
+  "IEC-Code-Components-EULA": {
+    "hash": "T11A41F122B24C137256E70286E32BAAD6F25D606CB71B52552C5A475C334ED3BC1731DB",
+    "name": "IEC    Code Components End-user licence agreement"
+  },
+  "IJG": {
+    "hash": "T1E881642E77C843330DE203D2684995E9BB1FB5BCB2325195682D925C331ED78833BAE5",
+    "name": "Independent JPEG Group License"
+  },
+  "IJG-short": {
+    "hash": "T1A8311469F3C9437618E303D2798E51D4F72F78A5F6625284B80A125C370AE25423EAB9",
+    "name": "Independent JPEG Group License - short"
+  },
+  "ImageMagick": {
+    "hash": "T12442637BA74C13330AC30165A74BA8DFF32FA03C371955655059D0A823BBE6583BB6DA",
+    "name": "ImageMagick License"
+  },
+  "iMatix": {
+    "hash": "T12A6114AED7F8033326CA0432679D9ECEB66D007CF79B91662454E1881376EB587718CD",
+    "name": "iMatix Standard Function Library Agreement"
+  },
+  "Imlib2": {
+    "hash": "T1A0414126B3A0633314E203056B49A4C8BB2F7D7CB32646C47418E5AC3326D6942BACF9",
+    "name": "Imlib2 License"
+  },
+  "Info-ZIP": {
+    "hash": "T1E1517327068A43332AD301ADB61B6996F339941C3B5E81E5707D836C26438698B335FA",
+    "name": "Info-ZIP License"
+  },
+  "Inner-Net-2.0": {
+    "hash": "T1A3410F26634C437369F703C6A61DB4C9B3199478770A56A6286AD13C334FEB9C2335D9",
+    "name": "Inner Net License v2.0"
+  },
+  "InnoSetup": {
+    "hash": "T18021022A374953B359E303FB794A8A8C772B6B38B65A4A9134ADC0FC239B4714131499",
+    "name": "Inno Setup License"
+  },
+  "Intel": {
+    "hash": "T1D3413323A38C13731AEB01D3675AD9D4B32D942C771E6651286E827C239ED7CC6335DA",
+    "name": "Intel Open Source License"
+  },
+  "Intel-ACPI": {
+    "hash": "T1C3C1316AB34803731BD602E2AB4A95CEF31E543CB75E1554345CC17823EBE35C2BB99A",
+    "name": "Intel ACPI Software License Agreement"
+  },
+  "Interbase-1.0": {
+    "hash": "T18FB2566B674823730AC302A69B1B95CFF32ED02CA67A5461549DC11C33A7E74C3BB59D",
+    "name": "Interbase Public License v1.0"
+  },
+  "IPA": {
+    "hash": "T1B4022161E65813F745C20169B70B5ECBF32EC838332EB6C50984816F9256F3C52BE6E4",
+    "name": "IPA Font License"
+  },
+  "IPL-1.0": {
+    "hash": "T1BC3243B3674C13724AC202A6DB8BDAD5F32ED83CB26910660498916E3396D31C73F79D",
+    "name": "IBM Public License v1.0"
+  },
+  "ISC": {
+    "hash": "T1DE01CE15F78C637D56F30781226344C8F62D3AB0B31466A07458C17813A2AB180BB6AE",
+    "name": "ISC License"
+  },
+  "ISC-Veillard": {
+    "hash": "T128F05026E7CC92B85CF7034724DD80D5B24E6974B7011FE1B419C26C0349692457AAD9",
+    "name": "ISC Veillard variant"
+  },
+  "Jam": {
+    "hash": "T111C02295B28043FC28F30AEAECC0D346FA073A58BF0131A6741F91BC063E12CC07A820",
+    "name": "Jam License"
+  },
+  "JasPer-2.0": {
+    "hash": "T1A0519409B79D13B726D24317A21E5AE4F22D346C723B1244345CD2782696FB483BB8EE",
+    "name": "JasPer License"
+  },
+  "jove": {
+    "hash": "T163D02B9BC7D593651D5207C475D78044D04FB87C3B213992205863DF231BBA7403DAE2",
+    "name": "Jove License"
+  },
+  "JPL-image": {
+    "hash": "T1475164AF9B4C377211A712D2770FC2E5BB97402C336E9B6628AE604C1251D6887337E5",
+    "name": "JPL Image Use Policy"
+  },
+  "JPNIC": {
+    "hash": "T1E1411525564C13732AEB0187A2DB5989F31E5024370D56542C2EC17C339BC31D6F7559",
+    "name": "Japan Network Information Center License"
+  },
+  "JSON": {
+    "hash": "T10611F02AF128637715E70351921F94C5F31F79BCB72A26C07808E67C3615FA482BB4E8",
+    "name": "JSON License"
+  },
+  "Kastrup": {
+    "hash": "T173B09265178813B572D506C7C48FC2EEF61E3440A523A2422D1E93F821B6C37C4F25DA",
+    "name": "Kastrup License"
+  },
+  "Kazlib": {
+    "hash": "T1DA01FE0B73A463B448B20B82ED92A2D4F31FA174B3500644F1ADD18D22B306983BDEA7",
+    "name": "Kazlib License"
+  },
+  "Knuth-CTAN": {
+    "hash": "T151E0CD77275453FA2B9202D3F40010499B36792937564040624740DC331F466D377755",
+    "name": "Knuth CTAN License"
+  },
+  "LAL-1.2": {
+    "hash": "T18DD11B3F18E006861AD71B90BF468A9FE418C954A24DC654E8EFC5CA13D656CF3FB9C8",
+    "name": "Licence Art Libre 1.2"
+  },
+  "LAL-1.3": {
+    "hash": "T144F11F3A18E01BE60AD75191FF46876FE428CD48A548C654E4EFC089139646CE3FFED8",
+    "name": "Licence Art Libre 1.3"
+  },
+  "Latex2e": {
+    "hash": "T1E1019C2E4BCC03B418674ACBE1FAE45EF33D102433B65904B88EC0AC17A68D88675A68",
+    "name": "Latex2e License"
+  },
+  "Latex2e-translated-notice": {
+    "hash": "T10A11CB2E47CD033918270E9BE4BAE0AEF33D7024336B5490B81DC2D812A2825C2B5A5E",
+    "name": "Latex2e with translated notice permission"
+  },
+  "Leptonica": {
+    "hash": "T19E01101E2AD497B659E303A55F4B55C8B3274424B259B358DC9FC01C327BA4A8071DBC",
+    "name": "Leptonica License"
+  },
+  "LGPL-2.0": {
+    "hash": "T11AB2743BA345137313E202955A0F94DFE31BD07C326B5A606499C05E236BD35A37BBEA",
+    "name": "GNU Library General Public License v2 only"
+  },
+  "LGPL-2.0+": {
+    "hash": "T11AB2743BA345137313E202955A0F94DFE31BD07C326B5A606499C05E236BD35A37BBEA",
+    "name": "GNU Library General Public License v2 or later"
+  },
+  "LGPL-2.0-only": {
+    "hash": "T11AB2743BA345137313E202955A0F94DFE31BD07C326B5A606499C05E236BD35A37BBEA",
+    "name": "GNU Library General Public License v2 only"
+  },
+  "LGPL-2.0-or-later": {
+    "hash": "T11AB2743BA345137313E202955A0F94DFE31BD07C326B5A606499C05E236BD35A37BBEA",
+    "name": "GNU Library General Public License v2 or later"
+  },
+  "LGPL-2.1": {
+    "hash": "T10DC2853AA345137313E202945A0F94DFE31BD07C326799606499C06E236BD35A37BBEA",
+    "name": "GNU Lesser General Public License v2.1 only"
+  },
+  "LGPL-2.1+": {
+    "hash": "T102C2853AA345137313E202945A0F94DFE31BD07C326799606499C06E236BD35A37BBEA",
+    "name": "GNU Lesser General Public License v2.1 or later"
+  },
+  "LGPL-2.1-only": {
+    "hash": "T10DC2853AA345137313E202945A0F94DFE31BD07C326799606499C06E236BD35A37BBEA",
+    "name": "GNU Lesser General Public License v2.1 only"
+  },
+  "LGPL-2.1-or-later": {
+    "hash": "T10DC2853AA345137313E202945A0F94DFE31BD07C326799606499C06E236BD35A37BBEA",
+    "name": "GNU Lesser General Public License v2.1 or later"
+  },
+  "LGPL-3.0": {
+    "hash": "T14F03835BA34413B302C202565A4FA4CFE32EA438736745A56869C15D23B3E34D77BBEE",
+    "name": "GNU Lesser General Public License v3.0 only"
+  },
+  "LGPL-3.0+": {
+    "hash": "T13F03835BA34413B302C202565A4FA4CFE32EA438736745A56869C15D23B3E34D77BBEE",
+    "name": "GNU Lesser General Public License v3.0 or later"
+  },
+  "LGPL-3.0-only": {
+    "hash": "T14F03835BA34413B302C202565A4FA4CFE32EA438736745A56869C15D23B3E34D77BBEE",
+    "name": "GNU Lesser General Public License v3.0 only"
+  },
+  "LGPL-3.0-or-later": {
+    "hash": "T14F03835BA34413B302C202565A4FA4CFE32EA438736745A56869C15D23B3E34D77BBEE",
+    "name": "GNU Lesser General Public License v3.0 or later"
+  },
+  "LGPLLR": {
+    "hash": "T1F4521E2B934403B286D20145D6FB41EFD31A947C6336A2A8E46EC05C27BBF745377AD9",
+    "name": "Lesser General Public License For Linguistic Resources"
+  },
+  "Libpng": {
+    "hash": "T14781A82F464D03713FE909CAAA8D57D9F31C406C630AEA95F82581D8273BD36D1776E2",
+    "name": "libpng License"
+  },
+  "libpng-1.6.35": {
+    "hash": "T16D71A72B5E4D03313FD1C9CAA64D5AEAF61C402C630ADA54E42482CC177F93AC5BF6E1",
+    "name": "PNG Reference Library License v1 (for libpng 0.5 through 1.6.35)"
+  },
+  "libpng-2.0": {
+    "hash": "T1E1318215BD4C03313AE2C39AA64D8D86F30B7930A10A57C97C68C0DC2776F71817E8A5",
+    "name": "PNG Reference Library version 2"
+  },
+  "libselinux-1.0": {
+    "hash": "T10D1132257F8803B208C9C3E62A4494D5F32EACF4770D1AD12C446A3C1346A388B7F5CD",
+    "name": "libselinux public domain notice"
+  },
+  "libtiff": {
+    "hash": "T13321035AF74D536D0BE703676A2550C0F12EAC383702ABF9AC18A67C234BE7146752DD",
+    "name": "libtiff License"
+  },
+  "libutil-David-Nugent": {
+    "hash": "T1E6119067874C67B79AD744D66D5A9288B12D442C3F1A59083C2F807C137B571DB334D6",
+    "name": "libutil David Nugent License"
+  },
+  "LiLiQ-P-1.1": {
+    "hash": "T128C114268AE812716FD34291F70297AFE21ED054E21CD324C4F3958613DAC5DE3BB5E6",
+    "name": "Licence Libre du Qu\u00e9bec \u2013 Permissive version 1.1"
+  },
+  "LiLiQ-R-1.1": {
+    "hash": "T101F1232B8AE811776FD24291F743979FE21ED054A21CD324C4E3818A13DAC5DE3EA5F6",
+    "name": "Licence Libre du Qu\u00e9bec \u2013 R\u00e9ciprocit\u00e9 version 1.1"
+  },
+  "LiLiQ-Rplus-1.1": {
+    "hash": "T1C2F125368AEC11766FD24291F703979FE21ED014A21CD324C8E3818613DAC5DE3EA5E6",
+    "name": "Licence Libre du Qu\u00e9bec \u2013 R\u00e9ciprocit\u00e9 forte version 1.1"
+  },
+  "Linux-man-pages-1-para": {
+    "hash": "T1D6D0A70A81AF22F4654304D7946B84C953BE106C37420845198DC01E5A878759377A9D",
+    "name": "Linux man-pages - 1 paragraph"
+  },
+  "Linux-man-pages-copyleft": {
+    "hash": "T1ED11C22AEFC403B60876069AA4AEA5C9E72C203077B65950641ED13C27A6DB543357FD",
+    "name": "Linux man-pages Copyleft"
+  },
+  "Linux-man-pages-copyleft-2-para": {
+    "hash": "T1D3E0A32FD7CC037808A74DC7B4FBE0DEB32D503477A40444785EC05C17964958275B58",
+    "name": "Linux man-pages Copyleft - 2 paragraphs"
+  },
+  "Linux-man-pages-copyleft-var": {
+    "hash": "T1D801CE2ADFC803B908BA09C6B4EE90D9E32C3034B7B25954641EC12C2796DB58235BA8",
+    "name": "Linux man-pages Copyleft Variant"
+  },
+  "Linux-OpenIB": {
+    "hash": "T1E611DC77A248537751EB46C6624EE284F31D843C7B062D002C2B913C036BFB9C5779E9",
+    "name": "Linux Kernel Variant of OpenIB.org license"
+  },
+  "LOOP": {
+    "hash": "T12F41EF3A7E8823390EE307577579E4C9731A64783662956378ACC0EC234FDE083352E9",
+    "name": "Common Lisp LOOP License"
+  },
+  "LPD-document": {
+    "hash": "T1A5E0C60B33CE43A204F70A83A1C6F4CD201EF0B873220D29A44CB0681F97E9643327AB",
+    "name": "LPD Documentation License"
+  },
+  "LPL-1.0": {
+    "hash": "T193323072678C13724AC602A6CB878AD5F32ED83CB2A9216504DD916E335AD31C73F39D",
+    "name": "Lucent Public License Version 1.0"
+  },
+  "LPL-1.02": {
+    "hash": "T1B1322072678C13724AC202A5DB87DAD5F32ED83CB2A9206544DD926E335AD31C73F29D",
+    "name": "Lucent Public License v1.02"
+  },
+  "LPPL-1.0": {
+    "hash": "T1E302CF2A5AC863F31AC201D6E74D58CAF32AC46C736AD560148EC06D721FE3196FB5E8",
+    "name": "LaTeX Project Public License v1.0"
+  },
+  "LPPL-1.1": {
+    "hash": "T1E952DD2B5E8413F30AC3C0D59B4959CEE329C42C736A9161159AC02E735BE31D6FFAE9",
+    "name": "LaTeX Project Public License v1.1"
+  },
+  "LPPL-1.2": {
+    "hash": "T15B52DD2B5E8413F30AC3C0959B4959CEE329C42C736A9161159AC02E735BE31D6FFAE9",
+    "name": "LaTeX Project Public License v1.2"
+  },
+  "LPPL-1.3a": {
+    "hash": "T176720F769B8813725AD28289B60D65EFE325503C37B76078248DC06D23BBD75C2BF5E8",
+    "name": "LaTeX Project Public License v1.3a"
+  },
+  "LPPL-1.3c": {
+    "hash": "T10B8200769F8813725AC2828DB60D65EFE325503C37A66164248DC05D23BBD75C2BF9E8",
+    "name": "LaTeX Project Public License v1.3c"
+  },
+  "lsof": {
+    "hash": "T1EF11D0072B18C3732EF3037A6A12A581F32A1634B89F4FD9E84D8074375B8294230175",
+    "name": "lsof License"
+  },
+  "Lucida-Bitmap-Fonts": {
+    "hash": "T1A451542663891333062B01226B5E0FDDA36DF16873064D45683C856C13B2E3983BBBFD",
+    "name": "Lucida Bitmap Fonts License"
+  },
+  "LZMA-SDK-9.11-to-9.20": {
+    "hash": "T1ACD097580E24003A33F0C676002CFAEAB32BA488240A08410A00230E2856108A428E3A",
+    "name": "LZMA SDK License (versions 9.11 to 9.20)"
+  },
+  "LZMA-SDK-9.22": {
+    "hash": "T14BF0EB2D8E1C017467F001F10266E2DBF32FE5942C281AC08D20434C662B61AE13EE28",
+    "name": "LZMA SDK License (versions 9.22 and beyond)"
+  },
+  "Mackerras-3-Clause": {
+    "hash": "T11C21EE16F38CA3BB16F7029A661B92C4F31C993877151A10782AC13C13DBEB9C5735AA",
+    "name": "Mackerras 3-Clause License"
+  },
+  "Mackerras-3-Clause-acknowledgment": {
+    "hash": "T185110016F3CCA3B616F7029B620A45E4F72D6A28732506607925D13C23DBEBC94729A9",
+    "name": "Mackerras 3-Clause - acknowledgment variant"
+  },
+  "magaz": {
+    "hash": "T1C1D0230BE3E437DD147005235D54E18C6B59557575452894B115D10C0016E0C2390575",
+    "name": "magaz License"
+  },
+  "mailprio": {
+    "hash": "T124E0AB6F3745C2AC41F30A8FB8428205A7322561E11F54C0B12E43FC133B11C817E71D",
+    "name": "mailprio License"
+  },
+  "MakeIndex": {
+    "hash": "T1D041261B63C813F1198241C69A5AD48D633E983833D25148B98DC02E67DBDB1D739FBD",
+    "name": "MakeIndex License"
+  },
+  "man2html": {
+    "hash": "T1E0B0140557D547F505D344C445505351031C44D0F310531553CFD04F075D7754135F54",
+    "name": "man2html License"
+  },
+  "Martin-Birgmeier": {
+    "hash": "T1D9E02B5AB3D093E654E247557A826008732F497677251660BC57D06C03229195134DB3",
+    "name": "Martin Birgmeier License"
+  },
+  "McPhee-slideshow": {
+    "hash": "T16BE0264243C8210562D300938941A4DCB60AC83D5F01E8092E0BD2441B03C30A37ADB6",
+    "name": "McPhee Slideshow License"
+  },
+  "metamail": {
+    "hash": "T1CFF0A216D3C4433518EF0226292561CC736ED03D7F1B25A27C0CC07C1747A9146357EA",
+    "name": "metamail License"
+  },
+  "Minpack": {
+    "hash": "T18B41513A628C03B346D302EBB21EA198B31D9938731B15207C19517C234FE69867B6E9",
+    "name": "Minpack License"
+  },
+  "MIPS": {
+    "hash": "T1B3C02231838B00204010518B56A0739665B825383A0DCB29E0CC9281A22F431A93092C",
+    "name": "MIPS License"
+  },
+  "MirOS": {
+    "hash": "T182112F12B37933F091D5818CB58067CAB35E2838330C13B8589C937812ABD21493A2F9",
+    "name": "The MirOS Licence"
+  },
+  "MIT": {
+    "hash": "T144111F1AF228533710E70752A21E94C5F31E79BCB72A25C0380CE6B83211FB482BB4E8",
+    "name": "MIT License"
+  },
+  "MIT-0": {
+    "hash": "T194110055B128137311FB0342920E8092F31A39BCB71626C0780CE7683614FA443BB8E8",
+    "name": "MIT No Attribution"
+  },
+  "MIT-advertising": {
+    "hash": "T187210517B614137729930351A21EC4D1B71F757CB7261AC07C0CE66C2356E5442BB5E8",
+    "name": "Enlightenment License (e16)"
+  },
+  "MIT-Click": {
+    "hash": "T180315516B248537311E30355B31EE5DAF71A79ACB73A2181781DC26C3250FE442B74E9",
+    "name": "MIT Click License"
+  },
+  "MIT-CMU": {
+    "hash": "T15221B116F38C633D16B70742A15AE4C9F729B938B3165961381DC17C1392FF9817B2EA",
+    "name": "CMU License"
+  },
+  "MIT-enna": {
+    "hash": "T1ED31222AF364537355E203456A5DD4D9FB2F7ABCB31656803808D2AC3312D6442BB9F5",
+    "name": "enna License"
+  },
+  "MIT-feh": {
+    "hash": "T1F811F02AF264537354E70351621E90D1B71F3ABCB7252AC0780CE6383315EA443BBAE8",
+    "name": "feh License"
+  },
+  "MIT-Festival": {
+    "hash": "T1A2215416F38CA3762AFB0216111B45D1F32C592C73590B413869D13C17EB7348277AA8",
+    "name": "MIT Festival Variant"
+  },
+  "MIT-Khronos-old": {
+    "hash": "T1FD21D056A624137B15D70291925E95DBF72EA01F3B371580788EC26C2297D74833FADC",
+    "name": "MIT Khronos - old variant"
+  },
+  "MIT-Modern-Variant": {
+    "hash": "T17011DC26B38453B838A74307B618EED8B12DA838B60B2B843C0DC2A81315D64C1BA5DD",
+    "name": "MIT License Modern Variant"
+  },
+  "MIT-open-group": {
+    "hash": "T1CB21EE66F249233A04E20755621FE0D4F31EB438B623BAA13908D0BC3247EB452795E9",
+    "name": "MIT Open Group variant"
+  },
+  "MIT-testregex": {
+    "hash": "T11611F021B398133359EA0782622948A1F35E39ACB31E62D03864826C324CD74827759C",
+    "name": "MIT testregex Variant"
+  },
+  "MIT-Wu": {
+    "hash": "T1B921FD29F74C937719E30797614A81C0F22E7978776A1AD07869E27C2357E2083B75DC",
+    "name": "MIT Tom Wu Variant"
+  },
+  "MITNFA": {
+    "hash": "T148310026B15413B7159703A1E20E94D5B31E75B8B73A5580381AE67C2116EB482B79E8",
+    "name": "MIT +no-false-attribs license"
+  },
+  "MMIXware": {
+    "hash": "T18301EF037AD003FB01D205D77A09A7CDA35D603D7AA5924430EDA54D7112A9881F2EE0",
+    "name": "MMIXware License"
+  },
+  "Motosoto": {
+    "hash": "T148B2316AA39813B307C301BA6F1759CFF32F803C726A55A51059915C2376F2C93BB9AD",
+    "name": "Motosoto License"
+  },
+  "MPEG-SSG": {
+    "hash": "T19A11F386F34603B500C9834B26155BE9F92E74B0322E17E17C96403C2B16E7411BEAE4",
+    "name": "MPEG Software Simulation"
+  },
+  "mpi-permissive": {
+    "hash": "T134F0C978E28C13A567C281B399A886DAB90D602C379F2A10ADEC822D1758B35433914A",
+    "name": "mpi Permissive License"
+  },
+  "mpich2": {
+    "hash": "T1E0211036A2C80777438241679A1896D7F76D4024B78F9905FC9C426C2367DB5C339A69",
+    "name": "mpich2 License"
+  },
+  "MPL-1.0": {
+    "hash": "T13B8245AB574813730AC302665B1BD5DFF32E943CB62A5560588EC11C23B6E68C3BB9DD",
+    "name": "Mozilla Public License 1.0"
+  },
+  "MPL-1.1": {
+    "hash": "T199A257AB1748237306C302A69B1B95CFF32ED02CA67A5461589EC15C23B6E74C3BB5DD",
+    "name": "Mozilla Public License 1.1"
+  },
+  "MPL-2.0": {
+    "hash": "T1F562447B3F4813730AC2C2669B5B918FF31E9438A66911652059C12C33B6E35C7BFA99",
+    "name": "Mozilla Public License 2.0"
+  },
+  "MPL-2.0-no-copyleft-exception": {
+    "hash": "T1F562447B3F4813730AC2C2669B5B918FF31E9438A66911652059C12C33B6E35C7BFA99",
+    "name": "Mozilla Public License 2.0 (no copyleft exception)"
+  },
+  "mplus": {
+    "hash": "T1E3D0A722521997F545831AC5F9F15180731F1445B74450921029900C0AA61A38172B88",
+    "name": "mplus Font License"
+  },
+  "MS-LPL": {
+    "hash": "T19F51D43A720813330FC30355CB57598FF22AA97DF119106BB46DA44437BE624C3BB986",
+    "name": "Microsoft Limited Public License"
+  },
+  "MS-PL": {
+    "hash": "T1AB51C43A760813330FC30355CB57998FF21A997DF119256BA46DE444377E624C3BBA86",
+    "name": "Microsoft Public License"
+  },
+  "MS-RL": {
+    "hash": "T1B551EF3A764803330AC30355DB57598FF21EA87CF119246BA469E44437BE621C3FBAC6",
+    "name": "Microsoft Reciprocal License"
+  },
+  "MTLL": {
+    "hash": "T1BB512E2BBB58233353C382AB421B2BD9A35D813C77250585A81D402C339BD7C87B9BCA",
+    "name": "Matrix Template Library License"
+  },
+  "MulanPSL-1.0": {
+    "hash": "T1ABB1307B724C433346C70316AB6BD48EB71FA478A70C51A6604C94A823B5F78C3BB999",
+    "name": "Mulan Permissive Software License, Version 1"
+  },
+  "MulanPSL-2.0": {
+    "hash": "T1CFB1202B7248433746C703569B6BD48EF71FA478670C50AA610D94A823B9E78C3B79E9",
+    "name": "Mulan Permissive Software License, Version 2"
+  },
+  "Multics": {
+    "hash": "T13741EF279F8823261AA3E696D1A2D8C6F27E68543B32454674FCC01CA349C74833E6E9",
+    "name": "Multics License"
+  },
+  "Mup": {
+    "hash": "T1B7313032A38C133369EB02C77269D5C4B21D842C7B1A19402C6E813C236FD38C9775DA",
+    "name": "Mup License"
+  },
+  "NAIST-2003": {
+    "hash": "T178713061F78D23B60AE20292A14E9DE4F33E94347316D99424ADD02D2707F749B3E3E9",
+    "name": "Nara Institute of Science and Technology License (2003)"
+  },
+  "NASA-1.3": {
+    "hash": "T16C522056B3B413724FC2037AE52AA5D5F32FE838B26B61D464DDC19C2646EA0C33B295",
+    "name": "NASA Open Source Agreement 1.3"
+  },
+  "Naumen": {
+    "hash": "T1F741232AA78813730AF701C2B62AC5D8F209982C770A56563869C32C338FD35C5B35ED",
+    "name": "Naumen Public License"
+  },
+  "NBPL-1.0": {
+    "hash": "T1BAB1122B938813B216E30962B60D75DEE76F343873279490384ED15C2357D7A8376AEE",
+    "name": "Net Boolean Public License v1"
+  },
+  "NCBI-PD": {
+    "hash": "T19E11886AE3F423B3226103D6500D91F2F6495420E32157007C4D525D2A41CF1237BB9A",
+    "name": "NCBI Public Domain Notice"
+  },
+  "NCGL-UK-2.0": {
+    "hash": "T127B1039BEF480B7323E3029797DB91DEE72D50282729C12A2C2AC0141756D34573B7E9",
+    "name": "Non-Commercial Government Licence"
+  },
+  "NCL": {
+    "hash": "T13A31D067A388173325E74287A11FF1C1B32D9878B70665126C4A913C075BE71C7776DD",
+    "name": "NCL Source Code License"
+  },
+  "NCSA": {
+    "hash": "T1A631322AB218033315D30351512F90D1F33E957CB70B2681784DD17C219AE79C27B8D6",
+    "name": "University of Illinois/NCSA Open Source License"
+  },
+  "Net-SNMP": {
+    "hash": "T1DD522F22A38C133309FB46C7B25AE5C4F21DA42C3B1A59552C6D827C239FD79C5735EA",
+    "name": "Net-SNMP License"
+  },
+  "NetCDF": {
+    "hash": "T1CA31FB12F3C823310AFB2263661694E0FB2EA97873129791383871581385E7892B5BED",
+    "name": "NetCDF license"
+  },
+  "Newsletr": {
+    "hash": "T187F00511B788C3B208D203AE685859A4F26B0D68770CAFDCF4DDD01C3F4515641305D0",
+    "name": "Newsletr License"
+  },
+  "NGPL": {
+    "hash": "T16AA1222FE38403B212C50591DF5B95EFF31E903C730A117694ADD19D237FE2285BAA9A",
+    "name": "Nethack General Public License"
+  },
+  "ngrep": {
+    "hash": "T173314225B3D8437219F203967A258DD0F32B2978B32E9BC5389C816C338BE34823256D",
+    "name": "ngrep License"
+  },
+  "NICTA-1.0": {
+    "hash": "T18A513F25328853B316E703D6665E91C4F76A9428B72F548078AF813C231AFB986F74E9",
+    "name": "NICTA Public Software License, Version 1.0"
+  },
+  "NIST-PD": {
+    "hash": "T11C11CC18B3C853370DE102A3665AD2B4F39FB89862322280745C842C2B5CDB98A7BDD9",
+    "name": "NIST Public Domain Notice"
+  },
+  "NIST-PD-fallback": {
+    "hash": "T17C31442BB388137A09D20390785A98B4F70FA87C7718639138CC801D2B49EE9D17D6D6",
+    "name": "NIST Public Domain Notice with license fallback"
+  },
+  "NIST-Software": {
+    "hash": "T1603122297345137706C603D2622965E6F66FA8B9B33141C0351DE05C634AFB593BEACA",
+    "name": "NIST Software License"
+  },
+  "NLOD-1.0": {
+    "hash": "T112020367EF441733179303AF4B8E62DFD729A028237AD61A2C19D0181369C78A7777E5",
+    "name": "Norwegian Licence for Open Government Data (NLOD) 1.0"
+  },
+  "NLOD-2.0": {
+    "hash": "T17D020267EF44173317A303AF4B8E62DF9729A028237AD61A2C19D0181369C78E7777E5",
+    "name": "Norwegian Licence for Open Government Data (NLOD) 2.0"
+  },
+  "NLPL": {
+    "hash": "T149D05E6627A812BB1BD300B91A82485FB27F2838771A9991701A828D3B2E11596EA526",
+    "name": "No Limit Public License"
+  },
+  "Nokia": {
+    "hash": "T18892646B724823730AC303765B1B95DBF32E943CA63A10A56499C01C37A7E74C3BB59D",
+    "name": "Nokia Open Source License"
+  },
+  "NOSL": {
+    "hash": "T19EB2566B2748237306C302A69B1BE5CFE32ED03CA67A5451549DC12C23B6E75C3BB59D",
+    "name": "Netizen Open Source License"
+  },
+  "Noweb": {
+    "hash": "T17621DD5FE24832761BB51E677343A81BB30E6078BA3C06A15468859E2BBBF585037FC5",
+    "name": "Noweb License"
+  },
+  "NPL-1.0": {
+    "hash": "T1BC9254AB5348137306C302A65B1B95DFF32E943CB62654605899C11C23B6EB8C7BBADD",
+    "name": "Netscape Public License v1.0"
+  },
+  "NPL-1.1": {
+    "hash": "T12CC266AB1788137306C302A69B1B95CFF32ED02CA63B5451589AC15C23B6E74C7BB6DD",
+    "name": "Netscape Public License v1.1"
+  },
+  "NPOSL-3.0": {
+    "hash": "T13F32E41EA34D137307C602766B5B59DFA31E8038726F969231A9C0A417F2F7443BB99D",
+    "name": "Non-Profit Open Software License 3.0"
+  },
+  "NRL": {
+    "hash": "T1FD614633F348333305D70257E229AAD4F72AA468776B59C6780D85AC338AD7481B319E",
+    "name": "NRL License"
+  },
+  "NTIA-PD": {
+    "hash": "T16A41202E73C813B609D603D363A905F5B62F687CB32151C47629C02C136AEB9933EAD9",
+    "name": "NTIA Public Domain Notice"
+  },
+  "NTP": {
+    "hash": "T19C01FE2797C8433419B3074BB52890DCB70EA83C77425A62341CC6B813839D382351EB",
+    "name": "NTP License"
+  },
+  "NTP-0": {
+    "hash": "T194F09E35E7C487340AB3034BF42450A8B71E9D6CBBA262A9700CD179138AED242354DF",
+    "name": "NTP No Attribution"
+  },
+  "Nunit": {
+    "hash": "T17F11D006729883B136E202F6B6498943B7272A57B20B4B8D703DD0C83F9662911718AE",
+    "name": "Nunit License"
+  },
+  "O-UDA-1.0": {
+    "hash": "T1D061EF6EB649033203C711E5725B96C6E26EE03C3B2A55A55896C178230BF36673B2DF",
+    "name": "Open Use of Data Agreement v1.0"
+  },
+  "OAR": {
+    "hash": "T1D0F04C56F3D852B544E30756384540D5B35F7D64BF0256D1B506D1BC3706E984732DE8",
+    "name": "OAR License"
+  },
+  "OCCT-PL": {
+    "hash": "T13152436AE748237307C203A55B0B54DFF72FD42C726A0991649A915C33A6A70C3FBADD",
+    "name": "Open CASCADE Technology Public License"
+  },
+  "OCLC-2.0": {
+    "hash": "T1AC22A82A978823B30BD30155AB8B59CEF31ED42C722E55615D89C06D23ABE30C77F69D",
+    "name": "OCLC Research Public License 2.0"
+  },
+  "ODbL-1.0": {
+    "hash": "T18BB2101A7344237303C301E69A4F55CFE72AF428367A45917CA9C16823B6E317777AEA",
+    "name": "Open Data Commons Open Database License v1.0"
+  },
+  "ODC-By-1.0": {
+    "hash": "T1E692115A7348233303C301E66A4F95CFE72AF82C377B455138A5C1682366E356777AEA",
+    "name": "Open Data Commons Attribution License v1.0"
+  },
+  "OFFIS": {
+    "hash": "T1F111CE77F7C412121EA703136A544DC27A2B2DB0F6076E86BC2C81993359928C3769B5",
+    "name": "OFFIS License"
+  },
+  "OFL-1.0": {
+    "hash": "T1B6713026774423F749C20709FB6BA5EAF32E305C736625C0646AC16C22D6D3843F27E5",
+    "name": "SIL Open Font License 1.0"
+  },
+  "OFL-1.0-no-RFN": {
+    "hash": "T1B6713026774423F749C20709FB6BA5EAF32E305C736625C0646AC16C22D6D3843F27E5",
+    "name": "SIL Open Font License 1.0 with no Reserved Font Name"
+  },
+  "OFL-1.0-RFN": {
+    "hash": "T1B6713026774423F749C20709FB6BA5EAF32E305C736625C0646AC16C22D6D3843F27E5",
+    "name": "SIL Open Font License 1.0 with Reserved Font Name"
+  },
+  "OFL-1.1": {
+    "hash": "T105814525734823F705C20649FB6BA9EEF32E305C735A65C5646AC0AC23E5D3803B67E9",
+    "name": "SIL Open Font License 1.1"
+  },
+  "OFL-1.1-no-RFN": {
+    "hash": "T105814525734823F705C20649FB6BA9EEF32E305C735A65C5646AC0AC23E5D3803B67E9",
+    "name": "SIL Open Font License 1.1 with no Reserved Font Name"
+  },
+  "OFL-1.1-RFN": {
+    "hash": "T105814525734823F705C20649FB6BA9EEF32E305C735A65C5646AC0AC23E5D3803B67E9",
+    "name": "SIL Open Font License 1.1 with Reserved Font Name"
+  },
+  "OGC-1.0": {
+    "hash": "T1BE41232BB28C533119D30317B76D64CEF31F75A87B2B6591341D82583315FB882BA2D9",
+    "name": "OGC Software License, Version 1.0"
+  },
+  "OGDL-Taiwan-1.0": {
+    "hash": "T12BE11076E348133753C315A69B8E95EED72EF01C2B6B9B452428C0F42213935777A3EA",
+    "name": "Taiwan Open Government Data License, version 1.0"
+  },
+  "OGL-Canada-2.0": {
+    "hash": "T1F27145ABDF490B7327A3029766CF55DEFB6C002C266AC2292C27D0142766D340B773E9",
+    "name": "Open Government Licence - Canada"
+  },
+  "OGL-UK-1.0": {
+    "hash": "T17AC1449BEB481733139302A7A7CBD5DFE72C5028652AC12A2C3AC1542766D3193773F5",
+    "name": "Open Government Licence v1.0"
+  },
+  "OGL-UK-2.0": {
+    "hash": "T194C1009BEB48073323A30667A78F95DFE72C6028266AC21A2C3AC0542776D3157773F5",
+    "name": "Open Government Licence v2.0"
+  },
+  "OGL-UK-3.0": {
+    "hash": "T10ED11F9BEF08073323A30667A78F95DFE72CA028266AC12A2C26C1542726D3457777F5",
+    "name": "Open Government Licence v3.0"
+  },
+  "OGTSL": {
+    "hash": "T10AB1641B9384237102A20966750E76DFE76F607C73268890386DD15C2382D79837BFED",
+    "name": "Open Group Test Suite License"
+  },
+  "OLDAP-1.1": {
+    "hash": "T12BB1332B938813B216E30962B60D75DEE76F303873279490394ED15C2357D7A8376AEE",
+    "name": "Open LDAP Public License v1.1"
+  },
+  "OLDAP-1.2": {
+    "hash": "T109B1412B938813B216E30962B60D75DEE76F303873279490384ED15C2357D7A8376AEE",
+    "name": "Open LDAP Public License v1.2"
+  },
+  "OLDAP-1.3": {
+    "hash": "T1A5C1022B938813B216E30962B50D75DEE76F3438732694903D4ED15C2316D7A8376BEE",
+    "name": "Open LDAP Public License v1.3"
+  },
+  "OLDAP-1.4": {
+    "hash": "T1A6C1002B938813B216E30962B60D75DEE76F3038732694903D4ED15C2316D7A8376BEE",
+    "name": "Open LDAP Public License v1.4"
+  },
+  "OLDAP-2.0": {
+    "hash": "T170413125A24A073345FB0186F56FD6B8773D47287B1755A1661886BC328BC76873309F",
+    "name": "Open LDAP Public License v2.0 (or possibly 2.0A and 2.0B)"
+  },
+  "OLDAP-2.0.1": {
+    "hash": "T160414325A24A073344FB0146E56FD6B8773D47287B1755A1661886BC328BC76873309F",
+    "name": "Open LDAP Public License v2.0.1"
+  },
+  "OLDAP-2.1": {
+    "hash": "T16F416529A28A073345EB0146A6AFD6FC733D57183A1755A16618C6FC328BC768B334DE",
+    "name": "Open LDAP Public License v2.1"
+  },
+  "OLDAP-2.2": {
+    "hash": "T170414339A28A073345EB0586A66FC6FC773D57283B1755A16618C1FC328BC7687324DE",
+    "name": "Open LDAP Public License v2.2"
+  },
+  "OLDAP-2.2.1": {
+    "hash": "T12C413229A28A073345EB0586A66F86FC773D57283B1755A16618C2FC328BC7687324DE",
+    "name": "Open LDAP Public License v2.2.1"
+  },
+  "OLDAP-2.2.2": {
+    "hash": "T17F41422AA286073345EB058AE6AF86BC773D5718771755A12608C1FC328BC7687324EE",
+    "name": "Open LDAP Public License 2.2.2"
+  },
+  "OLDAP-2.3": {
+    "hash": "T12441532AA286073345EB058AE6AF86FC773D5718771755A12618C1FC328BC3687324EE",
+    "name": "Open LDAP Public License v2.3"
+  },
+  "OLDAP-2.4": {
+    "hash": "T1A34151365389033309EB058AEA6F85ECB32D162C761665A5241CC1BC234BC76C6324EE",
+    "name": "Open LDAP Public License v2.4"
+  },
+  "OLDAP-2.5": {
+    "hash": "T15141413A6389133309EB028AE66F85ECB32D1668761B15A5741DC1BC334BD7686724DE",
+    "name": "Open LDAP Public License v2.5"
+  },
+  "OLDAP-2.6": {
+    "hash": "T13741613A6389033305EB028AE66F85ECB32D16287B1B15A13419C1BC334BD7686724EE",
+    "name": "Open LDAP Public License v2.6"
+  },
+  "OLDAP-2.7": {
+    "hash": "T16D4154366389133309FB069AE96F85E8B32D1668772715A13419C1FC334BD7AC6364EE",
+    "name": "Open LDAP Public License v2.7"
+  },
+  "OLDAP-2.8": {
+    "hash": "T1CC41413A6389133309FB069AE56E85E8B32D16687B1715A13419C1BC334BD7A86724EE",
+    "name": "Open LDAP Public License v2.8"
+  },
+  "OLFL-1.3": {
+    "hash": "T1A1323227D30803730AD70265DB9AA8CFE31ED03C765A65665099C47C23AAF35D33B6DA",
+    "name": "Open Logistics Foundation License Version 1.3"
+  },
+  "OML": {
+    "hash": "T15E315235E38803E159D307467A246AD4FE2EA5BC3B871982340CC04C330AD7467BB8D5",
+    "name": "Open Market License"
+  },
+  "OpenPBS-2.3": {
+    "hash": "T10A715123BF5413B35AD3C3C6A14680C8F72E6A68B60A08986819417C338FDB9D37F59C",
+    "name": "OpenPBS v2.3 Software License"
+  },
+  "OpenSSL": {
+    "hash": "T102B14021F7DC03321AE600C6692EDAD5B31E613C772AAA907D18916C338ED38C6335DE",
+    "name": "OpenSSL License"
+  },
+  "OpenSSL-standalone": {
+    "hash": "T1E3418311F6AC933206E601CA6D1ADEF1B71E662CB319A6907E58D1EC378EC34853319E",
+    "name": "OpenSSL License - standalone"
+  },
+  "OpenVision": {
+    "hash": "T1EE31146DD28C037205D60A97624B46E1F1BD2224771F01846AFDC2A823F6F75C77ADDA",
+    "name": "OpenVision License"
+  },
+  "OPL-1.0": {
+    "hash": "T16792446B2788137306C302A69B1B95DFB32E803C76665560549EC12C23B7E78C7BB5DD",
+    "name": "Open Public License v1.0"
+  },
+  "OPL-UK-3.0": {
+    "hash": "T1AE91F14BEB080733139303A7568F92DFF72C9428322A85166C7AD0542766D39A7BB7B5",
+    "name": "United    Kingdom Open Parliament Licence v3.0"
+  },
+  "OPUBL-1.0": {
+    "hash": "T112C161AA934413B303D712A7AA0E65DFE32BC07C352F5455104EC1DC22AAEB863B75ED",
+    "name": "Open Publication License v1.0"
+  },
+  "OSET-PL-2.1": {
+    "hash": "T11082426B334423730AC302665B5B95DFF32E9438B66940666069C12C33B7D75C3BBAAD",
+    "name": "OSET Public License version 2.1"
+  },
+  "OSL-1.0": {
+    "hash": "T10D02242AA34D137307C207666B5BAACFF31E8038736F96913158806417B5E6443BB5ED",
+    "name": "Open Software License 1.0"
+  },
+  "OSL-1.1": {
+    "hash": "T12C12262AA34D137307C20366AB5BA9CFF31E8038736F969171A9806417F5E64437A9ED",
+    "name": "Open Software License 1.1"
+  },
+  "OSL-2.0": {
+    "hash": "T16C12042EA34D137307C20366AB5BA9DFF31A8038736F959171A980A417F1E74437A9ED",
+    "name": "Open Software License 2.0"
+  },
+  "OSL-2.1": {
+    "hash": "T1D712052EA34D137307C20366AB5BA9DFF31A8038736F959121A880A417F1E74437A9ED",
+    "name": "Open Software License 2.1"
+  },
+  "OSL-3.0": {
+    "hash": "T16322252EA34C137307C702669B5B99DFE31E8039636F959231A980A417F2F7443BA9DD",
+    "name": "Open Software License 3.0"
+  },
+  "PADL": {
+    "hash": "T1E0E07D2733D4936088F101E3AB43A028F78F6DBDBA1144B52112D0DF07128724530A81",
+    "name": "PADL License"
+  },
+  "Parity-6.0.0": {
+    "hash": "T16731E05F734853720DE00304AE47528EB70B6AB8D61D46AB7C5A64843375A2B837BDF5",
+    "name": "The Parity Public License 6.0.0"
+  },
+  "Parity-7.0.0": {
+    "hash": "T14461127B734453330AD103506E07929FF70BA4B9E61A45B7282AE494337562A82FFDF8",
+    "name": "The Parity Public License 7.0.0"
+  },
+  "PDDL-1.0": {
+    "hash": "T19B62FF9FB344237213A201A3A60AD2CAD72AF43C7663525178BCC1683356D75923B7FE",
+    "name": "Open Data Commons Public Domain Dedication & License 1.0"
+  },
+  "PHP-3.0": {
+    "hash": "T186518757B3C8833355E309D66E9E96C9F32E802C772A5A60286C815C238AD7CDE335DD",
+    "name": "PHP License v3.0"
+  },
+  "PHP-3.01": {
+    "hash": "T16C519A57B388833355D309D66E9E96C9F31E902C77295950286C815C2386D7CDE331DD",
+    "name": "PHP License v3.01"
+  },
+  "Pixar": {
+    "hash": "T14D02127BA34C13330AC30166A78B98DFB32A903C375555695059D07823BBE6583BF69A",
+    "name": "Pixar License"
+  },
+  "pkgconf": {
+    "hash": "T1F4E06116F3D8D3B914F207C5394540C9730E7E7477232BA0B514C068235249644785F5",
+    "name": "pkgconf License"
+  },
+  "Plexus": {
+    "hash": "T134313321B288177319F741C2B61AD9A8735D9528B71566922C5C822D33EFC79C5B30DD",
+    "name": "Plexus Classworlds License"
+  },
+  "pnmstitch": {
+    "hash": "T192112332A3CC137355FF02C7B2858A44F25E9568B70955A86C66823C232ED38C87386D",
+    "name": "pnmstitch License"
+  },
+  "PolyForm-Noncommercial-1.0.0": {
+    "hash": "T11A91359AB705037313C203905B8B64CFF61FA5BCB72E5693281E7458237271692BBBD9",
+    "name": "PolyForm Noncommercial License 1.0.0"
+  },
+  "PolyForm-Small-Business-1.0.0": {
+    "hash": "T14591239AB719137303C203909B8B64DFF21FA1BCB72E5693280A7458237271692FB6D5",
+    "name": "PolyForm Small Business License 1.0.0"
+  },
+  "PostgreSQL": {
+    "hash": "T151212113AB8443342C87034B74F857E1B37E992A7A4B27C4BC8D81381706D1899766CD",
+    "name": "PostgreSQL License"
+  },
+  "PPL": {
+    "hash": "T11882426AA348133307C3015A9B4F55DFE32E943C376B85A92069C05927F2E7043BE6EE",
+    "name": "Peer Production License"
+  },
+  "PSF-2.0": {
+    "hash": "T1B1417468E348137397EA02A93F92959EF33E58B8374E2C995019C16C2B23D7813B9D08",
+    "name": "Python Software Foundation License 2.0"
+  },
+  "psfrag": {
+    "hash": "T1E3F09E1597C973F818D20256A59CB1B6735EB8683620DD21AA9F940C37027E55230DEA",
+    "name": "psfrag License"
+  },
+  "psutils": {
+    "hash": "T1BC31113ACE9D03B207C806A1AEB48DC9733DD5B2BEC545661474827DF34DF280639A9D",
+    "name": "psutils License"
+  },
+  "Python-2.0": {
+    "hash": "T14C12A865E348237347CB02197B5295DEF32E98BC339F18A56419C0AC2B67E7443BAD58",
+    "name": "Python License 2.0"
+  },
+  "Python-2.0.1": {
+    "hash": "T18612B625EF48137387CAC2296B52A5DEF32D98BC338F18956119C0AC2767D7443BED98",
+    "name": "Python License 2.0.1"
+  },
+  "python-ldap": {
+    "hash": "T130F0C047F3C06333A4A307586A4221CBDF072FB85072139038236014330755A5234FF1",
+    "name": "Python ldap License"
+  },
+  "Qhull": {
+    "hash": "T14A2123BB766D27F005D305A29204A58EB77F94343F295550354EC0FD228F918C3B75D8",
+    "name": "Qhull License"
+  },
+  "QPL-1.0": {
+    "hash": "T15A91242B378813B31AC203E2AB4595DFF72F647CB66644B4604ED05C236A93493B99E5",
+    "name": "Q Public License 1.0"
+  },
+  "QPL-1.0-INRIA-2004": {
+    "hash": "T11091342B374813B316D203D2EA4555DFF72F647CB62644B4604ED05D236A93493B99E4",
+    "name": "Q Public License 1.0 - INRIA 2004 variant"
+  },
+  "radvd": {
+    "hash": "T113414F26A38C137359F703C9A60DA0C8B31A947C771656A2786D912C338FE75C2335DD",
+    "name": "radvd License"
+  },
+  "Rdisc": {
+    "hash": "T1C6112632D7C723628381039737490EDAB65D78757718A59C048E523D030DF758132CEE",
+    "name": "Rdisc License"
+  },
+  "RHeCos-1.1": {
+    "hash": "T1A19245AB574813730AC202A65B1B95DFF32E943CB62655705889C11C33B7E68C3BBADD",
+    "name": "Red Hat eCos Public License v1.1"
+  },
+  "RPL-1.1": {
+    "hash": "T18CE2656A774813B307C303A69F5755CFF32F9478722A61A46099C02C2377F2893BB699",
+    "name": "Reciprocal Public License 1.1"
+  },
+  "RPL-1.5": {
+    "hash": "T1E0E2646AB74813B30BC30366AF5795CFF32B947C726A61A45059C06C2377F2883BB599",
+    "name": "Reciprocal Public License 1.5"
+  },
+  "RPSL-1.0": {
+    "hash": "T1D9D2466B634813730BC202669F4BA5CFF32FC438B61A5595685D816C23F2E74C3BB5A9",
+    "name": "RealNetworks Public Source License v1.0"
+  },
+  "RSA-MD": {
+    "hash": "T1211159307B84077202E213E375A2515DB74EA8F2B73206E7744D101D37A1F3462322A4",
+    "name": "RSA Message-Digest License"
+  },
+  "RSCPL": {
+    "hash": "T1B292676B5748237306C302A65B1B55CBF32E903CBA2A5471589DC11C33B6EB9C3BB59D",
+    "name": "Ricoh Source Code Public License"
+  },
+  "Ruby": {
+    "hash": "T1D841112BB76C53B219D70356531E11C6F62A257CB20AD55828AFD028231FF7382F16DC",
+    "name": "Ruby License"
+  },
+  "Ruby-pty": {
+    "hash": "T114F09E64F3D543E204E206D3B9409D58F32F68383B6206C4B80592FC730FC5955328BD",
+    "name": "Ruby pty extension license"
+  },
+  "SAX-PD": {
+    "hash": "T1DE41632EA309137526C702E2654E56F2F71EA02C331656643819C23D37AAE79887B9ED",
+    "name": "Sax Public Domain Notice"
+  },
+  "SAX-PD-2.0": {
+    "hash": "T16DE0262FE34405A831CB0152A88E12E27A3EA8383A144A245A89943E5BD5970E277CAE",
+    "name": "Sax Public Domain Notice 2.0"
+  },
+  "Saxpath": {
+    "hash": "T151412032B28C133255E347C6652AEE84F31EEA2C771A6690AC55C12C338EC75C2332DA",
+    "name": "Saxpath License"
+  },
+  "SCEA": {
+    "hash": "T1A9D1423FB30413730AC303A6634799DAF22FA47C72164155645ED06C237AE66C3BFA9A",
+    "name": "SCEA Shared Source License"
+  },
+  "SchemeReport": {
+    "hash": "T157D0C262039A51751287865418607168B702A89C3B62AC99F01E83A8036A8D30F3A878",
+    "name": "Scheme Language Report License"
+  },
+  "Sendmail": {
+    "hash": "T10A813327538813331BE701A7E25FA1CDB22D542C7B1A0554AC6E81BC22AFD39C6B75DA",
+    "name": "Sendmail License"
+  },
+  "Sendmail-8.23": {
+    "hash": "T18D812137538813331BE701A7E21EA2C9B22D502C7B1A0554AC6A817C227FE79C6B75DA",
+    "name": "Sendmail License 8.23"
+  },
+  "Sendmail-Open-Source-1.1": {
+    "hash": "T134814237238823731BD70296A64B908DB22E547C7B1A04A5A85BD17C337FD39C3B7995",
+    "name": "Sendmail Open Source License v1.1"
+  },
+  "SGI-B-1.0": {
+    "hash": "T1595275AB6348137347C70266AB4B59CFF32F90287A2E55906495827C23A3E74C37F59D",
+    "name": "SGI Free Software License B v1.0"
+  },
+  "SGI-B-1.1": {
+    "hash": "T1375252AA6388137347C70266AB5B55CFE32FD0387A2A15906495826C2393D74C3BF69D",
+    "name": "SGI Free Software License B v1.1"
+  },
+  "SGI-B-2.0": {
+    "hash": "T1D73110AAB21C53770AE60321561E80D1F31FB5AC772E62D83808D1383257E7482774E8",
+    "name": "SGI Free Software License B v2.0"
+  },
+  "SGI-OpenGL": {
+    "hash": "T1B7317519B35853770BD20253762190D5F32EF438361FD4EE687A926C221ADB184362DA",
+    "name": "SGI OpenGL License"
+  },
+  "SGP4": {
+    "hash": "T1BDE0266F4304033135D71572A75E87DCA11AA56871061A8AA83456482335BBDC73EFCC",
+    "name": "SGP4 Permission Notice"
+  },
+  "SHL-0.5": {
+    "hash": "T18E32147BA748133307C30166AB4B98DFE32A903C375A5569505AC07823B7E7583BB6DE",
+    "name": "Solderpad Hardware License v0.5"
+  },
+  "SHL-0.51": {
+    "hash": "T13132257BA748133307C30166AB4B98DFE329903C375A5569505AC07823B7E7583BB6DE",
+    "name": "Solderpad Hardware License, Version 0.51"
+  },
+  "SimPL-2.0": {
+    "hash": "T16B51511EB340133307D50321678B69FFB71F987DAB5E13E62828544827763558279DDA",
+    "name": "Simple Public License 2.0"
+  },
+  "SISSL": {
+    "hash": "T1315263AE578C237306C302B65B0B55CBF32FD028772F9991549AC11C23A6E7983BB59C",
+    "name": "Sun Industry Standards Source License v1.1"
+  },
+  "SISSL-1.2": {
+    "hash": "T1B44231AF278C237302C302A15B1F55CFE36FD028666B89A5549AC11C23B6F79837A5DD",
+    "name": "Sun Industry Standards Source License v1.2"
+  },
+  "SL": {
+    "hash": "T1DFD0277D1FE441F465D146A34545C56FF10A7DDC7355DF903415C3B47315714003559D",
+    "name": "SL License"
+  },
+  "Sleepycat": {
+    "hash": "T167A12F32A38C133309EB01C7B25AE6C8B35DA52CBB1A56506C69817C239FD79C5B35DE",
+    "name": "Sleepycat License"
+  },
+  "SMAIL-GPL": {
+    "hash": "T173E1952F978803B206C10190A34B99CFF34FD07C371952355859D19D236FEAA9D7EAEA",
+    "name": "SMAIL General Public License"
+  },
+  "SMLNJ": {
+    "hash": "T14121EE15F3CC233D16F706466662E1C9F21DE4B833116A503869C2BC1392EB481B61DA",
+    "name": "Standard ML of New Jersey License"
+  },
+  "SMPPL": {
+    "hash": "T11351327A536403721BC203715A0D56DFF26E18D4F72B8C5824A9D5A82317E2DD2B9EE2",
+    "name": "Secure Messaging Protocol Public License"
+  },
+  "SNIA": {
+    "hash": "T1B0A257AB6748137306C302A69B1BA5CFF32ED02CA63A5461589EC11C33B6E75C37B59D",
+    "name": "SNIA Public License 1.1"
+  },
+  "snprintf": {
+    "hash": "T18ED02248828C10622C9E8213A8037300940C8600A73E5BC8FC9B83FC123F8AFDC33C5B",
+    "name": "snprintf License"
+  },
+  "SOFA": {
+    "hash": "T12D61751FB74413B205DF03A5369A6DD3721FB1A87A3B1690041E502C2BA7B65C67BBCE",
+    "name": "SOFA Software License"
+  },
+  "softSurfer": {
+    "hash": "T177E0260B9B98318F11E30966E8908A4C770EB0352F3BDF14381D578D2B84A85A2399BB",
+    "name": "softSurfer License"
+  },
+  "Soundex": {
+    "hash": "T138E06807161B13FB2DE34D138842A64A4B1672B8DAE04326991FE0B60323D4A83CED24",
+    "name": "Soundex License"
+  },
+  "Spencer-86": {
+    "hash": "T1DEF0DD05770843F31BF202ED9E268E46F3324B54B78E5BCCA86CC0B43E96938823003A",
+    "name": "Spencer License 86"
+  },
+  "Spencer-94": {
+    "hash": "T1AB11D0173758837319F302BDAA269D81F3365664F69F8BC9B46EC0703A96C7841B1474",
+    "name": "Spencer License 94"
+  },
+  "Spencer-99": {
+    "hash": "T1D02141227388133351E70293B62095D4B31E25B8771AA1A438B9C17D230ED74C672EAE",
+    "name": "Spencer License 99"
+  },
+  "SPL-1.0": {
+    "hash": "T1B0A257AB274823730AC302A69B1B95CFF32ED03CA67A5461549DC11C23B6E75C3BB59D",
+    "name": "Sun Public License v1.0"
+  },
+  "ssh-keyscan": {
+    "hash": "T10DD09703834806B5FAEB08CEC349F049B21E0138280048308A07C1F8271E968C631643",
+    "name": "ssh-keyscan License"
+  },
+  "SSH-OpenSSH": {
+    "hash": "T1D061B716F78913F216E402613A4E9DDB731DD874B32ACB852814412F3306EB455377F9",
+    "name": "SSH OpenSSH license"
+  },
+  "SSH-short": {
+    "hash": "T1ECE02602FB84177125E103213E46BD867B9C5930D2A1DAC92008912C3E84C7A03A28F0",
+    "name": "SSH short notice"
+  },
+  "SSLeay-standalone": {
+    "hash": "T16251EF25AAC803321AE640D2752ED2C5F31E6038372A6A943C29801D335EE78D67B5DE",
+    "name": "SSLeay License - standalone"
+  },
+  "SSPL-1.0": {
+    "hash": "T105D2755BA38413B3028202565A4FA8CEF31D9438776641A56869C15D23B3E78C77FBEE",
+    "name": "Server Side Public License, v 1"
+  },
+  "StandardML-NJ": {
+    "hash": "T14121EE15F3CC233D16F706466662E1C9F21DE4B833116A503869C2BC1392EB481B61DA",
+    "name": "Standard ML of New Jersey License"
+  },
+  "SugarCRM-1.1.3": {
+    "hash": "T1D5A247AB274813730AC302A69B1BD5DFF32E903CA67A5451549DC11C23A6E78C3BB9DD",
+    "name": "SugarCRM Public License v1.1.3"
+  },
+  "SUL-1.0": {
+    "hash": "T18F71646FB308133302C303656B9B68DFF70BA4B8756951836829A4682773F1553BF999",
+    "name": "Sustainable Use License v1.0"
+  },
+  "Sun-PPP": {
+    "hash": "T15CF00226E3DC937149B50393558FE4E9F30D68B8B71719A1B809C12C0613D7A00358F9",
+    "name": "Sun PPP License"
+  },
+  "Sun-PPP-2000": {
+    "hash": "T1DBF0A235D689237A6A9303632A694499F15D396873156690B90DC03C3219E74963D87D",
+    "name": "Sun PPP License (2000)"
+  },
+  "SunPro": {
+    "hash": "T101D0953943576232173356A374400255A07D35D677353048F5C98021521F522D738938",
+    "name": "SunPro License"
+  },
+  "SWL": {
+    "hash": "T126413F26B3E013B36AA203867A8D56D7F31A9C3DB31691A0645D931C330BD60927A688",
+    "name": "Scheme Widget Library (SWL) Software License Agreement"
+  },
+  "swrule": {
+    "hash": "T1DFD0A70AC39A37B025D1958DB201CFCFD70F61B86708A7D12C9E14DE6B1B1645938AE6",
+    "name": "swrule License"
+  },
+  "Symlinks": {
+    "hash": "T10FF09E77BA8013745BDA4086D717E3174304C474A245799A99DEF3B4226BF35D33BC05",
+    "name": "Symlinks License"
+  },
+  "TAPR-OHL-1.0": {
+    "hash": "T1015256BED7A823B219C301E37726D5CAFB2D543C3B6A1465205EC04C3739E2497BBA95",
+    "name": "TAPR Open Hardware License v1.0"
+  },
+  "TCL": {
+    "hash": "T12B416126B7A413B36BD303827E0D42D3F71A6D7D770695A0B45E831C330BDA4A3BA188",
+    "name": "TCL/TK License"
+  },
+  "TCP-wrappers": {
+    "hash": "T1BEF0236FD7CD517809D907EB1B40A2D573DE023C370585D1F80690FC030783681B1AE5",
+    "name": "TCP Wrappers License"
+  },
+  "TermReadKey": {
+    "hash": "T1A8B01279078022F496D30956E415A286502312387B112655355FD19C220F62DC333A6E",
+    "name": "TermReadKey License"
+  },
+  "TGPPL-1.0": {
+    "hash": "T1EF22131E638C137307C702769B5BA9DFE31E8039736F959131A980A417F2E7443BA9AD",
+    "name": "Transitive Grace Period Public Licence 1.0"
+  },
+  "ThirdEye": {
+    "hash": "T1E0D02B5173C212700800473B1C0CD3AEDE4835FC45A3C651745841AA7317830D421B2C",
+    "name": "ThirdEye License"
+  },
+  "threeparttable": {
+    "hash": "T19EC02250B8A83BD60CE320AA1880A98E2332002D791144542BCF809C1B8B0E88334F00",
+    "name": "threeparttable License"
+  },
+  "TMate": {
+    "hash": "T19E5151277708133316D203C56769918CF68E613CF71A05686C6D816C326FC3AD5BBAED",
+    "name": "TMate Open Source License"
+  },
+  "TORQUE-1.1": {
+    "hash": "T127816333675413B74AE302D22B0686ECF32E6868B21A5D64E81941BD235FDBDD73398C",
+    "name": "TORQUE v2.5+ Software License v1.1"
+  },
+  "TOSL": {
+    "hash": "T1D7410D27674C133346FA02D27795D288730E602CBB192A586C29827C236BD69C5B799D",
+    "name": "Trusster Open Source License"
+  },
+  "TPDL": {
+    "hash": "T170D02305F05D92470ED740D3D481092FF4BDB4AC41050542F18D67495475D2E5F66D45",
+    "name": "Time::ParseDate License"
+  },
+  "TPL-1.0": {
+    "hash": "T13DA246AB674823730AC302A69B1B95CFF32ED03CA67A5461549DC11C23B6E74C3BB59D",
+    "name": "THOR Public License 1.0"
+  },
+  "TrustedQSL": {
+    "hash": "T19E41A866A2C8237705D302E5631BAAD5F36D9538B60B05D8780B52BC2277C7D46735CE",
+    "name": "TrustedQSL License"
+  },
+  "TTWL": {
+    "hash": "T1E6E0680D45DC23E67E9355DBD608A0ACE6FB611D231581413986C68EB37F825C5F1852",
+    "name": "Text-Tabs+Wrap License"
+  },
+  "TTYP0": {
+    "hash": "T14D313019B158137705E20768A35F55C1F31E78FC771825D07859E26C32A6EB083F79E9",
+    "name": "TTYP0 License"
+  },
+  "TU-Berlin-1.0": {
+    "hash": "T19A019E9A77C1577215F006621A0AB2B1B30BAA7C65DA0799B40A41391306A740179EF5",
+    "name": "Technische Universitaet Berlin License 1.0"
+  },
+  "TU-Berlin-2.0": {
+    "hash": "T11921235AF3C1977215F107162B4BA2B1B30BA6BC77DB4798F41980790306A78153DEF9",
+    "name": "Technische Universitaet Berlin License 2.0"
+  },
+  "Ubuntu-font-1.0": {
+    "hash": "T1249131162F8823B301D1C65AFB2B99DEF72D711C73665A8060AAC05C13D5D2943BEAF5",
+    "name": "Ubuntu Font Licence v1.0"
+  },
+  "UCAR": {
+    "hash": "T1DC314416B248033316E74356A21EF1C0B21ED83C77265542281C917C1363EB58337EEE",
+    "name": "UCAR License"
+  },
+  "UCL-1.0": {
+    "hash": "T1EB22061E634C137307C602666B5BA9DFE31E8039736F959231A980A817F2F7443BA99D",
+    "name": "Upstream Compatibility License v1.0"
+  },
+  "ulem": {
+    "hash": "T101D02314E3F576DC147406535C41D54CEB4D5675691515D17141765C01058082265576",
+    "name": "ulem License"
+  },
+  "UMich-Merit": {
+    "hash": "T1B621CE1BA3C4137A01D70707B629A1CA323E65313796AEE4B901D0BC2386E7857756EA",
+    "name": "Michigan/Merit Networks License"
+  },
+  "Unicode-3.0": {
+    "hash": "T1EA41F01DBA2813761A9323D2A31E81C4F32EB56C732AA5913819C0683652EB151FA6BD",
+    "name": "Unicode License v3"
+  },
+  "Unicode-DFS-2015": {
+    "hash": "T1B651F059BA6C2372039373E29399E2C0F31FB05CB32B64513809C26C3546DB650F63AE",
+    "name": "Unicode License Agreement - Data Files and Software (2015)"
+  },
+  "Unicode-DFS-2016": {
+    "hash": "T18C51E199FA6C2372439367E26399E2C0F31FB01D732B30503809C25C355ADB250B67AE",
+    "name": "Unicode License Agreement - Data Files and Software (2016)"
+  },
+  "Unicode-TOU": {
+    "hash": "T143C161A7E38023B217D711A2964AB2EAF33E547CB266A5582C5D812C274ED3143377ED",
+    "name": "Unicode Terms of Use"
+  },
+  "UnixCrypt": {
+    "hash": "T1DDD09507515CA76C14E30BD2ACD261C5300FB625B70234E0B44DC5541307552843437D",
+    "name": "UnixCrypt License"
+  },
+  "Unlicense": {
+    "hash": "T16C21DF52B2485331A5E60356614AB1CAF30B5DBCB52566C438045238170AEF8C27FAB9",
+    "name": "The Unlicense"
+  },
+  "Unlicense-libtelnet": {
+    "hash": "T18EE0D80307857121A7760637554471DBE24A449CB96B969064885374174BCF0C63FB29",
+    "name": "Unlicense - libtelnet variant"
+  },
+  "Unlicense-libwhirlpool": {
+    "hash": "T118F0972AFA980372A9C403C12692A2C1F30FADA87A241BC46C05516C171AE98C179EAC",
+    "name": "Unlicense - libwhirlpool variant"
+  },
+  "UPL-1.0": {
+    "hash": "T1E1312E27B70923731AA607A6930FD5C6F32A75B8B71464C4381D926C2352EF082BB1E9",
+    "name": "Universal Permissive License v1.0"
+  },
+  "URT-RLE": {
+    "hash": "T1E5011007B29C9BF625A307F5264954CDA71F5D74DA2452C1682A51AC3103A1683BAAE8",
+    "name": "Utah Raster Toolkit Run Length Encoded License"
+  },
+  "Vim": {
+    "hash": "T1AA91302B3ACA53B30AD3009AA619D68E771D00BC6268417126DED44C137F65FD27BEED",
+    "name": "Vim License"
+  },
+  "VOSTROM": {
+    "hash": "T1C251E05797C823BA07E301D65605A58EF73E442C371A665E389FC02C13AF839D376EA9",
+    "name": "VOSTROM Public License for Open Source"
+  },
+  "VSL-1.0": {
+    "hash": "T1B8412333B358033356F7428A655AC6C8722D552CBB4A1784286AC11C325BD78D3B3595",
+    "name": "Vovida Software License v1.0"
+  },
+  "W3C": {
+    "hash": "T1BC51546B738C237215D30356AB69A4CEF31E6568B7275151341E81583301EFC83BB5D9",
+    "name": "W3C Software Notice and License (2002-12-31)"
+  },
+  "W3C-19980720": {
+    "hash": "T1BE51552BB28C532219D30313B79A99CEF31F756877274291345EC2543316EAD83BB6D9",
+    "name": "W3C Software Notice and License (1998-07-20)"
+  },
+  "W3C-20150513": {
+    "hash": "T1EF31422EE38C13B205D30706F65E94DDE21E7474772B6151385DC29C3396FE980BA2EA",
+    "name": "W3C Software Notice and Document License (2015-05-13)"
+  },
+  "w3m": {
+    "hash": "T133F0AC94B38993A648E203C3A680A898E73F243C7F5206C0B415D1F8730EC2552734BA",
+    "name": "w3m License"
+  },
+  "Watcom-1.0": {
+    "hash": "T11D92696B634813720BC301969B4F95CFF32EC43876295A61289D816C23A7F70D377A9E",
+    "name": "Sybase Open Watcom Public License 1.0"
+  },
+  "Widget-Workshop": {
+    "hash": "T15121325AB29823B5359303433B1409E2F2195DA827066770FE4AA12C1395FF0837FD6D",
+    "name": "Widget Workshop License"
+  },
+  "Wsuipa": {
+    "hash": "T185F0C0250ED503F727410283D75D5287A32690BDB2558A045057C4A8321FD3E96F5BD4",
+    "name": "Wsuipa License"
+  },
+  "WTFPL": {
+    "hash": "T1C2E0E52E27B402F676C606E65C8DA4AF921F507937193437950ED2CA033D519D236A48",
+    "name": "Do What The F*ck You Want To Public License"
+  },
+  "wwl": {
+    "hash": "T1B0D0951E1FD0219B129007783A4043DF553D06700764E3E31498C340133C7174755D70",
+    "name": "WWL License"
+  },
+  "wxWindows": {
+    "hash": "T19821AB3F4B08477312F30555974FABCFD327942861AB499204EAC15A13B7D34E2A39FA",
+    "name": "wxWindows Library License"
+  },
+  "X11": {
+    "hash": "T168212D6AF618637714E30315821F91D1F31E75ECB33AA790388CD1783292EB492BB8D8",
+    "name": "X11 License"
+  },
+  "X11-distribute-modifications-variant": {
+    "hash": "T10721125AF62C537718E30356E21FD0D5F31E75ACB72A6690381CD2683206EF882778E4",
+    "name": "X11 License Distribution Modification Variant"
+  },
+  "X11-swapped": {
+    "hash": "T19C21F019F11C637714E30356921F94D1F31E75ACB72A26D0381CD2683242EB882B78E8",
+    "name": "X11 swapped final paragraphs"
+  },
+  "Xdebug-1.03": {
+    "hash": "T113512216BE88433306E7C3A7AA1DEC8AF32DD418772A55953829811D3387C6D86BF1D9",
+    "name": "Xdebug License v 1.03"
+  },
+  "Xerox": {
+    "hash": "T12011E160634C037304DE439771A695C1FB3A7CA1731528D4791E82A823DADF4C3BB42E",
+    "name": "Xerox License"
+  },
+  "Xfig": {
+    "hash": "T137F0540B335543F215930FE20246059A730FB4783F1209507064C7403C66C2887FF6E8",
+    "name": "Xfig License"
+  },
+  "XFree86-1.1": {
+    "hash": "T13A412026B30C53735AE2078A722D99C4F31E756C771A19A03858952C334FE39C3776E9",
+    "name": "XFree86 License 1.1"
+  },
+  "xinetd": {
+    "hash": "T18A413309679843F5ABC20247ED5C91ED331A617CB77301E160EAC09D230B1AAE3B69D6",
+    "name": "xinetd License"
+  },
+  "xkeyboard-config-Zinoviev": {
+    "hash": "T1EF017B1633C963F45DE30093A589B0DAE20F607876F274A0355A81B9361A5DA8676DE2",
+    "name": "xkeyboard-config Zinoviev License"
+  },
+  "xlock": {
+    "hash": "T1F301102BE7CC136AEDE3060B7BA990CAE21AD03A3781AC60640CD5781357A60C1785E7",
+    "name": "xlock License"
+  },
+  "Xnet": {
+    "hash": "T19021ED1AF254533719960351921ED4E1F31E7978773A2AC47808D27C2255EB482BA8E8",
+    "name": "X.Net License"
+  },
+  "xpp": {
+    "hash": "T1C4410F6BBB48133311E28297175AAAC4B70D923D7F2601C6AC1E517C379B9288336BD3",
+    "name": "XPP License"
+  },
+  "XSkat": {
+    "hash": "T18CF0C016FA8C93FF14D107D1A44849C4A32F98D077B100950909B1AF035BF28A63D7C8",
+    "name": "XSkat License"
+  },
+  "xzoom": {
+    "hash": "T1E7F0C08A3EC4237769C114C5DE4453CB580F4088A295D384635DD58D221DABFC1B8FDB",
+    "name": "xzoom License"
+  },
+  "YPL-1.0": {
+    "hash": "T1AD02419E774413B306C702A6668B96D6F33FD87C767A504064A9C02D1376E31C37A9EE",
+    "name": "Yahoo! Public License v1.0"
+  },
+  "YPL-1.1": {
+    "hash": "T14102429E774413B30AC706A6668B96D6F33FD87C767A508064A5C02D1376E30C37A9EE",
+    "name": "Yahoo! Public License v1.1"
+  },
+  "Zed": {
+    "hash": "T1A5D095E74FC0751558D10419BB5163CBC53F105631589211005C4444633810D87FFE70",
+    "name": "Zed License"
+  },
+  "Zeeff": {
+    "hash": "T197C0C01D9F0D313A06B00033901321019408B07C3F04EFCB0E1B11833733A2E08306D3",
+    "name": "Zeeff License"
+  },
+  "Zend-2.0": {
+    "hash": "T1F141182B734C533306E6098A6A5B998FF36E9028732E57546835811C33ABC7C9FB719D",
+    "name": "Zend License v2.0"
+  },
+  "Zimbra-1.3": {
+    "hash": "T1D802649E734413B206C702A6668B96D6F33FD87C777A914464D5C03D2366E30837B9AE",
+    "name": "Zimbra Public License v1.3"
+  },
+  "Zimbra-1.4": {
+    "hash": "T1B302639E334413B20AC702AA668B96D6F33FD97C767B914424D5C03D1366E30837BAAD",
+    "name": "Zimbra Public License v1.4"
+  },
+  "Zlib": {
+    "hash": "T15D01CE1A3BD9837215F303FD3A498D85B3175E64F34E57D9B07DC09937AA22601308A8",
+    "name": "zlib License"
+  },
+  "zlib-acknowledgement": {
+    "hash": "T16011CB09669C83B13AE202E6B68AC987B7173A56B20B568D343DC0CD3B6663404B1CA9",
+    "name": "zlib/libpng License with Acknowledgement"
+  },
+  "ZPL-1.1": {
+    "hash": "T1A6511022A3CC13371AE301D2760996CCF62EE869771A5995296E915C22CFC74C33319A",
+    "name": "Zope Public License 1.1"
+  },
+  "ZPL-2.0": {
+    "hash": "T18F411D26A38C13771AEB01C37616C1DCF22AA96D771A1691382DD12C339FD75C7B34AA",
+    "name": "Zope Public License 2.0"
+  },
+  "ZPL-2.1": {
+    "hash": "T1E5411D2A6388037716F60AC3BA0ED9DCB21D2428731B5650383DC16C336AC79C1B34E9",
+    "name": "Zope Public License 2.1"
+  }
+}

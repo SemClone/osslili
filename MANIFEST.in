@@ -1,0 +1,7 @@
+include README.md
+include LICENSE
+include requirements.txt
+include semantic_copycat_oslili/data/*.json
+include semantic_copycat_oslili/data/*.yaml
+include semantic_copycat_oslili/data/*.txt
+recursive-include semantic_copycat_oslili/data *.json *.yaml *.txt
