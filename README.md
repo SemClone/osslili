@@ -1,15 +1,15 @@
 # semantic-copycat-oslili
 
-A powerful, accurate, and fast tool for identifying licenses and copyright information in local source code. Perfect for open source compliance, license auditing, and SBOM generation.
+A focused tool for identifying licenses and copyright information in local source code, producing evidence of where licenses are detected.
 
 ## What It Does
 
-`semantic-copycat-oslili` automatically analyzes local source code to extract:
-- **License information** - Detects and identifies SPDX licenses with 97%+ accuracy using regex and fuzzy hashing
-- **Copyright statements** - Intelligently extracts copyright holders and years
-- **Attribution notices** - Generates legally compliant attribution documentation
+`semantic-copycat-oslili` analyzes local source code to produce evidence of:
+- **License detection** - Shows which files contain which licenses (e.g., "LICENSE contains Apache-2.0 text")
+- **SPDX identifiers** - Detects SPDX-License-Identifier tags in source files, documentation, and metadata
+- **Copyright statements** - Extracts copyright holders and years from source files
 
-The tool scans local directories and files, identifying license files and extracting copyright information, then outputs attribution data in multiple formats suitable for compliance documentation, SBOMs, and legal notices.
+The tool outputs JSON evidence showing exactly where each license was detected and how it was matched.
 
 ### Why Use This Tool?
 
@@ -22,12 +22,12 @@ The tool scans local directories and files, identifying license files and extrac
 
 ## Key Features
 
-- **Offline Operation**: No internet required - includes 700+ SPDX licenses
-- **Local Scanning**: Process local directories and files
-- **High Accuracy**: Multi-tier detection with Dice-Sørensen, TLSH, and regex
-- **Full License Text**: Notices include complete license text for compliance
-- **Fast Processing**: Multi-threaded analysis of multiple packages
-- **Smart Extraction**: Validated copyright detection eliminates false positives
+- **Evidence-based output**: Shows exactly where licenses are detected
+- **Multi-method detection**: License text matching, SPDX identifiers, and pattern matching
+- **Local scanning**: Analyzes files and directories on your filesystem
+- **High accuracy**: 97%+ accuracy using Dice-Sørensen similarity and fuzzy hashing
+- **Comprehensive coverage**: Detects licenses in source headers, LICENSE files, package.json, and more
+- **Smart extraction**: Validated copyright detection with false positive filtering
 
 ## Installation
 
@@ -50,20 +50,43 @@ pip install semantic-copycat-oslili[cyclonedx]
 ### CLI Usage
 
 ```bash
-# Process local directory
-oslili /path/to/source -f notices -o NOTICE.txt
+# Scan a directory and see evidence
+oslili /path/to/project
 
 # Scan a specific file
-oslili /path/to/file.py -f kissbom -o attribution.json
+oslili /path/to/LICENSE
 
-# Generate human-readable notices with full license text
-oslili ./my-project -f notices -o NOTICE.txt
-
-# Export to CycloneDX format
-oslili ./src -f cyclonedx-json -o sbom.json
+# Save results to file
+oslili ./my-project -o license-evidence.json
 
 # With custom configuration and verbose output
-oslili ./project --config config.yaml --verbose
+oslili ./src --config config.yaml --verbose
+```
+
+### Example Output
+
+```json
+{
+  "scan_results": [{
+    "path": "./project",
+    "license_evidence": [
+      {
+        "file": "LICENSE",
+        "detected_license": "Apache-2.0",
+        "confidence": 0.98,
+        "match_type": "license_text",
+        "description": "File contains Apache-2.0 license text"
+      },
+      {
+        "file": "src/main.py",
+        "detected_license": "Apache-2.0",
+        "confidence": 1.0,
+        "match_type": "spdx_identifier",
+        "description": "SPDX-License-Identifier: Apache-2.0 found"
+      }
+    ]
+  }]
+}
 ```
 
 ### Library Usage
@@ -77,12 +100,12 @@ generator = LegalAttributionGenerator()
 # Process a local directory
 result = generator.process_local_path("/path/to/source")
 
-# Process a single file
-result = generator.process_local_path("/path/to/file.py")
+# Process a single file  
+result = generator.process_local_path("/path/to/LICENSE")
 
-# Generate outputs
-kissbom = generator.generate_kissbom([result])
-notices = generator.generate_notices([result])
+# Generate evidence output
+evidence = generator.generate_evidence([result])
+print(evidence)
 
 # Access results
 for license in result.licenses:
@@ -99,11 +122,14 @@ The package uses a three-tier license detection system:
 2. **Tier 2**: TLSH fuzzy hashing (97% threshold)
 3. **Tier 3**: Machine learning or regex pattern matching
 
-## Output Formats
+## Output Format
 
-- **KissBOM**: Enriched JSON format with package, license, and copyright information
-- **CycloneDX**: Standard SBOM format (JSON/XML)
-- **Legal Notices**: Human-readable attribution text
+The tool outputs JSON evidence showing:
+- **File path**: Where the license was found
+- **Detected license**: The SPDX identifier of the license
+- **Confidence**: How confident the detection is (0.0 to 1.0)
+- **Match type**: How the license was detected (license_text, spdx_identifier, license_reference, text_similarity)
+- **Description**: Human-readable description of what was found
 
 ## Configuration
 

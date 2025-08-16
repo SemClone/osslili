@@ -119,45 +119,16 @@ class LegalAttributionGenerator:
         
         logger.debug(f"Found {len(result.licenses)} license(s) and {len(result.copyrights)} copyright(s)")
     
-    def generate_kissbom(self, results: List[AttributionResult]) -> Dict[str, Any]:
+    def generate_evidence(self, results: List[AttributionResult]) -> str:
         """
-        Generate enriched KissBOM format output.
+        Generate evidence showing file-to-license mappings.
         
         Args:
             results: List of attribution results
             
         Returns:
-            Dictionary in KissBOM format
+            Evidence as JSON string
         """
-        from ..formatters.kissbom_formatter import KissBOMFormatter
-        formatter = KissBOMFormatter()
-        return formatter.format(results)
-    
-    def generate_cyclonedx(self, results: List[AttributionResult], format: str = 'json') -> str:
-        """
-        Generate CycloneDX SBOM.
-        
-        Args:
-            results: List of attribution results
-            format: Output format ('json' or 'xml')
-            
-        Returns:
-            CycloneDX SBOM as string
-        """
-        from ..formatters.cyclonedx_formatter import CycloneDXFormatter
-        formatter = CycloneDXFormatter()
-        return formatter.format(results, format)
-    
-    def generate_notices(self, results: List[AttributionResult]) -> str:
-        """
-        Generate human-readable legal notices.
-        
-        Args:
-            results: List of attribution results
-            
-        Returns:
-            Legal notices as string
-        """
-        from ..formatters.notices_formatter import NoticesFormatter
-        formatter = NoticesFormatter(self.config)
+        from ..formatters.evidence_formatter import EvidenceFormatter
+        formatter = EvidenceFormatter()
         return formatter.format(results)

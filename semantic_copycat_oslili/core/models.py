@@ -7,13 +7,6 @@ from typing import List, Optional, Dict, Any
 from enum import Enum
 
 
-class OutputFormat(Enum):
-    KISSBOM = "kissbom"
-    CYCLONEDX_JSON = "cyclonedx-json"
-    CYCLONEDX_XML = "cyclonedx-xml"
-    NOTICES = "notices"
-
-
 class DetectionMethod(Enum):
     DICE_SORENSEN = "dice-sorensen"
     TLSH = "tlsh"

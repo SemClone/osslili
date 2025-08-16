@@ -4,15 +4,14 @@ CLI interface for semantic-copycat-oslili.
 
 import sys
 import logging
-import json
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional
 
 import click
 import yaml
 from colorama import init, Fore, Style
 
-from .core.models import Config, OutputFormat
+from .core.models import Config
 from .core.generator import LegalAttributionGenerator
 from .utils.logging import setup_logging
 
@@ -76,12 +75,6 @@ def detect_input_type(input_path: str) -> str:
 @click.command()
 @click.argument('input_path', type=str)
 @click.option(
-    '--output-format', '-f',
-    type=click.Choice(['kissbom', 'cyclonedx-json', 'cyclonedx-xml', 'notices']),
-    default='kissbom',
-    help='Output format for attribution data'
-)
-@click.option(
     '--output', '-o',
     type=click.Path(),
     help='Output file path (default: stdout)'
@@ -118,7 +111,6 @@ def detect_input_type(input_path: str) -> str:
 )
 def main(
     input_path: str,
-    output_format: str,
     output: Optional[str],
     verbose: bool,
     debug: bool,
@@ -181,7 +173,6 @@ def main(
     
     if cfg.verbose:
         print_info(f"Detected input type: {input_type}")
-        print_info(f"Output format: {output_format}")
     
     try:
         # Initialize generator
@@ -206,17 +197,8 @@ def main(
         if total_errors > 0:
             print_warning(f"Encountered {total_errors} errors during processing")
         
-        # Generate output based on format
-        output_data = None
-        
-        if output_format == "kissbom":
-            output_data = json.dumps(generator.generate_kissbom(results), indent=2)
-        elif output_format == "cyclonedx-json":
-            output_data = generator.generate_cyclonedx(results, format="json")
-        elif output_format == "cyclonedx-xml":
-            output_data = generator.generate_cyclonedx(results, format="xml")
-        elif output_format == "notices":
-            output_data = generator.generate_notices(results)
+        # Generate evidence output
+        output_data = generator.generate_evidence(results)
         
         # Write output
         if output:
