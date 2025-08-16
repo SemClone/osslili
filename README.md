@@ -22,13 +22,13 @@ The tool processes packages from various sources (PyPI, npm, local directories) 
 
 ## Key Features
 
-- 🔒 **Offline-first**: No internet required - includes 700+ SPDX licenses
-- 📦 **Universal Input**: Process package URLs, files, or local directories  
-- 🎯 **High Accuracy**: Three-tier detection with Dice-Sørensen, TLSH, and regex
-- 📄 **Full License Text**: Notices include complete license text for compliance
-- 🚀 **Fast Processing**: Multi-threaded analysis of multiple packages
-- 🔍 **Smart Extraction**: Validated copyright detection eliminates false positives
-- 🌐 **Optional APIs**: Enable online mode for supplemental data when needed
+- **Offline-first**: No internet required - includes 700+ SPDX licenses
+- **Universal Input**: Process package URLs, files, or local directories  
+- **High Accuracy**: Three-tier detection with Dice-Sørensen, TLSH, and regex
+- **Full License Text**: Notices include complete license text for compliance
+- **Fast Processing**: Multi-threaded analysis of multiple packages
+- **Smart Extraction**: Validated copyright detection eliminates false positives
+- **Optional APIs**: Enable online mode for supplemental data when needed
 
 ## Installation
 
@@ -123,59 +123,8 @@ custom_aliases:
   "MIT License": "MIT"
 ```
 
-## What's New in v1.1.1
-
-- 🔒 **Offline by default**: No API calls unless you use `--online`
-- 📦 **Bundled SPDX data**: 700+ licenses included, no downloads needed
-- 📄 **Full license text**: Notices now include complete license text
-- 🎯 **Better copyright extraction**: Smarter validation, fewer false positives
-- 🚀 **Faster processing**: Local-only analysis by default
-
-See [CHANGELOG.md](CHANGELOG.md) for full details.
-
 ## Documentation
 
 - [Full Usage Guide](docs/USAGE.md) - Comprehensive usage examples and configuration
 - [API Reference](docs/API.md) - Python API documentation and examples
 - [Changelog](CHANGELOG.md) - Version history and changes
-
-## Project Information
-
-- **Author**: Oscar Valenzuela B.
-- **Email**: oscar.valenzuela.b@gmail.com
-- **Repository**: https://github.com/oscarvalenzuelab/semantic-copycat-oslili
-- **License**: Apache-2.0
-- **Python**: 3.8+
-
-## Development
-
-### Building the Package
-
-The package includes bundled SPDX license data to avoid runtime downloads:
-
-```bash
-# Update SPDX license data (recommended before release)
-python scripts/download_spdx_licenses.py
-
-# Build the package with bundled data
-python -m build
-
-# The wheel will include all license data
-```
-
-The bundled data includes:
-- 700+ SPDX license definitions
-- Full license text for 40+ common licenses  
-- License name mappings and aliases
-- No network access required at runtime
-
-### Development Setup
-
-1. Clone the repository
-2. Install in development mode: `pip install -e .[dev]`
-3. Run tests: `pytest`
-4. Format code: `black semantic_copycat_oslili tests`
-
-## Contributing
-
-Contributions are welcome! Please see CONTRIBUTING.md for details.
