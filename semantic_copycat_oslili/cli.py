@@ -116,11 +116,6 @@ def detect_input_type(input_path: str) -> str:
     type=int,
     help='Maximum archive extraction depth'
 )
-@click.option(
-    '--timeout',
-    type=int,
-    help='Network request timeout in seconds'
-)
 def main(
     input_path: str,
     output_format: str,
@@ -130,8 +125,7 @@ def main(
     threads: Optional[int],
     config: Optional[str],
     similarity_threshold: Optional[float],
-    max_depth: Optional[int],
-    timeout: Optional[int]
+    max_depth: Optional[int]
 ):
     """
     Scan local source code for license and copyright information.
@@ -160,8 +154,6 @@ def main(
         cfg.similarity_threshold = similarity_threshold
     if max_depth is not None:
         cfg.max_extraction_depth = max_depth
-    if timeout is not None:
-        cfg.network_timeout = timeout
     
     # Setup logging - only show our logs in verbose mode, not library logs
     if cfg.debug:

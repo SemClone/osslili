@@ -5,6 +5,33 @@ All notable changes to semantic-copycat-oslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2025-01-16
+
+### Breaking Changes
+- **Removed package URL (purl) support**: Tool no longer downloads or processes packages from PyPI, npm, etc.
+- **Removed external API integrations**: ClearlyDefined, PyPI, and npm APIs have been removed
+- **Focus on local scanning only**: Tool now exclusively scans local directories and files
+
+### Changed
+- **Core functionality**: Refocused on local source code license and copyright identification
+- **Input handling**: Now only accepts local file paths and directories
+- **Attribution format**: Changed from purl-based to path-based attribution
+- **Dependencies**: Removed packageurl-python dependency
+
+### Removed
+- Package downloading and extraction capabilities
+- Purl file parsing functionality  
+- External API data sources (ClearlyDefined, PyPI, npm)
+- Network timeout configuration
+- Online/offline mode distinction (tool is always offline)
+
+### What the Tool Now Does
+- Scans local source code for SPDX license identification
+- Extracts copyright information from local files
+- Identifies license files and matches them with bundled SPDX data
+- Uses multi-tier detection: Dice-Sørensen similarity, TLSH fuzzy hashing, and regex patterns
+- Generates attribution reports in KissBOM, CycloneDX, and human-readable formats
+
 ## [1.1.1] - 2025-01-16
 
 ### Added
