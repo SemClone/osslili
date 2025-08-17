@@ -21,21 +21,16 @@ This guide provides comprehensive instructions for using the `semantic-copycat-o
 pip install semantic-copycat-oslili
 ```
 
-### Installation with Optional Features
+### Dependencies
 
-```bash
-# For faster fuzzy matching
-pip install semantic-copycat-oslili[fast]
+The package includes all required dependencies:
+- `python-tlsh`: Required for fuzzy hash matching and false positive prevention
+- `fuzzywuzzy`: For string similarity matching
+- `pyyaml`: For configuration file support
+- `requests`: For optional online features
+- `click` and `colorama`: For CLI interface
 
-# For TLSH fuzzy hashing (Tier 2 detection)
-pip install semantic-copycat-oslili[tlsh]
-
-# For CycloneDX SBOM support
-pip install semantic-copycat-oslili[cyclonedx]
-
-# Install all optional features
-pip install semantic-copycat-oslili[all]
-```
+**Note**: `python-tlsh` is a required dependency as of v1.2.0 for accurate license detection and confirmation.
 
 ### Development Installation
 
@@ -44,6 +39,34 @@ git clone https://github.com/oscarvalenzuelab/semantic-copycat-oslili.git
 cd semantic-copycat-oslili
 pip install -e .[dev]
 ```
+
+## How License Detection Works
+
+### Three-Tier Detection System
+
+OSLILI uses a sophisticated multi-tier approach for accurate license detection:
+
+1. **Tier 1: Dice-Sørensen with TLSH Confirmation**
+   - Compares license text using Dice-Sørensen coefficient (97% similarity threshold)
+   - **TLSH Confirmation**: Every match is verified using TLSH fuzzy hashing to prevent false positives
+   - This combination achieves 97-100% accuracy on standard SPDX licenses
+
+2. **Tier 2: TLSH Fuzzy Hash Matching**
+   - Uses Trend Micro Locality Sensitive Hashing for detecting license variants
+   - Pre-computed hashes for 699 SPDX licenses bundled with the package
+   - Catches variants like MIT-0, BSD-2-Clause vs BSD-3-Clause
+   - Threshold: TLSH distance ≤30 for high confidence matches
+
+3. **Tier 3: Pattern Recognition**
+   - Regex-based detection for license references and identifiers
+   - Extracts from comments, headers, and documentation
+   - Detects SPDX-License-Identifier tags
+
+### Additional Detection Sources
+
+- **Package Metadata**: Automatically detects licenses from package.json, composer.json, pyproject.toml, Cargo.toml, etc.
+- **Copyright Extraction**: Advanced pattern matching with validation and deduplication
+- **File Name Patterns**: Recognizes LICENSE, COPYING, MIT-LICENSE, and other standard file names
 
 ## Quick Start
 

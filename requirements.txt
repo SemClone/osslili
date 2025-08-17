@@ -7,7 +7,5 @@ colorama>=0.4.0
 # License detection
 fuzzywuzzy>=0.18.0
 python-Levenshtein>=0.20.0  # Optional: speeds up fuzzywuzzy
-
-# Optional dependencies
-# python-tlsh>=4.5.0  # For TLSH fuzzy hashing (Tier 2)
+python-tlsh>=4.5.0  # Required: For TLSH fuzzy hashing (Tier 2)
 # cyclonedx-python-lib>=4.0.0  # For CycloneDX SBOM generation

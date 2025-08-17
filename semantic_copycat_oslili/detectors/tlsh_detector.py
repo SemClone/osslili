@@ -204,6 +204,48 @@ class TLSHDetector:
             logger.error(f"Error in TLSH detection: {e}")
             return None
     
+    def confirm_license_match(self, text: str, license_id: str, threshold: int = 100) -> bool:
+        """
+        Confirm a license match using TLSH.
+        
+        Args:
+            text: Text to check
+            license_id: SPDX license ID to confirm
+            threshold: Maximum TLSH distance for confirmation (default 100)
+            
+        Returns:
+            True if confirmed, False otherwise
+        """
+        if not TLSH_AVAILABLE or not self._initialized:
+            return True  # Can't confirm, assume valid
+        
+        try:
+            # Preprocess input text
+            processed_text = self._preprocess_for_tlsh(text)
+            
+            # Compute hash for input
+            input_hash = tlsh.hash(processed_text.encode('utf-8'))
+            
+            if not input_hash or input_hash == 'TNULL':
+                return True  # Can't compute hash, assume valid
+            
+            # Check against specific license
+            if license_id in self.license_hashes:
+                license_hash = self.license_hashes[license_id]['hash']
+                
+                try:
+                    distance = tlsh.diff(input_hash, license_hash)
+                    # Confirm if distance is within threshold
+                    return distance <= threshold
+                except Exception:
+                    return True  # Error comparing, assume valid
+            
+            return True  # License not in database, assume valid
+        
+        except Exception as e:
+            logger.debug(f"Error confirming license match: {e}")
+            return True  # Error, assume valid
+    
     def compute_similarity(self, text1: str, text2: str) -> float:
         """
         Compute similarity between two texts using TLSH.

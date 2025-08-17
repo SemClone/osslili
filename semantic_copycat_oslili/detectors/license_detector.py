@@ -582,14 +582,18 @@ class LicenseDetector:
                 best_match = license_id
         
         if best_match and best_score >= 0.9:  # 90% threshold
-            license_info = self.spdx_data.get_license_info(best_match)
-            return DetectedLicense(
-                spdx_id=best_match,
-                name=license_info.get('name', best_match) if license_info else best_match,
-                confidence=best_score,
-                detection_method=DetectionMethod.DICE_SORENSEN.value,
-                source_file=str(file_path)
-            )
+            # Confirm with TLSH to reduce false positives
+            if self.tlsh_detector.confirm_license_match(text, best_match):
+                license_info = self.spdx_data.get_license_info(best_match)
+                return DetectedLicense(
+                    spdx_id=best_match,
+                    name=license_info.get('name', best_match) if license_info else best_match,
+                    confidence=best_score,
+                    detection_method=DetectionMethod.DICE_SORENSEN.value,
+                    source_file=str(file_path)
+                )
+            else:
+                logger.debug(f"Dice-Sørensen match {best_match} not confirmed by TLSH")
         
         return None
     
