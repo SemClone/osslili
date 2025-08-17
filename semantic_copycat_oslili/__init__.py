@@ -13,7 +13,7 @@ if os.environ.get('OSLILI_DEBUG') != '1':
     except ImportError:
         pass
 
-__version__ = "1.1.1"
+__version__ = "1.2.5"
 
 from .core.generator import LegalAttributionGenerator
 from .core.models import (

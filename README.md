@@ -12,17 +12,6 @@ A high-performance tool for identifying licenses and copyright information in lo
 
 The tool outputs standardized JSON evidence showing exactly where each license was detected, the detection method used, and confidence scores.
 
-### Why Use This Tool?
-
-- **Compliance Made Easy**: Automatically generate attribution notices required by open source licenses
-- **Complete Coverage**: Scans ALL readable text files, not limited to specific extensions
-- **High Performance**: Parallel processing with configurable thread count for fast scanning
-- **700+ SPDX Licenses**: Full support for all SPDX license IDs with alias normalization
-- **Smart File Handling**: Intelligently handles large files (>10MB) without timeouts
-- **Accurate Detection**: Three-tier detection system with 97%+ accuracy
-- **Offline Operation**: Works without internet - all SPDX license data is bundled
-- **Cross-Platform**: Same output format for Python, npm, Go, Ruby, and other package types
-
 ## Key Features
 
 - **Evidence-based output**: Shows exact file paths, confidence scores, and detection methods
@@ -138,37 +127,6 @@ The tool uses a sophisticated multi-tier approach for maximum accuracy:
 - **Package Metadata Scanning**: Detects licenses from package.json, composer.json, pyproject.toml, etc.
 - **Copyright Extraction**: Advanced pattern matching with validation and deduplication
 - **SPDX Identifier Detection**: Finds SPDX-License-Identifier tags in source files
-
-## Performance
-
-### Speed and Efficiency
-
-- **Parallel Processing**: Multi-threaded scanning with configurable thread count
-- **Smart File Handling**: Intelligent sampling for large files (>10MB)
-- **Pre-computed Hashes**: 699 TLSH hashes bundled for instant matching
-- **Memory Efficient**: Incremental processing without loading entire files
-
-### Benchmarks
-
-| Project Size | Files | Scan Time | Accuracy |
-|-------------|-------|-----------|----------|
-| Small | 100 | ~2-3 seconds | 97-100% |
-| Medium | 1,000 | ~10-15 seconds | 97-100% |
-| Large | 5,000 | ~30-45 seconds | 97-100% |
-
-### Tested on Real-World Projects
-
-Successfully tested on major open-source projects across 10+ languages:
-- Python (requests)
-- JavaScript (express)
-- Java (maven)
-- Go (golang/go)
-- Rust (rust-lang)
-- Ruby (rails)
-- PHP (laravel)
-- C/C++ (linux kernel)
-- .NET (dotnet/runtime)
-- Swift (apple/swift)
 
 ### Library Usage
 
