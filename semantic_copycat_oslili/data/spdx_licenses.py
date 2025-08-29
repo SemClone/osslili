@@ -62,6 +62,20 @@ class SPDXLicenseData:
             self._load_licenses()
         return self._licenses
     
+    @property
+    def aliases(self) -> Dict[str, str]:
+        """Get license aliases mapping."""
+        if self._aliases is None:
+            self._load_licenses()
+        return self._aliases
+    
+    @property
+    def name_mappings(self) -> Dict[str, str]:
+        """Get license name to SPDX ID mappings."""
+        if self._name_mappings is None:
+            self._load_licenses()
+        return self._name_mappings
+    
     def _load_licenses(self):
         """Load SPDX licenses from bundled data, cache, or download."""
         # First try bundled data
@@ -71,13 +85,9 @@ class SPDXLicenseData:
                 with open(self.bundled_data_file, 'r', encoding='utf-8') as f:
                     self._bundled_data = json.load(f)
                 
-                # Extract licenses for compatibility
-                self._licenses = {
-                    "licenses": [
-                        {"licenseId": lid, **info}
-                        for lid, info in self._bundled_data.get("licenses", {}).items()
-                    ]
-                }
+                # Extract licenses for compatibility  
+                # Keep as dict format, not list
+                self._licenses = self._bundled_data.get("licenses", {})
                 
                 # Load aliases and mappings
                 self._aliases = self._bundled_data.get("aliases", {})
@@ -184,16 +194,22 @@ class SPDXLicenseData:
         """Build index for quick license lookup."""
         self._license_index = {}
         
-        for license_info in self.licenses.get('licenses', []):
-            license_id = license_info.get('licenseId')
-            if license_id:
+        # Handle dict format
+        if isinstance(self._licenses, dict):
+            for license_id, license_info in self._licenses.items():
                 # Index by ID (case-insensitive)
-                self._license_index[license_id.lower()] = license_info
+                self._license_index[license_id.lower()] = {
+                    'licenseId': license_id,
+                    **license_info
+                }
                 
                 # Also index by name variations
                 name = license_info.get('name', '')
                 if name:
-                    self._license_index[name.lower()] = license_info
+                    self._license_index[name.lower()] = {
+                        'licenseId': license_id,
+                        **license_info
+                    }
     
     def get_license_info(self, license_id: str) -> Optional[Dict[str, Any]]:
         """

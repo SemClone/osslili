@@ -442,24 +442,62 @@ class LicenseDetector:
     def _normalize_license_id(self, license_id: str) -> str:
         """
         Normalize license ID to match SPDX format.
-        Handles common variations and aliases.
+        Handles common variations and aliases using SPDX data mappings.
         """
         if not license_id:
             return license_id
         
-        # Remove whitespace
+        # Remove whitespace and normalize case for lookup
         normalized = license_id.strip()
+        lookup_key = normalized.lower()
         
-        # Check aliases first
-        if hasattr(self.spdx_data, 'get_alias'):
-            aliased = self.spdx_data.get_alias(normalized)
-            if aliased:
-                return aliased
+        # First, check the bundled SPDX aliases
+        if hasattr(self.spdx_data, 'aliases') and self.spdx_data.aliases:
+            if lookup_key in self.spdx_data.aliases:
+                return self.spdx_data.aliases[lookup_key]
         
-        # Common normalizations
+        # Check name mappings (includes full names to SPDX IDs)
+        if hasattr(self.spdx_data, 'name_mappings') and self.spdx_data.name_mappings:
+            if lookup_key in self.spdx_data.name_mappings:
+                return self.spdx_data.name_mappings[lookup_key]
+        
+        # Check for common aliases first
+        common_aliases = {
+            'new bsd': 'BSD-3-Clause',
+            'new bsd license': 'BSD-3-Clause',
+            'simplified bsd': 'BSD-2-Clause', 
+            'simplified bsd license': 'BSD-2-Clause',
+            'the mit license': 'MIT',
+            'cc0': 'CC0-1.0',
+            'cc zero': 'CC0-1.0',
+        }
+        
+        if lookup_key in common_aliases:
+            return common_aliases[lookup_key]
+        
+        # Try variations of the input
+        variations = [
+            lookup_key,
+            lookup_key.replace(' license', ''),
+            lookup_key.replace(' public license', ''),
+            lookup_key.replace(' general public license', ''),
+            lookup_key.replace('licence', 'license'),  # British spelling
+            lookup_key.replace('-', ' '),
+            lookup_key.replace('_', ' '),
+            lookup_key.replace('.', ' '),
+        ]
+        
+        for variant in variations:
+            if hasattr(self.spdx_data, 'name_mappings') and self.spdx_data.name_mappings:
+                if variant in self.spdx_data.name_mappings:
+                    return self.spdx_data.name_mappings[variant]
+        
+        # Common replacements for normalization
         replacements = {
             ' License': '',
             ' license': '',
+            ' Licence': '',
+            ' licence': '',
             'Apache ': 'Apache-',
             'GPL ': 'GPL-',
             'LGPL ': 'LGPL-',
@@ -473,29 +511,135 @@ class LicenseDetector:
             ' V': '-',
             'v.': '-',
             'V.': '-',
+            ' or later': '-or-later',
+            ' OR LATER': '-or-later',
+            ' only': '-only',
+            ' ONLY': '-only',
             ' ': '-'
         }
+        
+        # Handle + suffix BEFORE other replacements (for GPL-3.0+, etc.)
+        if normalized.endswith('+'):
+            normalized = normalized[:-1] + '-or-later'
         
         for old, new in replacements.items():
             normalized = normalized.replace(old, new)
         
-        # Handle specific cases
-        if normalized.upper() == 'MIT':
+        # Check if normalized version exists in SPDX
+        if self._is_valid_spdx_id(normalized):
+            return normalized
+        
+        # Handle specific cases as fallback
+        normalized_upper = normalized.upper()
+        
+        if normalized_upper == 'MIT':
             return 'MIT'
-        elif normalized.upper().startswith('APACHE') and '2' in normalized:
-            return 'Apache-2.0'
-        elif normalized.upper().startswith('GPL') and '3' in normalized:
-            if 'LGPL' in normalized.upper():
-                return 'LGPL-3.0'
+        elif normalized_upper == 'ISC':
+            return 'ISC'
+        elif normalized_upper == 'UNLICENSE':
+            return 'Unlicense'
+        elif normalized_upper == 'ZLIB':
+            return 'Zlib'
+        elif normalized_upper == 'WTFPL':
+            return 'WTFPL'
+        elif normalized_upper.startswith('APACHE'):
+            if '2' in normalized:
+                return 'Apache-2.0'
+            elif '1.1' in normalized:
+                return 'Apache-1.1'
+            elif '1' in normalized:
+                return 'Apache-1.0'
+        elif normalized_upper.startswith('GPL') or normalized_upper.startswith('LGPL') or normalized_upper.startswith('AGPL'):
+            version = self._extract_version(normalized)
+            if 'LGPL' in normalized_upper:
+                base = 'LGPL'
+            elif 'AGPL' in normalized_upper:
+                base = 'AGPL'
             else:
-                return 'GPL-3.0'
-        elif normalized.upper().startswith('BSD'):
+                base = 'GPL'
+            
+            if version:
+                # Ensure version has .0 if it's a single digit (GPL-3 -> GPL-3.0)
+                if '.' not in version and version in ['1', '2', '3']:
+                    version = f'{version}.0'
+                
+                # Handle suffixes
+                if 'later' in normalized.lower() or normalized.endswith('+') or normalized.endswith('-or-later'):
+                    suffix = '-or-later'
+                elif 'only' in normalized.lower() or normalized.endswith('-only'):
+                    suffix = '-only'
+                else:
+                    suffix = ''
+                    
+                return f'{base}-{version}{suffix}'
+        elif normalized_upper.startswith('BSD'):
             if '3' in normalized or 'three' in normalized.lower() or 'new' in normalized.lower():
                 return 'BSD-3-Clause'
             elif '2' in normalized or 'two' in normalized.lower() or 'simplified' in normalized.lower():
                 return 'BSD-2-Clause'
+            elif '4' in normalized or 'four' in normalized.lower() or 'original' in normalized.lower():
+                return 'BSD-4-Clause'
+            elif '0' in normalized or 'zero' in normalized.lower():
+                return '0BSD'
+        elif normalized_upper.startswith('CC'):
+            # Creative Commons licenses
+            return self._normalize_cc_license(normalized)
+        elif 'PYTHON' in normalized_upper:
+            if '2' in normalized:
+                return 'Python-2.0'
+            else:
+                return 'PSF-2.0'
+        elif 'RUBY' in normalized_upper:
+            return 'Ruby'
+        elif 'PHP' in normalized_upper:
+            if '3.01' in normalized:
+                return 'PHP-3.01'
+            elif '3' in normalized:
+                return 'PHP-3.0'
+        elif 'PERL' in normalized_upper:
+            return 'Artistic-1.0-Perl'
+        elif 'POSTGRESQL' in normalized_upper:
+            return 'PostgreSQL'
         
         return normalized
+    
+    def _is_valid_spdx_id(self, license_id: str) -> bool:
+        """Check if a license ID exists in SPDX data."""
+        if hasattr(self.spdx_data, 'licenses') and self.spdx_data.licenses:
+            return license_id in self.spdx_data.licenses
+        return False
+    
+    def _extract_version(self, text: str) -> Optional[str]:
+        """Extract version number from license text."""
+        import re
+        # Match patterns like 2.0, 3, 3.0, etc.
+        match = re.search(r'(\d+(?:\.\d+)?)', text)
+        if match:
+            return match.group(1)
+        return None
+    
+    def _normalize_cc_license(self, license_text: str) -> str:
+        """Normalize Creative Commons license identifiers."""
+        # Handle CC0 first
+        if 'CC0' in license_text.upper() or ('CC' in license_text.upper() and 'ZERO' in license_text.upper()):
+            return 'CC0-1.0'
+        
+        # Extract CC components
+        import re
+        
+        # Common CC license pattern: CC-BY-SA-4.0
+        cc_match = re.search(r'CC[- ]?(BY|ZERO)?[- ]?(SA|NC|ND)?[- ]?(\d+\.\d+)?', license_text.upper())
+        if cc_match:
+            parts = ['CC']
+            if cc_match.group(1) and cc_match.group(1) != 'ZERO':
+                parts.append(cc_match.group(1))
+            if cc_match.group(2):
+                parts.append(cc_match.group(2))
+            if cc_match.group(3):
+                parts.append(cc_match.group(3))
+            return '-'.join(parts)
+        
+        return license_text
     
     def _parse_license_expression(self, expression: str) -> List[str]:
         """Parse SPDX license expression."""
