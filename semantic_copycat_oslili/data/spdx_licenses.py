@@ -7,6 +7,7 @@ import json
 import logging
 import hashlib
 import os
+import re
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
@@ -260,7 +261,8 @@ class SPDXLicenseData:
         if not text:
             return ""
         
-        import re
+        # Remove extra whitespace first
+        text = ' '.join(text.split())
         
         # Convert to lowercase
         normalized = text.lower()
@@ -270,6 +272,11 @@ class SPDXLicenseData:
         
         # Remove email addresses
         normalized = re.sub(r'\S+@\S+', '', normalized)
+        
+        # Remove common variable placeholders
+        normalized = re.sub(r'\[year\]|\[yyyy\]|\[name of copyright owner\]|\[fullname\]', '', normalized)
+        normalized = re.sub(r'<year>|<name of author>|<organization>', '', normalized)
+        normalized = re.sub(r'\{year\}|\{fullname\}|\{email\}', '', normalized)
         
         # Remove punctuation except for essential ones
         normalized = re.sub(r'[^\w\s\-]', ' ', normalized)
@@ -362,10 +369,6 @@ class SPDXLicenseData:
         
         return None
     
-    def get_all_license_ids(self) -> List[str]:
-        """Get list of all SPDX license IDs."""
-        return [l.get('licenseId') for l in self.licenses.get('licenses', []) 
-                if l.get('licenseId')]
     
     def get_license_aliases(self) -> Dict[str, str]:
         """
@@ -436,32 +439,3 @@ class SPDXLicenseData:
         hasher.update(normalized.encode('utf-8'))
         return hasher.hexdigest()
     
-    def _normalize_text(self, text: str) -> str:
-        """
-        Normalize license text for comparison.
-        
-        Args:
-            text: Original text
-            
-        Returns:
-            Normalized text
-        """
-        # Remove extra whitespace
-        text = ' '.join(text.split())
-        
-        # Convert to lowercase
-        text = text.lower()
-        
-        # Remove common variable placeholders
-        import re
-        text = re.sub(r'\[year\]|\[yyyy\]|\[name of copyright owner\]|\[fullname\]', '', text)
-        text = re.sub(r'<year>|<name of author>|<organization>', '', text)
-        text = re.sub(r'\{year\}|\{fullname\}|\{email\}', '', text)
-        
-        # Remove punctuation for fuzzy matching
-        text = re.sub(r'[^\w\s]', ' ', text)
-        
-        # Remove extra spaces again
-        text = ' '.join(text.split())
-        
-        return text

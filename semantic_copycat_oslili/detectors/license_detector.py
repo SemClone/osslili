@@ -63,7 +63,9 @@ class LicenseDetector:
         """Compile SPDX identifier patterns."""
         return [
             # SPDX-License-Identifier: <license>
-            re.compile(r'SPDX-License-Identifier:\s*([^\s\n]+)', re.IGNORECASE),
+            # Match until end of line, comment marker, or semicolon
+            # Strip trailing comment markers and whitespace
+            re.compile(r'SPDX-License-Identifier:\s*([^\n;#*]+?)(?:\s*[*/]*\s*)?$', re.IGNORECASE | re.MULTILINE),
             # Python METADATA: License-Expression: <license>
             re.compile(r'License-Expression:\s*([^\s\n]+)', re.IGNORECASE),
             # package.json style: "license": "MIT"
@@ -611,7 +613,6 @@ class LicenseDetector:
     
     def _extract_version(self, text: str) -> Optional[str]:
         """Extract version number from license text."""
-        import re
         # Match patterns like 2.0, 3, 3.0, etc.
         match = re.search(r'(\d+(?:\.\d+)?)', text)
         if match:
@@ -625,7 +626,6 @@ class LicenseDetector:
             return 'CC0-1.0'
         
         # Extract CC components
-        import re
         
         # Common CC license pattern: CC-BY-SA-4.0
         cc_match = re.search(r'CC[- ]?(BY|ZERO)?[- ]?(SA|NC|ND)?[- ]?(\d+\.\d+)?', license_text.upper())
@@ -919,7 +919,6 @@ class LicenseDetector:
                 return True
         
         # Check if it matches common license ID format (e.g., Apache-2.0, GPL-3.0+)
-        import re
         if re.match(r'^[A-Za-z]+[\-\.]?[0-9]*\.?[0-9]*[\+]?$', license_id):
             return True
         
