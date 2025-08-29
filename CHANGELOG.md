@@ -5,6 +5,31 @@ All notable changes to semantic-copycat-oslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.7] - 2025-08-29
+
+### Added
+- **Dynamic License Normalization**: Uses 1841+ name mappings from bundled SPDX data instead of hardcoding
+- **Properties for SPDX Data**: Added `aliases` and `name_mappings` properties to SPDXLicenseData class
+- **Comprehensive Normalization**: Support for 99.1% of SPDX licenses (694/700) with intelligent normalization
+- **Better Version Handling**: GPL/LGPL/AGPL versions properly normalized (e.g., GPL-3 → GPL-3.0)
+- **Common Aliases**: Added fallback aliases for "New BSD", "Simplified BSD", "CC0", etc.
+
+### Changed
+- **SPDX Tag Detection**: Improved regex to capture multi-word licenses like "Apache 2.0", "GPL v3"
+- **Normalization Method**: Refactored to use data-driven approach with bundled mappings
+- **Import Organization**: Moved module-level imports to avoid inline imports
+
+### Fixed
+- **Duplicate Methods**: Removed duplicate `_normalize_text()` and `get_all_license_ids()` methods in spdx_licenses.py
+- **Dead Code**: Removed unused methods and unreachable code sections
+- **Import Issues**: Fixed repeated inline imports of `re` module
+- **License Detection**: Fixed normalization for licenses with spaces (e.g., "Apache 2.0" → "Apache-2.0")
+- **Suffix Handling**: Proper handling of deprecated + suffix licenses (GPL-3.0+ → GPL-3.0-or-later)
+
+### Performance
+- **Code Quality**: Reduced duplication and improved maintainability
+- **Normalization Coverage**: Increased from ~12% to 99.1% for SPDX license ID variations
+
 ## [1.2.6] - 2025-08-17
 
 ### Changed
