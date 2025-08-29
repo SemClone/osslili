@@ -5,6 +5,18 @@ All notable changes to semantic-copycat-oslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.8] - 2025-08-29
+
+### Fixed
+- **License Expression Parsing**: Fixed incorrect splitting of "or later" suffix (e.g., "LGPL 3 or later" now correctly parsed as single license)
+- **False Positive Detection**: Added filtering for TODO, FIXME, XXX, and placeholder text that were incorrectly detected as licenses
+- **MIT License Detection**: Added quick pattern matching for MIT licenses before TLSH to prevent misidentification as JSON
+- **Test File Scanning**: Fixed overly aggressive filtering that skipped all files with "test_" prefix, now only skips specific test patterns
+
+### Improved
+- **Detection Accuracy**: Significantly reduced false positives in license identification
+- **Expression Handling**: Better handling of license suffixes like "or later", "or-later", "+"
+
 ## [1.2.7] - 2025-08-29
 
 ### Added
