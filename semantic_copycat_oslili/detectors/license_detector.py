@@ -393,7 +393,8 @@ class LicenseDetector:
         
         # Skip files that are likely to contain false positives
         file_name = file_path.name.lower()
-        if any(name in file_name for name in ['spdx_licenses', 'license_detector', 'test_', 'spec.']):
+        # Only skip our own detector/data files to avoid self-detection
+        if any(name in file_name for name in ['spdx_licenses.py', 'license_detector.py']):
             return licenses
         
         for pattern in self.spdx_tag_patterns:
@@ -643,11 +644,17 @@ class LicenseDetector:
     
     def _parse_license_expression(self, expression: str) -> List[str]:
         """Parse SPDX license expression."""
+        # Don't split if it contains "or later" or "or-later" (common suffix)
+        expression_lower = expression.lower()
+        if 'or later' in expression_lower or 'or-later' in expression_lower:
+            # This is likely a single license with suffix, not an OR expression
+            return [expression.strip()]
+        
         # Simple parser for license expressions
         # Split on AND, OR, WITH operators
         expression = expression.replace('(', '').replace(')', '')
         
-        # Split on operators
+        # Split on operators (but not "or later")
         parts = re.split(r'\s+(?:AND|OR|WITH)\s+', expression, flags=re.IGNORECASE)
         
         return [p.strip() for p in parts if p.strip()]
@@ -664,6 +671,17 @@ class LicenseDetector:
         Returns:
             Detected license or None
         """
+        # Quick check for obvious MIT license
+        text_lower = text.lower()
+        if 'permission is hereby granted, free of charge' in text_lower and 'mit license' in text_lower:
+            return DetectedLicense(
+                spdx_id="MIT",
+                name="MIT License",
+                confidence=1.0,
+                detection_method=DetectionMethod.REGEX.value,
+                source_file=str(file_path)
+            )
+        
         # Tier 1: Dice-Sørensen similarity
         detected = self._tier1_dice_sorensen(text, file_path)
         if detected and detected.confidence >= self.config.similarity_threshold:
@@ -881,7 +899,10 @@ class LicenseDetector:
             'adapt all', 'organizations', 'individuals',
             'a compatible', 'certification process',
             'its license review', 'this license',
-            'this public license', 'with a notice'
+            'this public license', 'with a notice',
+            'todo', 'fixme', 'xxx', 'placeholder',
+            'insert license here', 'your license',
+            'license_type', 'not-a-real-license'
         ]
         
         license_lower = license_id.lower()
