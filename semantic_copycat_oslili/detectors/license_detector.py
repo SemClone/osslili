@@ -76,8 +76,12 @@ class LicenseDetector:
             # Check if it's in documentation
             if any(ext in file_name for ext in ['.md', '.rst', '.txt', '.adoc']):
                 return LicenseCategory.DECLARED.value, "documentation"
-            # Otherwise it's a reference in code
-            return LicenseCategory.REFERENCED.value, "license_reference"
+            # Check if it's a full license header vs. brief reference
+            # match_type gets passed with information about how many patterns matched
+            if match_type == "license_header":
+                return LicenseCategory.DECLARED.value, "license_header"
+            else:
+                return LicenseCategory.REFERENCED.value, "license_reference"
         
         # Text similarity matches in non-license files are detected
         if detection_method in [DetectionMethod.TLSH.value, DetectionMethod.DICE_SORENSEN.value]:
@@ -839,6 +843,46 @@ class LicenseDetector:
         intersection = len(set1 & set2)
         return (2.0 * intersection) / (len(set1) + len(set2))
     
+    def _adjust_regex_confidence(self, raw_score: float, category: str, match_type: str, match_count: int) -> float:
+        """
+        Adjust confidence scores for regex-based license detection based on context.
+        
+        Args:
+            raw_score: Raw pattern matching score (0.0-1.0)
+            category: License category (declared/detected/referenced)
+            match_type: Type of match (license_file, license_reference, etc.)
+            match_count: Number of patterns that matched
+            
+        Returns:
+            Adjusted confidence score
+        """
+        if category == "declared":
+            # License files and documentation should have high confidence
+            if match_type == "license_file":
+                return 1.0  # Full confidence for exact license file matches
+            elif match_type == "documentation":
+                return min(0.95, raw_score + 0.2)  # High confidence for docs
+            elif match_type == "license_header":
+                return min(0.9, raw_score + 0.2)  # High confidence for full headers
+            else:
+                return min(0.9, raw_score + 0.1)
+        
+        elif category == "referenced":
+            # License references should have lower confidence
+            if match_type == "license_reference":
+                # Scale down references based on match strength
+                if match_count == 1:
+                    return 0.3  # Single pattern match = low confidence
+                elif match_count == 2:
+                    return 0.4  # Two patterns = medium-low confidence  
+                else:
+                    return 0.5  # Multiple patterns = medium confidence
+            else:
+                return min(0.6, raw_score)
+        
+        else:  # detected category
+            return raw_score
+    
     def _tier3_regex_matching(self, text: str, file_path: Path) -> Optional[DetectedLicense]:
         """
         Tier 3: Regex pattern matching fallback.
@@ -859,16 +903,21 @@ class LicenseDetector:
             r'software is provided.*as is.*without warranty'
         ]
         
-        mit_score = sum(1 for p in mit_patterns if re.search(p, text_lower)) / len(mit_patterns)
+        mit_matches = sum(1 for p in mit_patterns if re.search(p, text_lower))
+        mit_score = mit_matches / len(mit_patterns)
         
         if mit_score >= 0.6:
+            # Determine if this is a full license header or just a reference
+            match_type_hint = "license_header" if mit_matches >= 2 else "license_reference"
             category, match_type = self._categorize_license(
-                file_path, DetectionMethod.REGEX.value, "license_reference"
+                file_path, DetectionMethod.REGEX.value, match_type_hint
             )
+            # Adjust confidence based on context and match type
+            confidence = self._adjust_regex_confidence(mit_score, category, match_type, mit_matches)
             return DetectedLicense(
                 spdx_id="MIT",
                 name="MIT License",
-                confidence=mit_score,
+                confidence=confidence,
                 detection_method=DetectionMethod.REGEX.value,
                 source_file=str(file_path),
                 category=category,
@@ -882,16 +931,21 @@ class LicenseDetector:
             r'www\.apache\.org/licenses/license-2\.0'
         ]
         
-        apache_score = sum(1 for p in apache_patterns if re.search(p, text_lower)) / len(apache_patterns)
+        apache_matches = sum(1 for p in apache_patterns if re.search(p, text_lower))
+        apache_score = apache_matches / len(apache_patterns)
         
         if apache_score >= 0.6:
+            # Determine if this is a full license header or just a reference
+            match_type_hint = "license_header" if apache_matches >= 2 else "license_reference"
             category, match_type = self._categorize_license(
-                file_path, DetectionMethod.REGEX.value, "license_reference"
+                file_path, DetectionMethod.REGEX.value, match_type_hint
             )
+            # Adjust confidence based on context and match type
+            confidence = self._adjust_regex_confidence(apache_score, category, match_type, apache_matches)
             return DetectedLicense(
                 spdx_id="Apache-2.0",
                 name="Apache License 2.0",
-                confidence=apache_score,
+                confidence=confidence,
                 detection_method=DetectionMethod.REGEX.value,
                 source_file=str(file_path),
                 category=category,
@@ -905,7 +959,8 @@ class LicenseDetector:
             r'free software foundation'
         ]
         
-        gpl_score = sum(1 for p in gpl_patterns if re.search(p, text_lower)) / len(gpl_patterns)
+        gpl_matches = sum(1 for p in gpl_patterns if re.search(p, text_lower))
+        gpl_score = gpl_matches / len(gpl_patterns)
         
         if gpl_score >= 0.6:
             # Determine GPL version
@@ -916,13 +971,17 @@ class LicenseDetector:
                 spdx_id = "GPL-2.0"
                 name = "GNU General Public License v2.0"
             
+            # Determine if this is a full license header or just a reference
+            match_type_hint = "license_header" if gpl_matches >= 2 else "license_reference"
             category, match_type = self._categorize_license(
-                file_path, DetectionMethod.REGEX.value, "license_reference"
+                file_path, DetectionMethod.REGEX.value, match_type_hint
             )
+            # Adjust confidence based on context and match type
+            confidence = self._adjust_regex_confidence(gpl_score, category, match_type, gpl_matches)
             return DetectedLicense(
                 spdx_id=spdx_id,
                 name=name,
-                confidence=gpl_score,
+                confidence=confidence,
                 detection_method=DetectionMethod.REGEX.value,
                 source_file=str(file_path),
                 category=category,
@@ -936,16 +995,21 @@ class LicenseDetector:
             r'neither the name.*nor the names of its contributors'
         ]
         
-        bsd_score = sum(1 for p in bsd_patterns if re.search(p, text_lower)) / len(bsd_patterns)
+        bsd_matches = sum(1 for p in bsd_patterns if re.search(p, text_lower))
+        bsd_score = bsd_matches / len(bsd_patterns)
         
         if bsd_score >= 0.6:
+            # Determine if this is a full license header or just a reference
+            match_type_hint = "license_header" if bsd_matches >= 2 else "license_reference"
             category, match_type = self._categorize_license(
-                file_path, DetectionMethod.REGEX.value, "license_reference"
+                file_path, DetectionMethod.REGEX.value, match_type_hint
             )
+            # Adjust confidence based on context and match type
+            confidence = self._adjust_regex_confidence(bsd_score, category, match_type, bsd_matches)
             return DetectedLicense(
                 spdx_id="BSD-3-Clause",
                 name="BSD 3-Clause License",
-                confidence=bsd_score,
+                confidence=confidence,
                 detection_method=DetectionMethod.REGEX.value,
                 source_file=str(file_path),
                 category=category,
