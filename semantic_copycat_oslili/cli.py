@@ -11,6 +11,7 @@ import click
 import yaml
 from colorama import init, Fore, Style
 
+from . import __version__
 from .core.models import Config
 from .core.generator import LicenseCopyrightDetector
 from .utils.logging import setup_logging
@@ -79,6 +80,13 @@ def detect_input_type(input_path: str) -> str:
     type=click.Path(),
     help='Output file path (default: stdout)'
 )
+@click.version_option(version=__version__, prog_name='oslili')
+@click.option(
+    '--output-format', '-f',
+    type=click.Choice(['evidence', 'kissbom', 'cyclonedx-json', 'cyclonedx-xml', 'notices']),
+    default='evidence',
+    help='Output format (default: evidence)'
+)
 @click.option(
     '--verbose', '-v',
     is_flag=True,
@@ -110,15 +118,23 @@ def detect_input_type(input_path: str) -> str:
     default=10,
     help='Maximum directory recursion depth (default: 10, use -1 for unlimited)'
 )
+@click.option(
+    '--max-extraction-depth',
+    type=int,
+    default=10,
+    help='Maximum archive extraction depth (default: 10)'
+)
 def main(
     input_path: str,
     output: Optional[str],
+    output_format: str,
     verbose: bool,
     debug: bool,
     threads: Optional[int],
     config: Optional[str],
     similarity_threshold: Optional[float],
-    max_depth: Optional[int]
+    max_depth: Optional[int],
+    max_extraction_depth: Optional[int]
 ):
     """
     Scan local source code for license and copyright information.
@@ -147,6 +163,8 @@ def main(
         cfg.similarity_threshold = similarity_threshold
     if max_depth is not None:
         cfg.max_recursion_depth = max_depth
+    if max_extraction_depth is not None:
+        cfg.max_extraction_depth = max_extraction_depth
     
     # Setup logging - only show our logs in verbose mode, not library logs
     if cfg.debug:
@@ -198,8 +216,19 @@ def main(
         if total_errors > 0:
             print_warning(f"Encountered {total_errors} errors during processing")
         
-        # Generate evidence output
-        output_data = detector.generate_evidence(results)
+        # Generate output based on format
+        if output_format == 'evidence':
+            output_data = detector.generate_evidence(results)
+        elif output_format == 'kissbom':
+            output_data = detector.generate_kissbom(results)
+        elif output_format == 'cyclonedx-json':
+            output_data = detector.generate_cyclonedx(results, format_type='json')
+        elif output_format == 'cyclonedx-xml':
+            output_data = detector.generate_cyclonedx(results, format_type='xml')
+        elif output_format == 'notices':
+            output_data = detector.generate_notices(results)
+        else:
+            output_data = detector.generate_evidence(results)
         
         # Write output
         if output:

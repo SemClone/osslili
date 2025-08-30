@@ -15,11 +15,13 @@ The tool outputs standardized JSON evidence showing exactly where each license w
 ## Key Features
 
 - **Evidence-based output**: Shows exact file paths, confidence scores, and detection methods
+- **License hierarchy**: Categorizes licenses as declared vs detected vs referenced
 - **Parallel processing**: Multi-threaded scanning with configurable thread count
 - **Three-tier detection**: 
   - Dice-Sørensen similarity matching (97% threshold)
-  - TLSH fuzzy hashing (optional)
+  - TLSH fuzzy hashing with confirmation
   - Regex pattern matching
+- **Safe directory traversal**: Depth limiting and symlink loop protection
 - **Smart normalization**: Handles license variations and common aliases
 - **No file limits**: Processes files of any size with intelligent sampling
 - **Enhanced metadata support**: Detects licenses in package.json, METADATA, pyproject.toml
@@ -46,6 +48,9 @@ oslili /path/to/project
 # Scan with parallel processing (4 threads)
 oslili ./my-project --threads 4
 
+# Scan with limited depth (only 2 levels deep)
+oslili ./my-project --max-depth 2
+
 # Scan a specific file
 oslili /path/to/LICENSE
 
@@ -71,6 +76,7 @@ oslili ./project --debug
         "detected_license": "Apache-2.0",
         "confidence": 0.988,
         "detection_method": "dice-sorensen",
+        "category": "declared",
         "match_type": "text_similarity",
         "description": "Text matches Apache-2.0 license (98.8% similarity)"
       },
@@ -79,6 +85,7 @@ oslili ./project --debug
         "detected_license": "Apache-2.0",
         "confidence": 1.0,
         "detection_method": "tag",
+        "category": "declared",
         "match_type": "spdx_identifier",
         "description": "SPDX-License-Identifier: Apache-2.0 found"
       }
@@ -131,19 +138,19 @@ The tool uses a sophisticated multi-tier approach for maximum accuracy:
 ### Library Usage
 
 ```python
-from semantic_copycat_oslili import LegalAttributionGenerator
+from semantic_copycat_oslili import LicenseCopyrightDetector
 
-# Initialize generator
-generator = LegalAttributionGenerator()
+# Initialize detector
+detector = LicenseCopyrightDetector()
 
 # Process a local directory
-result = generator.process_local_path("/path/to/source")
+result = detector.process_local_path("/path/to/source")
 
 # Process a single file  
-result = generator.process_local_path("/path/to/LICENSE")
+result = detector.process_local_path("/path/to/LICENSE")
 
 # Generate evidence output
-evidence = generator.generate_evidence([result])
+evidence = detector.generate_evidence([result])
 print(evidence)
 
 # Access results
@@ -158,7 +165,7 @@ for copyright in result.copyrights:
 The package uses a three-tier license detection system:
 
 1. **Tier 1**: Dice-Sørensen similarity (97% threshold)
-2. **Tier 2**: TLSH fuzzy hashing (97% threshold)
+2. **Tier 2**: TLSH fuzzy hashing with confirmation
 3. **Tier 3**: Machine learning or regex pattern matching
 
 ## Output Format
@@ -176,7 +183,7 @@ Create a `config.yaml` file:
 
 ```yaml
 similarity_threshold: 0.97
-max_extraction_depth: 10
+max_recursion_depth: 10
 thread_count: 4
 custom_aliases:
   "Apache 2": "Apache-2.0"

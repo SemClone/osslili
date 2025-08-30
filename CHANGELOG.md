@@ -5,6 +5,27 @@ All notable changes to semantic-copycat-oslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2025-08-30
+
+### Added
+- **Archive Extraction**: Restored archive extraction capability with configurable `--max-extraction-depth` option for nested archives
+- **Cache Functionality**: Added caching support with `--cache-dir` option to speed up repeated scans
+- **Version Command**: Added `--version` option to display the tool version
+- **Output Formats**: Restored support for multiple output formats:
+  - `kissbom`: Simple JSON format with packages and licenses
+  - `cyclonedx-json`: CycloneDX SBOM in JSON format
+  - `cyclonedx-xml`: CycloneDX SBOM in XML format
+  - `notices`: Human-readable legal notices with license texts
+
+### Changed
+- **Directory Traversal**: Restored `--max-depth` option with enhanced symlink loop protection using inode tracking
+- **Safe File Scanner**: Implemented SafeFileScanner class for secure directory traversal with depth limiting
+
+### Fixed
+- **Missing Features**: Restored several features that were accidentally removed in previous refactoring
+- **Documentation**: Updated all documentation to reflect current functionality
+- **Code Quality**: Removed unused `get_license_aliases` method and other dead code
+
 ## [1.2.9] - 2025-08-30
 
 ### Added
