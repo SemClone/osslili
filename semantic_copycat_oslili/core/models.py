@@ -101,6 +101,7 @@ class DetectionResult:
 class Config:
     """Configuration for the license and copyright detector."""
     similarity_threshold: float = 0.97
+    max_recursion_depth: int = 10
     thread_count: int = 4
     verbose: bool = False
     debug: bool = False

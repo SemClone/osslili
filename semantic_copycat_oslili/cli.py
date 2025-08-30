@@ -104,6 +104,12 @@ def detect_input_type(input_path: str) -> str:
     type=float,
     help='License similarity threshold (0.0-1.0)'
 )
+@click.option(
+    '--max-depth', '--max-recursion-depth',
+    type=int,
+    default=10,
+    help='Maximum directory recursion depth (default: 10, use -1 for unlimited)'
+)
 def main(
     input_path: str,
     output: Optional[str],
@@ -111,7 +117,8 @@ def main(
     debug: bool,
     threads: Optional[int],
     config: Optional[str],
-    similarity_threshold: Optional[float]
+    similarity_threshold: Optional[float],
+    max_depth: Optional[int]
 ):
     """
     Scan local source code for license and copyright information.
@@ -138,6 +145,8 @@ def main(
         cfg.thread_count = threads
     if similarity_threshold is not None:
         cfg.similarity_threshold = similarity_threshold
+    if max_depth is not None:
+        cfg.max_recursion_depth = max_depth
     
     # Setup logging - only show our logs in verbose mode, not library logs
     if cfg.debug:

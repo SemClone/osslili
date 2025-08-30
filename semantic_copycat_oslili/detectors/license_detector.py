@@ -15,6 +15,7 @@ from ..core.models import DetectedLicense, DetectionMethod, LicenseCategory
 from ..core.input_processor import InputProcessor
 from ..data.spdx_licenses import SPDXLicenseData
 from .tlsh_detector import TLSHDetector
+from ..utils.file_scanner import SafeFileScanner
 
 logger = logging.getLogger(__name__)
 
@@ -200,25 +201,34 @@ class LicenseDetector:
     def _find_license_files(self, directory: Path) -> List[Path]:
         """Find potential license files in directory."""
         license_files = []
+        scanner = SafeFileScanner(
+            max_depth=self.config.max_recursion_depth,
+            follow_symlinks=False
+        )
         
         # Direct pattern matching
         for pattern in self.license_patterns:
-            for file_path in directory.rglob('*'):
-                if file_path.is_file() and pattern.match(file_path.name):
+            for file_path in scanner.scan_directory(directory, '*'):
+                if pattern.match(file_path.name):
                     license_files.append(file_path)
         
+        # Reset scanner for second pass (to reset visited inodes)
+        scanner = SafeFileScanner(
+            max_depth=self.config.max_recursion_depth,
+            follow_symlinks=False
+        )
+        
         # Fuzzy matching for license-like filenames
-        for file_path in directory.rglob('*'):
-            if file_path.is_file():
-                name_lower = file_path.name.lower()
-                
-                # Check fuzzy match with common license names
-                for base_name in ['license', 'licence', 'copying', 'copyright', 'notice']:
-                    ratio = fuzz.partial_ratio(base_name, name_lower)
-                    if ratio >= 85:  # 85% similarity threshold
-                        if file_path not in license_files:
-                            license_files.append(file_path)
-                        break
+        for file_path in scanner.scan_directory(directory, '*'):
+            name_lower = file_path.name.lower()
+            
+            # Check fuzzy match with common license names
+            for base_name in ['license', 'licence', 'copying', 'copyright', 'notice']:
+                ratio = fuzz.partial_ratio(base_name, name_lower)
+                if ratio >= 85:  # 85% similarity threshold
+                    if file_path not in license_files:
+                        license_files.append(file_path)
+                    break
         
         return license_files
     
@@ -240,21 +250,15 @@ class LicenseDetector:
             '.class', '.o', '.a', '.lib', '.obj'
         }
         
+        scanner = SafeFileScanner(
+            max_depth=self.config.max_recursion_depth,
+            follow_symlinks=False
+        )
+        
         # Scan all files recursively
-        for file_path in directory.rglob('*'):
-            if not file_path.is_file():
-                continue
-            
+        for file_path in scanner.scan_directory(directory, '*'):
             # Skip binary/archive files
             if file_path.suffix.lower() in skip_extensions:
-                continue
-            
-            # Skip hidden files and directories (optional)
-            if any(part.startswith('.') for part in file_path.parts[:-1]):
-                continue
-            
-            # Skip __pycache__ and similar directories
-            if '__pycache__' in file_path.parts or 'node_modules' in file_path.parts:
                 continue
             
             # Try to determine if file is text/readable

@@ -11,6 +11,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from ..core.models import CopyrightInfo
 from ..core.input_processor import InputProcessor
+from ..utils.file_scanner import SafeFileScanner
 
 logger = logging.getLogger(__name__)
 
@@ -141,21 +142,24 @@ class CopyrightExtractor:
     def _find_copyright_files(self, directory: Path) -> List[Path]:
         """Find files likely to contain copyright information."""
         files_to_scan = []
+        scanner = SafeFileScanner(
+            max_depth=self.config.max_recursion_depth,
+            follow_symlinks=False
+        )
         
         # Priority 1: License and author files
         for file_name in self.author_files:
-            for file_path in directory.rglob(file_name):
-                if file_path.is_file():
-                    files_to_scan.append(file_path)
+            for file_path in scanner.scan_directory(directory, file_name):
+                files_to_scan.append(file_path)
         
-        # Priority 2: License files
+        # Priority 2: License files (only at root level)
         license_patterns = ['LICENSE*', 'LICENCE*', 'COPYING*', 'COPYRIGHT*', 'NOTICE*']
         for pattern in license_patterns:
             for file_path in directory.glob(pattern):
                 if file_path.is_file() and file_path not in files_to_scan:
                     files_to_scan.append(file_path)
         
-        # Priority 3: README files
+        # Priority 3: README files (only at root level)
         readme_patterns = ['README*', 'readme*']
         for pattern in readme_patterns:
             for file_path in directory.glob(pattern):
@@ -167,9 +171,15 @@ class CopyrightExtractor:
         max_source_files = 20
         source_count = 0
         
+        # Reset scanner for source files
+        scanner = SafeFileScanner(
+            max_depth=self.config.max_recursion_depth,
+            follow_symlinks=False
+        )
+        
         for ext in source_extensions:
-            for file_path in directory.rglob(f'*{ext}'):
-                if file_path.is_file() and file_path not in files_to_scan:
+            for file_path in scanner.scan_directory(directory, f'*{ext}'):
+                if file_path not in files_to_scan:
                     files_to_scan.append(file_path)
                     source_count += 1
                     if source_count >= max_source_files:
