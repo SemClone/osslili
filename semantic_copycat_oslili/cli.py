@@ -80,7 +80,6 @@ def detect_input_type(input_path: str) -> str:
     type=click.Path(),
     help='Output file path (default: stdout)'
 )
-@click.version_option(version=__version__, prog_name='oslili')
 @click.option(
     '--output-format', '-f',
     type=click.Choice(['evidence', 'kissbom', 'cyclonedx-json', 'cyclonedx-xml', 'notices']),
@@ -124,6 +123,7 @@ def detect_input_type(input_path: str) -> str:
     default=10,
     help='Maximum archive extraction depth (default: 10)'
 )
+@click.version_option(version=__version__, prog_name='oslili')
 def main(
     input_path: str,
     output: Optional[str],

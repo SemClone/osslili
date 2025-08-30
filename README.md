@@ -16,6 +16,9 @@ The tool outputs standardized JSON evidence showing exactly where each license w
 
 - **Evidence-based output**: Shows exact file paths, confidence scores, and detection methods
 - **License hierarchy**: Categorizes licenses as declared vs detected vs referenced
+- **Multiple output formats**: Evidence JSON, KissBOM, CycloneDX SBOM, and human-readable notices
+- **Archive extraction**: Automatically extracts and scans zip, tar, and other archive formats
+- **Caching support**: Speed up repeated scans with intelligent caching
 - **Parallel processing**: Multi-threaded scanning with configurable thread count
 - **Three-tier detection**: 
   - Dice-Sørensen similarity matching (97% threshold)
@@ -42,8 +45,13 @@ The package includes all necessary dependencies including `python-tlsh` for fuzz
 ### CLI Usage
 
 ```bash
-# Scan a directory and see evidence
+# Scan a directory and see evidence (default format)
 oslili /path/to/project
+
+# Generate different output formats
+oslili ./my-project -f kissbom -o kissbom.json
+oslili ./my-project -f cyclonedx-json -o sbom.json
+oslili ./my-project -f notices -o NOTICE.txt
 
 # Scan with parallel processing (4 threads)
 oslili ./my-project --threads 4
@@ -51,8 +59,14 @@ oslili ./my-project --threads 4
 # Scan with limited depth (only 2 levels deep)
 oslili ./my-project --max-depth 2
 
-# Scan a specific file
-oslili /path/to/LICENSE
+# Extract and scan archives
+oslili package.tar.gz --max-extraction-depth 2
+
+# Use caching for faster repeated scans
+oslili ./my-project --cache-dir ~/.cache/oslili
+
+# Check version
+oslili --version
 
 # Save results to file
 oslili ./my-project -o license-evidence.json
@@ -101,10 +115,10 @@ oslili ./project --debug
   }],
   "summary": {
     "total_files_scanned": 42,
-    "licenses_found": {
-      "Apache-2.0": 2
-    },
-    "copyrights_found": 1
+    "declared_licenses": {"Apache-2.0": 2},
+    "detected_licenses": {},
+    "referenced_licenses": {},
+    "copyright_holders": ["Example Corp"]
   }
 }
 ```
@@ -149,13 +163,16 @@ result = detector.process_local_path("/path/to/source")
 # Process a single file  
 result = detector.process_local_path("/path/to/LICENSE")
 
-# Generate evidence output
+# Generate different output formats
 evidence = detector.generate_evidence([result])
-print(evidence)
+kissbom = detector.generate_kissbom([result])
+cyclonedx = detector.generate_cyclonedx([result], format_type="json")
+notices = detector.generate_notices([result])
 
-# Access results
+# Access results directly
 for license in result.licenses:
     print(f"License: {license.spdx_id} ({license.confidence:.0%} confidence)")
+    print(f"  Category: {license.category}")  # declared, detected, or referenced
 for copyright in result.copyrights:
     print(f"Copyright: © {copyright.holder}")
 ```
@@ -184,7 +201,9 @@ Create a `config.yaml` file:
 ```yaml
 similarity_threshold: 0.97
 max_recursion_depth: 10
+max_extraction_depth: 10
 thread_count: 4
+cache_dir: "~/.cache/oslili"
 custom_aliases:
   "Apache 2": "Apache-2.0"
   "MIT License": "MIT"
