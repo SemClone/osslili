@@ -10,9 +10,8 @@ from typing import List, Optional, Dict, Set, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from fuzzywuzzy import fuzz
-from fuzzywuzzy import process as fuzz_process
 
-from ..core.models import DetectedLicense, DetectionMethod
+from ..core.models import DetectedLicense, DetectionMethod, LicenseCategory
 from ..core.input_processor import InputProcessor
 from ..data.spdx_licenses import SPDXLicenseData
 from .tlsh_detector import TLSHDetector
@@ -47,6 +46,46 @@ class LicenseDetector:
             'redistribution and use', 'all rights reserved', 'this software is provided',
             'warranty', 'as is', 'merchantability', 'fitness for a particular purpose'
         ]
+    
+    def _categorize_license(self, file_path: Path, detection_method: str, match_type: str = None) -> tuple[str, str]:
+        """
+        Categorize a license based on where and how it was detected.
+        
+        Returns:
+            Tuple of (category, match_type)
+        """
+        file_name = file_path.name.lower()
+        file_str = str(file_path).lower()
+        
+        # Primary declared licenses - found in LICENSE files or package metadata
+        if self._is_license_file(file_path):
+            return LicenseCategory.DECLARED.value, "license_file"
+        
+        # Package metadata files
+        if file_name in ['package.json', 'setup.py', 'setup.cfg', 'pyproject.toml', 
+                         'cargo.toml', 'pom.xml', 'build.gradle', 'composer.json']:
+            return LicenseCategory.DECLARED.value, "package_metadata"
+        
+        # SPDX tags in any file are considered declared
+        if detection_method == DetectionMethod.TAG.value:
+            return LicenseCategory.DECLARED.value, "spdx_identifier"
+        
+        # References in source code comments or documentation
+        if detection_method == DetectionMethod.REGEX.value:
+            # Check if it's in documentation
+            if any(ext in file_name for ext in ['.md', '.rst', '.txt', '.adoc']):
+                return LicenseCategory.DECLARED.value, "documentation"
+            # Otherwise it's a reference in code
+            return LicenseCategory.REFERENCED.value, "license_reference"
+        
+        # Text similarity matches in non-license files are detected
+        if detection_method in [DetectionMethod.TLSH.value, DetectionMethod.DICE_SORENSEN.value]:
+            if self._is_license_file(file_path):
+                return LicenseCategory.DECLARED.value, "text_similarity"
+            return LicenseCategory.DETECTED.value, "text_similarity"
+        
+        # Default to detected for unknown cases
+        return LicenseCategory.DETECTED.value, match_type or "unknown"
     
     def _compile_filename_patterns(self) -> List[re.Pattern]:
         """Compile filename patterns for license files."""
@@ -422,22 +461,32 @@ class LicenseDetector:
                         license_info = self.spdx_data.get_license_info(normalized_id)
                         
                         if license_info:
+                            category, match_type = self._categorize_license(
+                                file_path, DetectionMethod.TAG.value
+                            )
                             licenses.append(DetectedLicense(
                                 spdx_id=license_info['licenseId'],
                                 name=license_info.get('name', normalized_id),
                                 confidence=1.0,  # High confidence for explicit tags
                                 detection_method=DetectionMethod.TAG.value,
-                                source_file=str(file_path)
+                                source_file=str(file_path),
+                                category=category,
+                                match_type=match_type
                             ))
                         else:
                             # Only record unknown licenses if they look valid
                             if self._looks_like_valid_license(normalized_id):
+                                category, match_type = self._categorize_license(
+                                    file_path, DetectionMethod.TAG.value
+                                )
                                 licenses.append(DetectedLicense(
                                     spdx_id=normalized_id,
                                     name=normalized_id,
                                     confidence=0.9,
                                     detection_method=DetectionMethod.TAG.value,
-                                    source_file=str(file_path)
+                                    source_file=str(file_path),
+                                    category=category,
+                                    match_type=match_type
                                 ))
         
         return licenses
@@ -674,12 +723,17 @@ class LicenseDetector:
         # Quick check for obvious MIT license
         text_lower = text.lower()
         if 'permission is hereby granted, free of charge' in text_lower and 'mit license' in text_lower:
+            category, match_type = self._categorize_license(
+                file_path, DetectionMethod.REGEX.value
+            )
             return DetectedLicense(
                 spdx_id="MIT",
                 name="MIT License",
                 confidence=1.0,
                 detection_method=DetectionMethod.REGEX.value,
-                source_file=str(file_path)
+                source_file=str(file_path),
+                category=category,
+                match_type=match_type
             )
         
         # Tier 1: Dice-Sørensen similarity
@@ -747,12 +801,17 @@ class LicenseDetector:
             # Confirm with TLSH to reduce false positives
             if self.tlsh_detector.confirm_license_match(text, best_match):
                 license_info = self.spdx_data.get_license_info(best_match)
+                category, match_type = self._categorize_license(
+                    file_path, DetectionMethod.DICE_SORENSEN.value
+                )
                 return DetectedLicense(
                     spdx_id=best_match,
                     name=license_info.get('name', best_match) if license_info else best_match,
                     confidence=best_score,
                     detection_method=DetectionMethod.DICE_SORENSEN.value,
-                    source_file=str(file_path)
+                    source_file=str(file_path),
+                    category=category,
+                    match_type=match_type
                 )
             else:
                 logger.debug(f"Dice-Sørensen match {best_match} not confirmed by TLSH")
@@ -799,12 +858,17 @@ class LicenseDetector:
         mit_score = sum(1 for p in mit_patterns if re.search(p, text_lower)) / len(mit_patterns)
         
         if mit_score >= 0.6:
+            category, match_type = self._categorize_license(
+                file_path, DetectionMethod.REGEX.value, "license_reference"
+            )
             return DetectedLicense(
                 spdx_id="MIT",
                 name="MIT License",
                 confidence=mit_score,
                 detection_method=DetectionMethod.REGEX.value,
-                source_file=str(file_path)
+                source_file=str(file_path),
+                category=category,
+                match_type=match_type
             )
         
         # Apache 2.0 patterns
@@ -817,12 +881,17 @@ class LicenseDetector:
         apache_score = sum(1 for p in apache_patterns if re.search(p, text_lower)) / len(apache_patterns)
         
         if apache_score >= 0.6:
+            category, match_type = self._categorize_license(
+                file_path, DetectionMethod.REGEX.value, "license_reference"
+            )
             return DetectedLicense(
                 spdx_id="Apache-2.0",
                 name="Apache License 2.0",
                 confidence=apache_score,
                 detection_method=DetectionMethod.REGEX.value,
-                source_file=str(file_path)
+                source_file=str(file_path),
+                category=category,
+                match_type=match_type
             )
         
         # GPL patterns
@@ -843,12 +912,17 @@ class LicenseDetector:
                 spdx_id = "GPL-2.0"
                 name = "GNU General Public License v2.0"
             
+            category, match_type = self._categorize_license(
+                file_path, DetectionMethod.REGEX.value, "license_reference"
+            )
             return DetectedLicense(
                 spdx_id=spdx_id,
                 name=name,
                 confidence=gpl_score,
                 detection_method=DetectionMethod.REGEX.value,
-                source_file=str(file_path)
+                source_file=str(file_path),
+                category=category,
+                match_type=match_type
             )
         
         # BSD patterns
@@ -861,12 +935,17 @@ class LicenseDetector:
         bsd_score = sum(1 for p in bsd_patterns if re.search(p, text_lower)) / len(bsd_patterns)
         
         if bsd_score >= 0.6:
+            category, match_type = self._categorize_license(
+                file_path, DetectionMethod.REGEX.value, "license_reference"
+            )
             return DetectedLicense(
                 spdx_id="BSD-3-Clause",
                 name="BSD 3-Clause License",
                 confidence=bsd_score,
                 detection_method=DetectionMethod.REGEX.value,
-                source_file=str(file_path)
+                source_file=str(file_path),
+                category=category,
+                match_type=match_type
             )
         
         return None

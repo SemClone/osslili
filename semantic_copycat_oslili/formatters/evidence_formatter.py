@@ -6,13 +6,13 @@ import json
 from typing import List, Dict, Any
 from pathlib import Path
 
-from ..core.models import AttributionResult
+from ..core.models import DetectionResult
 
 
 class EvidenceFormatter:
     """Format attribution results as evidence showing file-to-license mappings."""
     
-    def format(self, results: List[AttributionResult]) -> str:
+    def format(self, results: List[DetectionResult]) -> str:
         """
         Format results as evidence showing what was detected where.
         
@@ -26,7 +26,11 @@ class EvidenceFormatter:
             "scan_results": [],
             "summary": {
                 "total_files_scanned": 0,
-                "licenses_found": {},
+                "declared_licenses": {},
+                "detected_licenses": {},
+                "referenced_licenses": {},
+                "all_licenses": {},
+                "copyright_holders": [],
                 "copyrights_found": 0
             }
         }
@@ -47,7 +51,9 @@ class EvidenceFormatter:
                 license_by_file[source].append({
                     "spdx_id": license.spdx_id,
                     "confidence": round(license.confidence, 3),
-                    "method": license.detection_method
+                    "method": license.detection_method,
+                    "category": getattr(license, 'category', 'detected'),
+                    "match_type": getattr(license, 'match_type', None)
                 })
             
             # Format license evidence
@@ -57,38 +63,66 @@ class EvidenceFormatter:
                         "file": file_path,
                         "detected_license": lic["spdx_id"],
                         "confidence": lic["confidence"],
-                        "detection_method": lic["method"]
+                        "detection_method": lic["method"],
+                        "category": lic["category"]
                     }
                     
-                    # Add context about what was matched
-                    file_name = Path(file_path).name.lower() if file_path != "unknown" else "unknown"
+                    # Use the match_type from the license if available
+                    if lic.get("match_type"):
+                        evidence_entry["match_type"] = lic["match_type"]
+                    else:
+                        # Fallback to determining match type from method
+                        file_name = Path(file_path).name.lower() if file_path != "unknown" else "unknown"
+                        if lic["method"] == "filename":
+                            evidence_entry["match_type"] = "license_text"
+                        elif lic["method"] == "tag":
+                            evidence_entry["match_type"] = "spdx_identifier"
+                        elif lic["method"] == "regex":
+                            evidence_entry["match_type"] = "license_reference"
+                        elif lic["method"] in ["dice-sorensen", "tlsh"]:
+                            evidence_entry["match_type"] = "text_similarity"
+                        else:
+                            evidence_entry["match_type"] = "pattern_match"
                     
-                    if lic["method"] == "filename":
-                        # License text detected in license files
-                        evidence_entry["match_type"] = "license_text"
-                        evidence_entry["description"] = f"File contains {lic['spdx_id']} license text"
-                    elif lic["method"] == "tag":
-                        # SPDX identifier tag found
-                        evidence_entry["match_type"] = "spdx_identifier"
+                    # Generate description based on match type
+                    match_type = evidence_entry["match_type"]
+                    if match_type == "license_file":
+                        evidence_entry["description"] = f"License file contains {lic['spdx_id']} license"
+                    elif match_type == "spdx_identifier":
                         evidence_entry["description"] = f"SPDX-License-Identifier: {lic['spdx_id']} found"
-                    elif lic["method"] == "regex":
-                        # License reference found via pattern
-                        evidence_entry["match_type"] = "license_reference"
+                    elif match_type == "package_metadata":
+                        evidence_entry["description"] = f"Package metadata declares {lic['spdx_id']} license"
+                    elif match_type == "license_reference":
                         evidence_entry["description"] = f"License reference '{lic['spdx_id']}' detected"
-                    elif lic["method"] in ["dice-sorensen", "tlsh"]:
-                        # Text similarity match
-                        evidence_entry["match_type"] = "text_similarity"
+                    elif match_type == "text_similarity":
                         evidence_entry["description"] = f"Text matches {lic['spdx_id']} license ({lic['confidence']*100:.1f}% similarity)"
                     else:
-                        evidence_entry["match_type"] = "pattern_match"
                         evidence_entry["description"] = f"Pattern match for {lic['spdx_id']}"
                     
                     scan_result["license_evidence"].append(evidence_entry)
                     
-                    # Update summary
-                    if lic["spdx_id"] not in evidence["summary"]["licenses_found"]:
-                        evidence["summary"]["licenses_found"][lic["spdx_id"]] = 0
-                    evidence["summary"]["licenses_found"][lic["spdx_id"]] += 1
+                    # Update summary based on category
+                    category = lic["category"]
+                    spdx_id = lic["spdx_id"]
+                    
+                    # Add to category-specific counts
+                    if category == "declared":
+                        if spdx_id not in evidence["summary"]["declared_licenses"]:
+                            evidence["summary"]["declared_licenses"][spdx_id] = 0
+                        evidence["summary"]["declared_licenses"][spdx_id] += 1
+                    elif category == "detected":
+                        if spdx_id not in evidence["summary"]["detected_licenses"]:
+                            evidence["summary"]["detected_licenses"][spdx_id] = 0
+                        evidence["summary"]["detected_licenses"][spdx_id] += 1
+                    elif category == "referenced":
+                        if spdx_id not in evidence["summary"]["referenced_licenses"]:
+                            evidence["summary"]["referenced_licenses"][spdx_id] = 0
+                        evidence["summary"]["referenced_licenses"][spdx_id] += 1
+                    
+                    # Add to overall count
+                    if spdx_id not in evidence["summary"]["all_licenses"]:
+                        evidence["summary"]["all_licenses"][spdx_id] = 0
+                    evidence["summary"]["all_licenses"][spdx_id] += 1
             
             # Group copyrights by source file
             copyright_by_file = {}
@@ -112,6 +146,10 @@ class EvidenceFormatter:
                         "statement": cp["statement"]
                     })
                     evidence["summary"]["copyrights_found"] += 1
+                    
+                    # Add unique copyright holders to summary
+                    if cp["holder"] and cp["holder"] not in evidence["summary"]["copyright_holders"]:
+                        evidence["summary"]["copyright_holders"].append(cp["holder"])
             
             # Add errors if any
             if result.errors:

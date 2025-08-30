@@ -205,6 +205,12 @@ class CopyrightExtractor:
             if len(match) == 2:
                 # Format with year and holder
                 year_str, holder = match
+                
+                # Check if this is a placeholder pattern like "YYYY Name"
+                if year_str and re.match(r'^(YYYY|yyyy|XXXX|xxxx)', year_str):
+                    # This is likely a placeholder, skip it
+                    return None
+                
                 years = self._parse_years(year_str) if year_str else None
                 original_holder = holder
                 holder = self._clean_holder(holder)
@@ -245,6 +251,10 @@ class CopyrightExtractor:
     def _parse_years(self, year_str: str) -> Optional[List[int]]:
         """Parse year string into list of years."""
         if not year_str:
+            return None
+        
+        # Check for placeholder year patterns
+        if re.match(r'^(YYYY|yyyy|XXXX|xxxx|YY|yy|XX|xx)', year_str):
             return None
         
         years = []
@@ -310,6 +320,26 @@ class CopyrightExtractor:
         # Remove common prefixes
         holder = holder.strip()
         holder = re.sub(r'^\s*(?:by|By)\s+', '', holder)
+        
+        # Check for placeholder patterns FIRST
+        placeholder_patterns = [
+            r'^(YYYY|yyyy|XXXX|xxxx)',  # Year placeholders
+            r'^(NAME|Name|name)',  # Name placeholders
+            r'^(AUTHOR|Author|author)$',  # Just "author"
+            r'^(HOLDER|Holder|holder)$',  # Just "holder"
+            r'^(OWNER|Owner|owner)$',  # Just "owner"
+            r'^(YOUR|Your|your)\s+(NAME|Name|name)',  # "Your Name"
+            r'^<.*>$',  # Just brackets
+            r'^\[.*\]$',  # Just square brackets
+            r'^\{.*\}$',  # Just curly brackets
+            r'^TODO',  # TODO markers
+            r'^TBD',  # TBD markers
+            r'^FIXME',  # FIXME markers
+        ]
+        
+        for pattern in placeholder_patterns:
+            if re.match(pattern, holder):
+                return ""
         
         # Remove "All rights reserved" and similar
         holder = re.sub(r'\s*[,.]?\s*All rights reserved\.?$', '', holder, flags=re.IGNORECASE)
@@ -406,7 +436,11 @@ class CopyrightExtractor:
             'owner or entity', 'owner that', 'information', 'extraction',
             'regex match', 'name format', 'years', 'statement', 
             'holder', 'owner', 's_from', 's =', 'info"', 's_found',
-            'evidence', 'by source', 's in ', 'you comply', 'their terms'
+            'evidence', 'by source', 's in ', 'you comply', 'their terms',
+            'in result', 'lines that vary', 'may vary', 'will vary',
+            'varies', 'variable', 'placeholder', 'example', 'sample',
+            'test', 'demo', 'dummy', 'foo', 'bar', 'baz', 'lorem ipsum',
+            'detector', 'generator', 'scanner', 'analyzer', 'processor'
         ]
         
         for phrase in invalid_phrases:

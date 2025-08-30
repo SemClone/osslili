@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 from typing import Optional, Dict, Any
 
-from ..core.models import DetectedLicense, DetectionMethod
+from ..core.models import DetectedLicense, DetectionMethod, LicenseCategory
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +38,7 @@ class TLSHDetector:
         
         if TLSH_AVAILABLE:
             self._initialize_hashes()
+    
     
     def _initialize_hashes(self):
         """Initialize TLSH hashes for known licenses."""
@@ -190,12 +191,20 @@ class TLSHDetector:
                 
                 license_info = self.spdx_data.get_license_info(best_match)
                 
+                # Determine category based on filename
+                name_lower = file_path.name.lower()
+                is_license_file = any(pattern in name_lower for pattern in 
+                                     ['license', 'licence', 'copying', 'copyright', 'notice'])
+                category = LicenseCategory.DECLARED.value if is_license_file else LicenseCategory.DETECTED.value
+                
                 return DetectedLicense(
                     spdx_id=best_match,
                     name=license_info.get('name', best_match) if license_info else best_match,
                     confidence=confidence,
                     detection_method=DetectionMethod.TLSH.value,
-                    source_file=str(file_path)
+                    source_file=str(file_path),
+                    category=category,
+                    match_type="text_similarity"
                 )
             
             return None

@@ -5,6 +5,31 @@ All notable changes to semantic-copycat-oslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.9] - 2025-08-30
+
+### Added
+- **License Hierarchy System**: Categorizes licenses as 'declared', 'detected', or 'referenced' for better understanding of license provenance
+- **Enhanced Output Format**: Summary now shows declared_licenses, detected_licenses, and referenced_licenses separately
+- **Copyright Holders List**: Summary includes unique list of copyright holders
+- **Match Type Field**: Each license detection includes match_type (e.g., license_file, spdx_identifier, text_similarity)
+
+### Changed
+- **Class Renamed**: Main class renamed from `LegalAttributionGenerator` to `LicenseCopyrightDetector` to better reflect its functionality (BREAKING CHANGE)
+- **Model Renamed**: `AttributionResult` renamed to `DetectionResult` to better reflect its purpose (BREAKING CHANGE)
+
+### Fixed
+- **Copyright False Positives**: Improved filtering to exclude placeholders like "YYYY Name", "TODO", and code fragments
+- **Invalid Copyright Holders**: Added detection for fragments like "in result", "lines that vary", "detector", "generator"
+- **Placeholder Detection**: Better filtering of template placeholders in copyright statements
+
+### Removed
+- **Dead Code**: Removed unused `max_extraction_depth` configuration option
+- **Unused Import**: Removed unused `fuzz_process` import from license_detector.py
+- **Misleading Function Name**: Renamed `_process_extracted_package()` to `_process_local_path()`
+- **Test Files**: Removed development test files from repository
+- **Build Directory**: Cleaned up build artifacts
+- **Duplicate Method**: Consolidated duplicate `_is_license_file` implementations
+
 ## [1.2.8] - 2025-08-29
 
 ### Fixed
