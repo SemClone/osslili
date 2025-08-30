@@ -1,5 +1,5 @@
 """
-Main generator class for legal attribution processing.
+Main detector class for license and copyright detection.
 """
 
 import logging
@@ -8,20 +8,20 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from .models import Config, AttributionResult, DetectedLicense, CopyrightInfo
+from .models import Config, DetectionResult, DetectedLicense, CopyrightInfo
 from .input_processor import InputProcessor
 
 logger = logging.getLogger(__name__)
 
 
-class LegalAttributionGenerator:
+class LicenseCopyrightDetector:
     """
-    Main class for generating legal attribution notices.
+    Main class for detecting licenses and copyright information in source code.
     """
     
     def __init__(self, config: Optional[Config] = None):
         """
-        Initialize the attribution generator.
+        Initialize the license and copyright detector.
         
         Args:
             config: Optional configuration object
@@ -50,10 +50,7 @@ class LegalAttributionGenerator:
             self._copyright_extractor = CopyrightExtractor(self.config)
         return self._copyright_extractor
     
-    
-    
-    
-    def process_local_path(self, path: str) -> AttributionResult:
+    def process_local_path(self, path: str) -> DetectionResult:
         """
         Process a local source code directory or file.
         
@@ -61,14 +58,14 @@ class LegalAttributionGenerator:
             path: Path to local directory or file
             
         Returns:
-            AttributionResult object
+            DetectionResult object
         """
         start_time = time.time()
         
         # Validate path
         is_valid, path_obj, error = self.input_processor.validate_local_path(path)
         
-        result = AttributionResult(
+        result = DetectionResult(
             path=str(path),
             package_name=Path(path).name
         )
@@ -79,7 +76,7 @@ class LegalAttributionGenerator:
         
         try:
             logger.info(f"Processing local path: {path}")
-            self._process_extracted_package(path_obj, result)
+            self._process_local_path(path_obj, result)
         
         except Exception as e:
             logger.error(f"Error processing {path}: {e}")
@@ -90,13 +87,13 @@ class LegalAttributionGenerator:
         
         return result
     
-    def _process_extracted_package(self, path: Path, result: AttributionResult):
+    def _process_local_path(self, path: Path, result: DetectionResult):
         """
-        Process an extracted package directory.
+        Process a local directory or file.
         
         Args:
-            path: Path to extracted package
-            result: AttributionResult to populate
+            path: Path to local directory or file
+            result: DetectionResult to populate
         """
         # Detect licenses
         licenses = self.license_detector.detect_licenses(path)
@@ -119,7 +116,7 @@ class LegalAttributionGenerator:
         
         logger.debug(f"Found {len(result.licenses)} license(s) and {len(result.copyrights)} copyright(s)")
     
-    def generate_evidence(self, results: List[AttributionResult]) -> str:
+    def generate_evidence(self, results: List[DetectionResult]) -> str:
         """
         Generate evidence showing file-to-license mappings.
         

@@ -1,5 +1,5 @@
 """
-semantic-copycat-oslili: Legal attribution notice generator for software packages.
+semantic-copycat-oslili: License and copyright detector for software packages.
 """
 
 # Suppress SSL warnings before importing anything else
@@ -13,19 +13,19 @@ if os.environ.get('OSLILI_DEBUG') != '1':
     except ImportError:
         pass
 
-__version__ = "1.2.8"
+__version__ = "1.2.9"
 
-from .core.generator import LegalAttributionGenerator
+from .core.generator import LicenseCopyrightDetector
 from .core.models import (
-    AttributionResult,
+    DetectionResult,
     DetectedLicense,
     CopyrightInfo,
     Config
 )
 
 __all__ = [
-    "LegalAttributionGenerator",
-    "AttributionResult", 
+    "LicenseCopyrightDetector",
+    "DetectionResult", 
     "DetectedLicense",
     "CopyrightInfo",
     "Config",

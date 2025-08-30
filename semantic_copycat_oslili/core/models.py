@@ -16,6 +16,13 @@ class DetectionMethod(Enum):
     FILENAME = "filename"
 
 
+class LicenseCategory(Enum):
+    """Categories for license hierarchy."""
+    DECLARED = "declared"  # Explicitly declared in LICENSE files, package.json, etc.
+    DETECTED = "detected"  # Inferred from source code content
+    REFERENCED = "referenced"  # Mentioned but not primary
+
+
 @dataclass
 class DetectedLicense:
     """Represents a detected license."""
@@ -25,6 +32,8 @@ class DetectedLicense:
     confidence: float = 0.0
     detection_method: str = ""
     source_file: Optional[str] = None
+    category: Optional[str] = None  # License category (declared/detected/referenced)
+    match_type: Optional[str] = None  # Type of match (full_text, spdx_identifier, etc.)
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -32,7 +41,9 @@ class DetectedLicense:
             "name": self.name,
             "confidence": self.confidence,
             "detection_method": self.detection_method,
-            "source_file": self.source_file
+            "source_file": self.source_file,
+            "category": self.category,
+            "match_type": self.match_type
         }
 
 
@@ -56,8 +67,8 @@ class CopyrightInfo:
 
 
 @dataclass
-class AttributionResult:
-    """Result of attribution analysis for a local path."""
+class DetectionResult:
+    """Result of license and copyright detection for a local path."""
     path: str
     licenses: List[DetectedLicense] = field(default_factory=list)
     copyrights: List[CopyrightInfo] = field(default_factory=list)
@@ -88,9 +99,9 @@ class AttributionResult:
 
 @dataclass
 class Config:
-    """Configuration for the attribution generator."""
+    """Configuration for the license and copyright detector."""
     similarity_threshold: float = 0.97
-    max_extraction_depth: int = 10
+    max_recursion_depth: int = 10
     thread_count: int = 4
     verbose: bool = False
     debug: bool = False

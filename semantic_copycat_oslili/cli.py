@@ -12,7 +12,7 @@ import yaml
 from colorama import init, Fore, Style
 
 from .core.models import Config
-from .core.generator import LegalAttributionGenerator
+from .core.generator import LicenseCopyrightDetector
 from .utils.logging import setup_logging
 
 init(autoreset=True)
@@ -105,9 +105,10 @@ def detect_input_type(input_path: str) -> str:
     help='License similarity threshold (0.0-1.0)'
 )
 @click.option(
-    '--max-depth',
+    '--max-depth', '--max-recursion-depth',
     type=int,
-    help='Maximum archive extraction depth'
+    default=10,
+    help='Maximum directory recursion depth (default: 10, use -1 for unlimited)'
 )
 def main(
     input_path: str,
@@ -145,7 +146,7 @@ def main(
     if similarity_threshold is not None:
         cfg.similarity_threshold = similarity_threshold
     if max_depth is not None:
-        cfg.max_extraction_depth = max_depth
+        cfg.max_recursion_depth = max_depth
     
     # Setup logging - only show our logs in verbose mode, not library logs
     if cfg.debug:
@@ -175,15 +176,15 @@ def main(
         print_info(f"Detected input type: {input_type}")
     
     try:
-        # Initialize generator
-        generator = LegalAttributionGenerator(cfg)
+        # Initialize detector
+        detector = LicenseCopyrightDetector(cfg)
         
         # Process input based on type
         results = []
         
         if input_type in ["local_file", "local_dir"]:
             print_info(f"Processing local path: {input_path}")
-            result = generator.process_local_path(input_path)
+            result = detector.process_local_path(input_path)
             results = [result]
         elif input_type == "invalid":
             print_error(f"Path does not exist: {input_path}")
@@ -198,13 +199,13 @@ def main(
             print_warning(f"Encountered {total_errors} errors during processing")
         
         # Generate evidence output
-        output_data = generator.generate_evidence(results)
+        output_data = detector.generate_evidence(results)
         
         # Write output
         if output:
             with open(output, 'w') as f:
                 f.write(output_data)
-            print_success(f"Attribution data written to {output}")
+            print_success(f"Detection results written to {output}")
         else:
             click.echo(output_data)
         

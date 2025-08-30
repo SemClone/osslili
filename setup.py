@@ -12,7 +12,7 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setup(
     name="semantic-copycat-oslili",
-    version="1.1.1",
+    version="1.2.9",
     author="Oscar Valenzuela B.",
     author_email="oscar.valenzuela.b@gmail.com",
     description="Legal attribution notice generator for software packages",
