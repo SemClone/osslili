@@ -1,114 +1,100 @@
 # API Reference
 
-## LegalAttributionGenerator
+## LicenseCopyrightDetector
 
-The main class for generating legal attribution notices.
+The main class for detecting licenses and copyright information in source code.
 
 ### Constructor
 
 ```python
-LegalAttributionGenerator(config: Optional[Config] = None)
+LicenseCopyrightDetector(config: Optional[Config] = None)
 ```
 
-Creates a new generator instance with optional configuration.
+Creates a new detector instance with optional configuration.
 
 ### Methods
-
-#### process_purl
-
-```python
-process_purl(purl_string: str, use_external_sources: bool = False) -> AttributionResult
-```
-
-Process a single package URL.
-
-**Parameters:**
-- `purl_string`: Package URL in purl format (e.g., "pkg:pypi/requests@2.28.1")
-- `use_external_sources`: Enable external API sources (default: False)
-
-**Returns:** AttributionResult object containing licenses and copyrights
-
-#### process_purl_file
-
-```python
-process_purl_file(file_path: str) -> List[AttributionResult]
-```
-
-Process multiple package URLs from a file.
-
-**Parameters:**
-- `file_path`: Path to file containing purl strings (one per line)
-
-**Returns:** List of AttributionResult objects
 
 #### process_local_path
 
 ```python
-process_local_path(path: str) -> AttributionResult
+process_local_path(path: str) -> DetectionResult
 ```
 
-Process a local directory or file.
+Process a local directory or file to detect licenses and copyrights.
 
 **Parameters:**
 - `path`: Path to local directory or file to analyze
 
-**Returns:** AttributionResult object
+**Returns:** DetectionResult object containing detected licenses and copyrights
+
+#### generate_evidence
+
+```python
+generate_evidence(results: List[DetectionResult]) -> str
+```
+
+Generate evidence-based JSON output showing file-to-license mappings.
+
+**Parameters:**
+- `results`: List of detection results
+
+**Returns:** JSON string with evidence of detected licenses and copyrights
 
 #### generate_kissbom
 
 ```python
-generate_kissbom(results: List[AttributionResult]) -> Dict[str, Any]
+generate_kissbom(results: List[DetectionResult]) -> str
 ```
 
-Generate KissBOM format output.
+Generate KissBOM (Keep It Simple Software Bill of Materials) output.
 
 **Parameters:**
-- `results`: List of attribution results
+- `results`: List of detection results
 
-**Returns:** Dictionary in KissBOM format
+**Returns:** KissBOM as JSON string
 
 #### generate_cyclonedx
 
 ```python
-generate_cyclonedx(results: List[AttributionResult], format: str = "json") -> str
+generate_cyclonedx(results: List[DetectionResult], format_type: str = "json") -> str
 ```
 
 Generate CycloneDX SBOM output.
 
 **Parameters:**
-- `results`: List of attribution results
-- `format`: Output format ("json" or "xml")
+- `results`: List of detection results
+- `format_type`: Output format ("json" or "xml", default: "json")
 
 **Returns:** CycloneDX SBOM as string
 
 #### generate_notices
 
 ```python
-generate_notices(results: List[AttributionResult]) -> str
+generate_notices(results: List[DetectionResult]) -> str
 ```
 
-Generate human-readable legal notices with full license text.
+Generate human-readable legal notices with license texts.
 
 **Parameters:**
-- `results`: List of attribution results
+- `results`: List of detection results
 
 **Returns:** Legal notices as formatted string
 
 ## Data Models
 
-### AttributionResult
+### DetectionResult
 
 ```python
 @dataclass
-class AttributionResult:
-    purl: str                          # Package URL
-    package_name: str                  # Package name
-    package_version: Optional[str]     # Package version
+class DetectionResult:
+    path: str                          # Path that was analyzed
     licenses: List[DetectedLicense]    # Detected licenses
     copyrights: List[CopyrightInfo]    # Copyright information
     errors: List[str]                  # Any errors encountered
-    metadata: Dict[str, Any]           # Additional metadata
+    confidence_scores: Dict[str, float] # Confidence scores by method
     processing_time: float              # Processing time in seconds
+    package_name: Optional[str]        # Package name if detected
+    package_version: Optional[str]     # Package version if detected
 ```
 
 ### DetectedLicense
@@ -116,12 +102,14 @@ class AttributionResult:
 ```python
 @dataclass
 class DetectedLicense:
-    spdx_id: Optional[str]         # SPDX license identifier
-    name: str                      # License name
-    confidence: float              # Detection confidence (0.0-1.0)
-    detection_method: str          # How it was detected
-    source_file: str              # Where it was found
+    spdx_id: str                  # SPDX license identifier
+    name: str                     # License name
     text: Optional[str]           # License text if available
+    confidence: float             # Detection confidence (0.0-1.0)
+    detection_method: str         # How it was detected (dice-sorensen, tlsh, regex, tag, filename)
+    source_file: Optional[str]    # Where it was found
+    category: Optional[str]       # License category (declared, detected, referenced)
+    match_type: Optional[str]     # Type of match (full_text, spdx_identifier, etc.)
 ```
 
 ### CopyrightInfo
@@ -132,8 +120,17 @@ class CopyrightInfo:
     holder: str                    # Copyright holder
     years: Optional[List[int]]    # Copyright years
     statement: str                 # Full copyright statement
-    source_file: str              # Where it was found
+    source_file: Optional[str]    # Where it was found
     confidence: float             # Detection confidence (0.0-1.0)
+```
+
+### LicenseCategory
+
+```python
+class LicenseCategory(Enum):
+    DECLARED = "declared"    # Explicitly declared in LICENSE files, package.json, etc.
+    DETECTED = "detected"    # Inferred from source code content
+    REFERENCED = "referenced" # Mentioned but not primary
 ```
 
 ### Config
@@ -141,15 +138,15 @@ class CopyrightInfo:
 ```python
 @dataclass
 class Config:
-    verbose: bool = False
-    debug: bool = False
-    thread_count: int = 4
-    similarity_threshold: float = 0.97
-    max_extraction_depth: int = 10
-    network_timeout: int = 30
-    cache_dir: Optional[str] = None
-    custom_aliases: Dict[str, str] = field(default_factory=dict)
-    # ... additional configuration options
+    similarity_threshold: float = 0.97      # License similarity threshold
+    max_recursion_depth: int = 10          # Maximum directory recursion depth
+    max_extraction_depth: int = 10         # Maximum archive extraction depth
+    thread_count: int = 4                   # Number of parallel threads
+    verbose: bool = False                   # Enable verbose output
+    debug: bool = False                     # Enable debug output
+    license_filename_patterns: List[str]    # Patterns for license files
+    custom_aliases: Dict[str, str]         # Custom license name mappings
+    cache_dir: Optional[str] = None        # Cache directory for results
 ```
 
 ## CLI Options
@@ -157,29 +154,33 @@ class Config:
 ```
 oslili [OPTIONS] INPUT_PATH
 
+Arguments:
+  INPUT_PATH              Path to local directory or file to analyze
+
 Options:
-  -f, --output-format [kissbom|cyclonedx-json|cyclonedx-xml|notices]
-                                  Output format (default: kissbom)
-  -o, --output PATH              Output file path (default: stdout)
-  -v, --verbose                  Enable verbose logging
-  -d, --debug                    Enable debug logging
-  -t, --threads INTEGER          Number of processing threads
-  -c, --config PATH              Path to configuration file
-  --similarity-threshold FLOAT   License similarity threshold (0.0-1.0)
-  --max-depth INTEGER            Maximum archive extraction depth
-  --timeout INTEGER              Network request timeout in seconds
-  --online                       Enable external API sources
-  --help                         Show help message
+  -o, --output PATH                    Output file path (default: stdout)
+  -f, --output-format                  Output format (evidence|kissbom|cyclonedx-json|cyclonedx-xml|notices)
+  -v, --verbose                        Enable verbose logging
+  -d, --debug                          Enable debug logging
+  -t, --threads INTEGER                Number of processing threads
+  -c, --config PATH                    Path to configuration file
+  --similarity-threshold FLOAT         License similarity threshold (0.0-1.0)
+  --max-depth, --max-recursion-depth INTEGER   Maximum directory recursion depth (default: 10, use -1 for unlimited)
+  --max-extraction-depth INTEGER       Maximum archive extraction depth (default: 10)
+  --version                            Show version and exit
+  --help                               Show help message
 ```
 
 ## Environment Variables
 
 The following environment variables can be used to configure the tool:
 
-- `OSLILI_CACHE_DIR`: Directory for caching data
-- `OSLILI_DEBUG`: Set to "1" to enable debug mode
+- `OSLILI_SIMILARITY_THRESHOLD`: License similarity threshold
 - `OSLILI_THREAD_COUNT`: Number of processing threads
-- `OSLILI_NETWORK_TIMEOUT`: Network timeout in seconds
+- `OSLILI_VERBOSE`: Set to "true" to enable verbose mode
+- `OSLILI_DEBUG`: Set to "true" to enable debug mode
+- `OSLILI_CACHE_DIR`: Directory for caching data
+- `OSLILI_MAX_RECURSION_DEPTH`: Maximum directory recursion depth
 
 ## Configuration File
 
@@ -187,20 +188,35 @@ Create a YAML configuration file:
 
 ```yaml
 # config.yaml
-verbose: true
-thread_count: 8
-similarity_threshold: 0.95
-network_timeout: 60
+# License detection settings
+similarity_threshold: 0.97  # Minimum similarity for license matching
+max_recursion_depth: 10     # Maximum directory recursion depth
+max_extraction_depth: 10    # Maximum archive extraction depth
 
+# Performance settings
+thread_count: 4              # Number of parallel threads
+
+# Output settings
+verbose: false
+debug: false
+
+# License detection patterns
+license_filename_patterns:
+  - "LICENSE*"
+  - "LICENCE*"
+  - "COPYING*"
+  - "NOTICE*"
+  - "COPYRIGHT*"
+
+# License name mappings
 custom_aliases:
   "Apache 2": "Apache-2.0"
+  "Apache 2.0": "Apache-2.0"
   "MIT License": "MIT"
   "BSD License": "BSD-3-Clause"
 
-# External API URLs (optional)
-pypi_api_url: "https://pypi.org/pypi"
-npm_api_url: "https://registry.npmjs.org"
-clearlydefined_api_url: "https://api.clearlydefined.io"
+# Cache settings
+cache_dir: "~/.cache/oslili"
 ```
 
 ## Example Usage
@@ -208,72 +224,157 @@ clearlydefined_api_url: "https://api.clearlydefined.io"
 ### Basic Usage
 
 ```python
-from semantic_copycat_oslili import LegalAttributionGenerator
+from semantic_copycat_oslili import LicenseCopyrightDetector
 
-# Create generator
-gen = LegalAttributionGenerator()
+# Create detector
+detector = LicenseCopyrightDetector()
 
-# Process a package
-result = gen.process_purl("pkg:pypi/requests@2.28.1")
+# Process a local directory
+result = detector.process_local_path("/path/to/project")
 
-# Print licenses
+# Print licenses by category
 for license in result.licenses:
     print(f"License: {license.spdx_id}")
+    print(f"  Category: {license.category}")
     print(f"  Confidence: {license.confidence:.0%}")
     print(f"  Method: {license.detection_method}")
+    print(f"  Found in: {license.source_file}")
 
 # Print copyrights
 for copyright in result.copyrights:
     print(f"Copyright: {copyright.statement}")
 
-# Generate notices
-notices = gen.generate_notices([result])
-print(notices)
+# Generate evidence output
+evidence = detector.generate_evidence([result])
+print(evidence)
 ```
 
 ### With Configuration
 
 ```python
-from semantic_copycat_oslili import LegalAttributionGenerator, Config
+from semantic_copycat_oslili import LicenseCopyrightDetector, Config
 
 # Custom configuration
 config = Config(
     verbose=True,
     thread_count=8,
-    similarity_threshold=0.95
+    similarity_threshold=0.95,
+    max_recursion_depth=5  # Limit directory depth
 )
 
-# Create generator with config
-gen = LegalAttributionGenerator(config)
+# Create detector with config
+detector = LicenseCopyrightDetector(config)
 
-# Process with external sources
-result = gen.process_purl(
-    "pkg:npm/express@4.18.2",
-    use_external_sources=True
-)
+# Process local path
+result = detector.process_local_path("/path/to/source")
 ```
 
-### Batch Processing
+### Processing Multiple Directories
 
 ```python
-from semantic_copycat_oslili import LegalAttributionGenerator
+from semantic_copycat_oslili import LicenseCopyrightDetector
+import json
 
-gen = LegalAttributionGenerator()
+detector = LicenseCopyrightDetector()
 
-# Process multiple packages
-purls = [
-    "pkg:pypi/flask@2.3.0",
-    "pkg:pypi/django@4.2.0",
-    "pkg:npm/react@18.2.0"
+# Process multiple directories
+paths = [
+    "/path/to/project1",
+    "/path/to/project2",
+    "/path/to/library"
 ]
 
 results = []
-for purl in purls:
-    result = gen.process_purl(purl)
+for path in paths:
+    result = detector.process_local_path(path)
     results.append(result)
 
-# Generate combined output
-kissbom = gen.generate_kissbom(results)
-cyclonedx = gen.generate_cyclonedx(results, format="json")
-notices = gen.generate_notices(results)
+# Generate combined evidence
+evidence = detector.generate_evidence(results)
+
+# Save to file
+with open("license-evidence.json", "w") as f:
+    f.write(evidence)
+```
+
+### Analyzing with License Hierarchy
+
+```python
+from semantic_copycat_oslili import LicenseCopyrightDetector
+
+detector = LicenseCopyrightDetector()
+result = detector.process_local_path("/path/to/project")
+
+# Separate licenses by category
+declared_licenses = [l for l in result.licenses if l.category == "declared"]
+detected_licenses = [l for l in result.licenses if l.category == "detected"]
+referenced_licenses = [l for l in result.licenses if l.category == "referenced"]
+
+print(f"Declared licenses: {[l.spdx_id for l in declared_licenses]}")
+print(f"Detected licenses: {[l.spdx_id for l in detected_licenses]}")
+print(f"Referenced licenses: {[l.spdx_id for l in referenced_licenses]}")
+```
+
+### Safe Directory Traversal
+
+```python
+from semantic_copycat_oslili import LicenseCopyrightDetector, Config
+
+# Configure with depth limiting
+config = Config(
+    max_recursion_depth=3,  # Only go 3 levels deep
+    verbose=True
+)
+
+detector = LicenseCopyrightDetector(config)
+
+# Process a deep directory structure safely
+result = detector.process_local_path("/path/to/deep/project")
+
+# The detector will automatically:
+# - Skip directories beyond the depth limit
+# - Detect and avoid symbolic link loops
+# - Filter out common build/cache directories
+```
+
+### Archive Processing
+
+```python
+from semantic_copycat_oslili import LicenseCopyrightDetector, Config
+
+# Configure archive extraction
+config = Config(
+    max_extraction_depth=2,  # Extract up to 2 levels of nested archives
+    verbose=True
+)
+
+detector = LicenseCopyrightDetector(config)
+
+# Process an archive file
+result = detector.process_local_path("/path/to/package.tar.gz")
+
+# Archives are automatically extracted and scanned
+# Supports: .zip, .tar, .tar.gz, .tar.bz2, .tar.xz, .whl, .egg
+```
+
+### Using Cache
+
+```python
+from semantic_copycat_oslili import LicenseCopyrightDetector, Config
+
+# Configure with cache
+config = Config(
+    cache_dir="~/.cache/oslili",  # Enable caching
+    verbose=True
+)
+
+detector = LicenseCopyrightDetector(config)
+
+# First scan - results are cached
+result1 = detector.process_local_path("/path/to/project")
+
+# Second scan - uses cached results (much faster)
+result2 = detector.process_local_path("/path/to/project")
+
+# Cache automatically invalidates when files are modified
 ```

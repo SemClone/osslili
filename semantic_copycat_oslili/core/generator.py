@@ -33,6 +33,12 @@ class LicenseCopyrightDetector:
         self._license_detector = None
         self._copyright_extractor = None
         self._spdx_data = None
+        
+        # Initialize cache if cache_dir is configured
+        self._cache = None
+        if self.config.cache_dir:
+            from ..utils.cache_manager import CacheManager
+            self._cache = CacheManager(cache_dir=self.config.cache_dir)
     
     @property
     def license_detector(self):
@@ -50,16 +56,27 @@ class LicenseCopyrightDetector:
             self._copyright_extractor = CopyrightExtractor(self.config)
         return self._copyright_extractor
     
-    def process_local_path(self, path: str) -> DetectionResult:
+    def process_local_path(self, path: str, extract_archives: bool = True) -> DetectionResult:
         """
         Process a local source code directory or file.
         
         Args:
             path: Path to local directory or file
+            extract_archives: Whether to extract and scan archives
             
         Returns:
             DetectionResult object
         """
+        # Check cache first
+        if self._cache:
+            cached_data = self._cache.get(path)
+            if cached_data:
+                logger.info(f"Using cached result for {path}")
+                # Reconstruct DetectionResult from cached data
+                result = DetectionResult(path=path)
+                result.__dict__.update(cached_data)
+                return result
+        
         start_time = time.time()
         
         # Validate path
@@ -76,7 +93,26 @@ class LicenseCopyrightDetector:
         
         try:
             logger.info(f"Processing local path: {path}")
-            self._process_local_path(path_obj, result)
+            
+            # Check if it's an archive and extract if needed
+            if extract_archives and path_obj.is_file():
+                from ..utils.archive_extractor import ArchiveExtractor
+                extractor = ArchiveExtractor(max_depth=self.config.max_extraction_depth)
+                
+                if extractor.is_archive(path_obj):
+                    logger.info(f"Detected archive file: {path_obj}")
+                    with extractor:
+                        extracted_dir = extractor.extract_archive(path_obj)
+                        if extracted_dir:
+                            logger.info(f"Extracted archive to: {extracted_dir}")
+                            self._process_local_path(extracted_dir, result)
+                        else:
+                            logger.warning(f"Failed to extract archive: {path_obj}")
+                            self._process_local_path(path_obj, result)
+                else:
+                    self._process_local_path(path_obj, result)
+            else:
+                self._process_local_path(path_obj, result)
         
         except Exception as e:
             logger.error(f"Error processing {path}: {e}")
@@ -84,6 +120,10 @@ class LicenseCopyrightDetector:
         
         finally:
             result.processing_time = time.time() - start_time
+        
+        # Store in cache if enabled
+        if self._cache and not result.errors:
+            self._cache.set(path, result.to_dict())
         
         return result
     
@@ -128,4 +168,47 @@ class LicenseCopyrightDetector:
         """
         from ..formatters.evidence_formatter import EvidenceFormatter
         formatter = EvidenceFormatter()
+        return formatter.format(results)
+    
+    def generate_kissbom(self, results: List[DetectionResult]) -> str:
+        """
+        Generate KissBOM (Keep It Simple Software Bill of Materials) output.
+        
+        Args:
+            results: List of detection results
+            
+        Returns:
+            KissBOM as JSON string
+        """
+        from ..formatters.kissbom_formatter import KissBOMFormatter
+        formatter = KissBOMFormatter()
+        return formatter.format(results)
+    
+    def generate_cyclonedx(self, results: List[DetectionResult], format_type: str = "json") -> str:
+        """
+        Generate CycloneDX SBOM output.
+        
+        Args:
+            results: List of detection results
+            format_type: Output format ("json" or "xml")
+            
+        Returns:
+            CycloneDX SBOM as string
+        """
+        from ..formatters.cyclonedx_formatter import CycloneDXFormatter
+        formatter = CycloneDXFormatter()
+        return formatter.format(results, format_type)
+    
+    def generate_notices(self, results: List[DetectionResult]) -> str:
+        """
+        Generate human-readable legal notices with license texts.
+        
+        Args:
+            results: List of detection results
+            
+        Returns:
+            Legal notices as formatted string
+        """
+        from ..formatters.notices_formatter import NoticesFormatter
+        formatter = NoticesFormatter()
         return formatter.format(results)

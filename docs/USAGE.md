@@ -74,10 +74,10 @@ OSLILI uses a sophisticated multi-tier approach for accurate license detection:
 
 ```bash
 # Analyze a local directory
-oslili /path/to/project -f notices -o NOTICE.txt
+oslili /path/to/project -o evidence.json
 
 # Analyze current directory
-oslili . -f kissbom
+oslili .
 
 # Analyze a specific file
 oslili /path/to/LICENSE -o license-info.json
@@ -99,19 +99,20 @@ oslili [OPTIONS] PATH
 
 #### Output Options
 
-- `-f, --output-format`: Output format
-  - `kissbom` (default): Enriched JSON format with license and copyright info
-  - `cyclonedx-json`: CycloneDX JSON SBOM
-  - `cyclonedx-xml`: CycloneDX XML SBOM
-  - `notices`: Human-readable legal notices
-
 - `-o, --output`: Output file path (default: stdout)
+- `-f, --output-format`: Output format (default: evidence)
+  - `evidence`: Evidence-based JSON showing file-to-license mappings with confidence scores
+  - `kissbom`: Simple JSON format with packages and licenses
+  - `cyclonedx-json`: CycloneDX SBOM in JSON format
+  - `cyclonedx-xml`: CycloneDX SBOM in XML format
+  - `notices`: Human-readable legal notices with license texts
 
 #### Configuration Options
 
 - `-c, --config`: Path to YAML configuration file
 - `--similarity-threshold`: License similarity threshold (0.0-1.0, default: 0.97)
-- `--max-depth`: Maximum archive extraction depth (default: 10)
+- `--max-depth`, `--max-recursion-depth`: Maximum directory recursion depth (default: 10, use -1 for unlimited)
+- `--max-extraction-depth`: Maximum archive extraction depth for nested archives (default: 10)
 - `-t, --threads`: Number of processing threads (default: CPU count)
 
 #### Logging Options
@@ -122,14 +123,17 @@ oslili [OPTIONS] PATH
 ### CLI Examples
 
 ```bash
-# Generate KissBOM for a project
+# Generate evidence JSON for a project (default format)
 oslili /path/to/project -o attribution.json
 
-# Generate human-readable notices
-oslili ./my-app -f notices -o NOTICE.txt
+# Generate KissBOM format
+oslili ./my-app -f kissbom -o kissbom.json
 
 # Generate CycloneDX SBOM
 oslili ./src -f cyclonedx-json -o sbom.json
+
+# Generate human-readable notices
+oslili ./project -f notices -o NOTICE.txt
 
 # Use custom configuration
 oslili /project --config my-config.yaml
@@ -137,8 +141,8 @@ oslili /project --config my-config.yaml
 # Verbose output with custom threshold
 oslili ./code -v --similarity-threshold 0.95
 
-# Process with limited threads
-oslili /large/project --threads 2 -o attribution.json
+# Process with limited threads and depth
+oslili /large/project --threads 2 --max-depth 3
 
 # Debug mode for troubleshooting
 oslili ./lib -d
@@ -149,27 +153,27 @@ oslili ./lib -d
 ### Basic Usage
 
 ```python
-from semantic_copycat_oslili import LegalAttributionGenerator
+from semantic_copycat_oslili import LicenseCopyrightDetector
 
 # Create generator with default config
-generator = LegalAttributionGenerator()
+detector = LicenseCopyrightDetector()
 
 # Process a local directory
-result = generator.process_local_path("/path/to/project")
+result = detector.process_local_path("/path/to/project")
 
 # Check results
 print(f"Found {len(result.licenses)} license(s)")
 print(f"Found {len(result.copyrights)} copyright(s)")
 
 # Generate output
-kissbom = generator.generate_kissbom([result])
-print(kissbom)
+evidence = detector.generate_evidence([result])
+print(evidence)
 ```
 
 ### Advanced Configuration
 
 ```python
-from semantic_copycat_oslili import LegalAttributionGenerator, Config
+from semantic_copycat_oslili import LicenseCopyrightDetector, Config
 
 # Create custom configuration
 config = Config(
@@ -183,18 +187,18 @@ config = Config(
 )
 
 # Initialize with config
-generator = LegalAttributionGenerator(config)
+detector = LicenseCopyrightDetector(config)
 
 # Process local path
-result = generator.process_local_path("/path/to/source")
+result = detector.process_local_path("/path/to/source")
 ```
 
 ### Processing Multiple Directories
 
 ```python
-from semantic_copycat_oslili import LegalAttributionGenerator
+from semantic_copycat_oslili import LicenseCopyrightDetector
 
-generator = LegalAttributionGenerator()
+detector = LicenseCopyrightDetector()
 
 # Process multiple directories
 paths = [
@@ -205,23 +209,23 @@ paths = [
 
 results = []
 for path in paths:
-    result = generator.process_local_path(path)
+    result = detector.process_local_path(path)
     results.append(result)
 
 # Generate combined output
-kissbom = generator.generate_kissbom(results)
-notices = generator.generate_notices(results)
+evidence = detector.generate_evidence(results)
+print(evidence)
 ```
 
 ### Analyzing Specific Files
 
 ```python
-from semantic_copycat_oslili import LegalAttributionGenerator
+from semantic_copycat_oslili import LicenseCopyrightDetector
 
-generator = LegalAttributionGenerator()
+detector = LicenseCopyrightDetector()
 
 # Process specific file
-result = generator.process_local_path("/path/to/LICENSE")
+result = detector.process_local_path("/path/to/LICENSE")
 
 # Access detected information
 for license in result.licenses:
@@ -235,23 +239,27 @@ for copyright in result.copyrights:
 
 ```python
 import json
-from semantic_copycat_oslili import LegalAttributionGenerator
+from semantic_copycat_oslili import LicenseCopyrightDetector
 
-generator = LegalAttributionGenerator()
+detector = LicenseCopyrightDetector()
 
 # Process directory
-result = generator.process_local_path("./src")
+result = detector.process_local_path("./src")
 
 # Generate different output formats
-kissbom = generator.generate_kissbom([result])
+evidence = detector.generate_evidence([result])
 with open("attribution.json", "w") as f:
-    json.dump(kissbom, f, indent=2)
+    f.write(evidence)
 
-cyclonedx = generator.generate_cyclonedx([result], format="json")
+kissbom = detector.generate_kissbom([result])
+with open("kissbom.json", "w") as f:
+    f.write(kissbom)
+
+cyclonedx = detector.generate_cyclonedx([result], format_type="json")
 with open("sbom.json", "w") as f:
     f.write(cyclonedx)
 
-notices = generator.generate_notices([result])
+notices = detector.generate_notices([result])
 with open("NOTICE.txt", "w") as f:
     f.write(notices)
 ```
@@ -265,7 +273,8 @@ Create a `config.yaml` file:
 ```yaml
 # License detection settings
 similarity_threshold: 0.97  # Minimum similarity for license matching
-max_extraction_depth: 10    # Maximum nested archive depth
+max_recursion_depth: 10     # Maximum directory recursion depth
+max_extraction_depth: 10    # Maximum archive extraction depth
 
 # Performance settings
 thread_count: 4              # Number of parallel threads
@@ -317,9 +326,47 @@ Configuration is applied in this order (later overrides earlier):
 
 ## Output Formats
 
+### Evidence Format (default)
+
+Evidence-based JSON showing file-to-license mappings:
+
+```json
+{
+  "scan_results": [{
+    "path": "/path/to/project",
+    "license_evidence": [
+      {
+        "file": "/path/to/project/LICENSE",
+        "detected_license": "Apache-2.0",
+        "confidence": 0.988,
+        "detection_method": "dice-sorensen",
+        "category": "declared",
+        "match_type": "text_similarity",
+        "description": "Text matches Apache-2.0 license (98.8% similarity)"
+      }
+    ],
+    "copyright_evidence": [
+      {
+        "file": "/path/to/project/src/main.py",
+        "holder": "John Doe",
+        "years": [2024],
+        "statement": "Copyright 2024 John Doe"
+      }
+    ]
+  }],
+  "summary": {
+    "total_files_scanned": 42,
+    "declared_licenses": {"Apache-2.0": 1},
+    "detected_licenses": {},
+    "referenced_licenses": {},
+    "copyright_holders": ["John Doe"]
+  }
+}
+```
+
 ### KissBOM Format
 
-Enriched JSON format with license and copyright information:
+Simple JSON format with packages and licenses:
 
 ```json
 {
@@ -327,7 +374,8 @@ Enriched JSON format with license and copyright information:
     {
       "path": "/path/to/project",
       "license": "Apache-2.0",
-      "copyright": "2024 John Doe, 2023 Jane Smith"
+      "copyright": "John Doe, Jane Smith",
+      "all_licenses": ["Apache-2.0", "MIT"]
     }
   ]
 }
@@ -346,7 +394,6 @@ Industry-standard SBOM format (JSON or XML):
       "type": "library",
       "name": "my-project",
       "version": "unknown",
-      "path": "/path/to/project",
       "licenses": [
         {"license": {"id": "Apache-2.0"}}
       ]
@@ -360,12 +407,26 @@ Industry-standard SBOM format (JSON or XML):
 Text format suitable for NOTICE files:
 
 ```
-/path/to/project - Apache-2.0
-  Copyright 2024 John Doe
-  Copyright 2023 Jane Smith
+================================================================================
+THIRD-PARTY SOFTWARE NOTICES AND INFORMATION
+================================================================================
 
--------
-Apache License 2.0 text...
+1. my-project
+----------------------------------------
+   Path: /path/to/project
+   License: Apache-2.0
+   Copyright notices:
+      Copyright 2024 John Doe
+
+================================================================================
+LICENSE TEXTS
+================================================================================
+
+## Apache-2.0
+----------------------------------------
+Apache License
+Version 2.0, January 2004
+...
 ```
 
 ## Real-World Examples
@@ -419,16 +480,16 @@ oslili /path/to/codebase --config strict-config.yaml -o attribution.json
 import sys
 import json
 from pathlib import Path
-from semantic_copycat_oslili import LegalAttributionGenerator, Config
+from semantic_copycat_oslili import LicenseCopyrightDetector, Config
 
 def check_licenses(project_path, allowed_licenses):
     """Check if project has only allowed licenses."""
     
     config = Config(verbose=True)
-    generator = LegalAttributionGenerator(config)
+    detector = LicenseCopyrightDetector(config)
     
     # Process project
-    result = generator.process_local_path(project_path)
+    result = detector.process_local_path(project_path)
     
     # Check licenses
     violations = []
@@ -513,6 +574,39 @@ oslili --help
 # Check version
 oslili --version
 ```
+
+### Archive Extraction
+
+The tool can automatically extract and scan archive files (zip, tar, gz, etc.):
+
+```bash
+# Process an archive file
+oslili package.tar.gz -o licenses.json
+
+# Limit extraction depth for nested archives
+oslili archive.zip --max-extraction-depth 2
+
+# Disable archive extraction
+oslili project.zip --max-extraction-depth 0
+```
+
+### Caching
+
+Enable caching to speed up repeated scans:
+
+```yaml
+# In config.yaml
+cache_dir: "~/.cache/oslili"
+```
+
+Or via Python:
+
+```python
+config = Config(cache_dir="~/.cache/oslili")
+detector = LicenseCopyrightDetector(config)
+```
+
+The cache automatically invalidates when files are modified.
 
 ## Best Practices
 
