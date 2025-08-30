@@ -5,6 +5,22 @@ All notable changes to semantic-copycat-oslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.3] - 2025-08-30
+
+### Improved
+- **Confidence Scoring**: Enhanced regex-based license detection with context-aware confidence scoring
+  - License files: 100% confidence for exact matches
+  - Full license headers in source files: 90% confidence
+  - License references: 30-50% confidence based on pattern matches
+  - Better distinction between comprehensive headers vs. brief references
+- **Categorization Logic**: Improved license categorization to distinguish between full license headers and simple references
+- **Pattern Matching**: Enhanced regex detection to track exact number of patterns matched for more accurate confidence scoring
+
+### Technical Changes
+- Added `_adjust_regex_confidence` method for intelligent confidence adjustment
+- Enhanced pattern matching to differentiate license headers from references
+- Improved license categorization logic for better accuracy assessment
+
 ## [1.3.2] - 2025-08-30
 
 ### Fixed
