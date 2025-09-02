@@ -1,4 +1,0 @@
-Usage: python -m upmex.cli extract [OPTIONS] PACKAGE_PATH
-Try 'python -m upmex.cli extract --help' for help.
-
-Error: Invalid value for 'PACKAGE_PATH': Path 'test-packages/requests-2.32.3-py3-none-any.whl' does not exist.
