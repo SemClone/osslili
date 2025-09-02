@@ -5,6 +5,32 @@ All notable changes to semantic-copycat-oslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.4] - 2025-09-02
+
+### Added
+- **Enhanced Archive Support**: Added support for additional archive formats:
+  - Java archives (.jar, .war, .ear)
+  - .NET packages (.nupkg)
+  - Ruby gems (.gem) with nested archive extraction
+  - Rust crates (.crate)
+
+### Improved
+- **Copyright Detection Completeness**: Removed artificial 20-file limit for source file scanning
+  - Now scans ALL source files (.c, .h, .py, .js, .java, .cpp, .go, .rs, .ts, .tsx, .jsx)
+  - Improves detection from ~12 to 700+ copyright statements on large codebases
+  - Maintains 94% accuracy with comprehensive false positive filtering
+- **File Scanner Reliability**: Fixed SafeFileScanner visited_inodes persistence bug
+  - Eliminates false "symlink loop" warnings on subsequent scans
+  - Enables proper scanning of multiple file extensions
+
+### Fixed
+- **Single File Detection**: Enhanced handling of directly-passed files as potential license content
+- **MIT License Detection**: Improved regex patterns for partial MIT license text recognition
+- **Archive Extraction**: Better support for nested archive formats and Ruby gem structure
+
+### Repository
+- **Cleanup**: Removed test-packages/ directory and added to .gitignore to keep repository clean
+
 ## [1.3.3] - 2025-08-30
 
 ### Improved
