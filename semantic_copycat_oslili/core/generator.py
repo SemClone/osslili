@@ -5,10 +5,9 @@ Main detector class for license and copyright detection.
 import logging
 import time
 from pathlib import Path
-from typing import List, Optional, Dict, Any
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import List, Optional
 
-from .models import Config, DetectionResult, DetectedLicense, CopyrightInfo
+from .models import Config, DetectionResult
 from .input_processor import InputProcessor
 
 logger = logging.getLogger(__name__)
@@ -81,6 +80,7 @@ class LicenseCopyrightDetector:
         
         # Validate path
         is_valid, path_obj, error = self.input_processor.validate_local_path(path)
+        logger.debug(f"Path validation: is_valid={is_valid}, path_obj={path_obj}, error={error}")
         
         result = DetectionResult(
             path=str(path),
@@ -89,10 +89,12 @@ class LicenseCopyrightDetector:
         
         if not is_valid:
             result.errors.append(error)
+            logger.warning(f"Path validation failed: {error}")
             return result
         
         try:
             logger.info(f"Processing local path: {path}")
+            logger.debug(f"Path object: {path_obj}, is_file: {path_obj.is_file()}, extract_archives: {extract_archives}")
             
             # Check if it's an archive and extract if needed
             if extract_archives and path_obj.is_file():
@@ -110,6 +112,7 @@ class LicenseCopyrightDetector:
                             logger.warning(f"Failed to extract archive: {path_obj}")
                             self._process_local_path(path_obj, result)
                 else:
+                    logger.debug(f"Not an archive, processing as regular file: {path_obj}")
                     self._process_local_path(path_obj, result)
             else:
                 self._process_local_path(path_obj, result)
@@ -136,7 +139,9 @@ class LicenseCopyrightDetector:
             result: DetectionResult to populate
         """
         # Detect licenses
+        logger.debug(f"_process_local_path called with: {path} (is_file: {path.is_file()}, exists: {path.exists()})")
         licenses = self.license_detector.detect_licenses(path)
+        logger.debug(f"License detector returned {len(licenses)} licenses")
         result.licenses.extend(licenses)
         
         # Extract copyright information

@@ -166,10 +166,8 @@ class CopyrightExtractor:
                 if file_path.is_file() and file_path not in files_to_scan:
                     files_to_scan.append(file_path)
         
-        # Priority 4: Source file headers (limited scan)
-        source_extensions = ['.py', '.js', '.java', '.c', '.cpp', '.go', '.rs']
-        max_source_files = 20
-        source_count = 0
+        # Priority 4: Source file headers (scan ALL source files for complete copyright detection)
+        source_extensions = ['.py', '.js', '.java', '.c', '.cpp', '.go', '.rs', '.h', '.hpp', '.ts', '.tsx', '.jsx']
         
         # Reset scanner for source files
         scanner = SafeFileScanner(
@@ -177,15 +175,11 @@ class CopyrightExtractor:
             follow_symlinks=False
         )
         
+        # Scan ALL source files - no limit
         for ext in source_extensions:
             for file_path in scanner.scan_directory(directory, f'*{ext}'):
                 if file_path not in files_to_scan:
                     files_to_scan.append(file_path)
-                    source_count += 1
-                    if source_count >= max_source_files:
-                        break
-            if source_count >= max_source_files:
-                break
         
         return files_to_scan
     

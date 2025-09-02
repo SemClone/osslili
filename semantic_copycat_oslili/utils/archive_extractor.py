@@ -19,7 +19,11 @@ class ArchiveExtractor:
     
     SUPPORTED_ARCHIVES = {
         '.zip', '.tar', '.tar.gz', '.tgz', '.tar.bz2', '.tbz2', 
-        '.tar.xz', '.txz', '.gz', '.bz2', '.xz', '.whl', '.egg'
+        '.tar.xz', '.txz', '.gz', '.bz2', '.xz', '.whl', '.egg',
+        '.jar', '.war', '.ear',  # Java archives (ZIP-based)
+        '.nupkg',  # .NET packages (ZIP-based)
+        '.gem',  # Ruby gems (TAR-based)
+        '.crate',  # Rust crates (TAR-based)
     }
     
     def __init__(self, max_depth: int = 10, temp_dir: Optional[str] = None):
@@ -41,6 +45,7 @@ class ArchiveExtractor:
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Context manager exit - cleanup temp files."""
         self.cleanup()
+        return False  # Don't suppress exceptions
         
     def cleanup(self):
         """Clean up temporary extracted files."""
@@ -98,13 +103,38 @@ class ArchiveExtractor:
         
         try:
             # Try to extract based on file type
-            if self._extract_zip(archive_path, extract_dir):
-                logger.debug(f"Extracted ZIP archive: {archive_path}")
-            elif self._extract_tar(archive_path, extract_dir):
-                logger.debug(f"Extracted TAR archive: {archive_path}")
+            name_lower = archive_path.name.lower()
+            
+            # Check for ZIP-based formats first
+            if (name_lower.endswith('.zip') or name_lower.endswith('.jar') or 
+                name_lower.endswith('.war') or name_lower.endswith('.ear') or 
+                name_lower.endswith('.nupkg') or name_lower.endswith('.whl') or
+                name_lower.endswith('.egg')):
+                if self._extract_zip(archive_path, extract_dir):
+                    logger.debug(f"Extracted ZIP-based archive: {archive_path}")
+                else:
+                    logger.warning(f"Failed to extract ZIP-based archive: {archive_path}")
+                    return None
+            # Then check for TAR-based formats
+            elif (name_lower.endswith('.tar') or name_lower.endswith('.tar.gz') or
+                  name_lower.endswith('.tgz') or name_lower.endswith('.tar.bz2') or
+                  name_lower.endswith('.tbz2') or name_lower.endswith('.tar.xz') or
+                  name_lower.endswith('.txz') or name_lower.endswith('.gem') or
+                  name_lower.endswith('.crate')):
+                if self._extract_tar(archive_path, extract_dir):
+                    logger.debug(f"Extracted TAR-based archive: {archive_path}")
+                else:
+                    logger.warning(f"Failed to extract TAR-based archive: {archive_path}")
+                    return None
             else:
-                logger.warning(f"Unsupported archive format: {archive_path}")
-                return None
+                # Fallback: try both methods
+                if self._extract_zip(archive_path, extract_dir):
+                    logger.debug(f"Extracted ZIP archive: {archive_path}")
+                elif self._extract_tar(archive_path, extract_dir):
+                    logger.debug(f"Extracted TAR archive: {archive_path}")
+                else:
+                    logger.warning(f"Unsupported archive format: {archive_path}")
+                    return None
                 
             self.extracted_paths.add(extract_dir)
             
@@ -115,7 +145,17 @@ class ArchiveExtractor:
                         file_path = Path(root) / file
                         if self.is_archive(file_path):
                             logger.debug(f"Found nested archive: {file_path}")
-                            self.extract_archive(file_path, depth + 1)
+                            nested_dir = self.extract_archive(file_path, depth + 1)
+                            if nested_dir:
+                                # For Ruby gems, extract data.tar.gz contents to parent directory
+                                if archive_path.name.endswith('.gem') and file == 'data.tar.gz':
+                                    # Move contents up to gem extract directory
+                                    for item in nested_dir.iterdir():
+                                        dest = extract_dir / item.name
+                                        if item.is_dir():
+                                            shutil.copytree(item, dest, dirs_exist_ok=True)
+                                        else:
+                                            shutil.copy2(item, dest)
             
             return extract_dir
             
@@ -125,7 +165,7 @@ class ArchiveExtractor:
     
     def _extract_zip(self, archive_path: Path, extract_dir: Path) -> bool:
         """
-        Extract a ZIP archive.
+        Extract a ZIP archive (including JAR, NUPKG, etc).
         
         Args:
             archive_path: Path to ZIP file
@@ -135,6 +175,7 @@ class ArchiveExtractor:
             True if extraction successful
         """
         try:
+            # JAR, WAR, EAR, NUPKG, and WHL files are all ZIP-based
             with zipfile.ZipFile(archive_path, 'r') as zip_ref:
                 # Check for zip bomb
                 total_size = sum(zinfo.file_size for zinfo in zip_ref.filelist)
@@ -177,6 +218,12 @@ class ArchiveExtractor:
                 mode = 'r:xz'
             elif name_lower.endswith('.tar'):
                 mode = 'r'
+            elif name_lower.endswith('.gem'):
+                # Ruby gems are plain TAR archives
+                mode = 'r'
+            elif name_lower.endswith('.crate'):
+                # Rust crates are gzipped TAR archives
+                mode = 'r:gz'
             else:
                 return False
             

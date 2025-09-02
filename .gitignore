@@ -161,6 +161,9 @@ debug_*.py
 .cache/
 __cache__/
 
+# Test packages (large binary files)
+test-packages/
+
 # Project tracking (private)
 CLAUDE.md
 claude.md

@@ -36,11 +36,14 @@ class SafeFileScanner:
         Yields:
             Matching file paths
         """
+        # Clear visited inodes for each new scan to avoid false positives
+        self.visited_inodes.clear()
+        
         try:
             # Get the real path to handle symlinks
             real_dir = directory.resolve()
             
-            # Track visited inodes to prevent loops
+            # Track visited inodes to prevent loops within this scan
             stat = real_dir.stat()
             inode = (stat.st_dev, stat.st_ino)
             

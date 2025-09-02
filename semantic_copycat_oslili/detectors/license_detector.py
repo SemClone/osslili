@@ -6,7 +6,7 @@ import logging
 import re
 import fnmatch
 from pathlib import Path
-from typing import List, Optional, Dict, Set, Tuple
+from typing import List, Optional, Set
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from fuzzywuzzy import fuzz
@@ -139,7 +139,10 @@ class LicenseDetector:
         licenses = []
         processed_licenses = set()
         
-        if path.is_file():
+        # Track if this is a single file scan (user passed a file directly)
+        single_file_mode = path.is_file()
+        
+        if single_file_mode:
             files_to_scan = [path]
         else:
             # Find potential license files
@@ -158,7 +161,7 @@ class LicenseDetector:
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
                 # Submit all files for processing
                 future_to_file = {
-                    executor.submit(self._detect_licenses_in_file_safe, file_path): file_path
+                    executor.submit(self._detect_licenses_in_file_safe, file_path, single_file_mode): file_path
                     for file_path in files_to_scan
                 }
                 
@@ -179,7 +182,7 @@ class LicenseDetector:
             # Sequential processing for single file or small sets
             for file_path in files_to_scan:
                 try:
-                    file_licenses = self._detect_licenses_in_file(file_path)
+                    file_licenses = self._detect_licenses_in_file(file_path, single_file_mode)
                     for license in file_licenses:
                         # Deduplicate by license ID and confidence
                         key = (license.spdx_id, round(license.confidence, 2))
@@ -194,10 +197,10 @@ class LicenseDetector:
         
         return licenses
     
-    def _detect_licenses_in_file_safe(self, file_path: Path) -> List[DetectedLicense]:
+    def _detect_licenses_in_file_safe(self, file_path: Path, single_file_mode: bool = False) -> List[DetectedLicense]:
         """Thread-safe wrapper for file license detection."""
         try:
-            return self._detect_licenses_in_file(file_path)
+            return self._detect_licenses_in_file(file_path, single_file_mode)
         except Exception as e:
             logger.debug(f"Error in file {file_path}: {e}")
             return []
@@ -334,7 +337,7 @@ class LicenseDetector:
         except (OSError, IOError):
             return False
     
-    def _detect_licenses_in_file(self, file_path: Path) -> List[DetectedLicense]:
+    def _detect_licenses_in_file(self, file_path: Path, single_file_mode: bool = False) -> List[DetectedLicense]:
         """Detect licenses in a single file."""
         licenses = []
         
@@ -355,14 +358,20 @@ class LicenseDetector:
         tag_licenses = self._detect_spdx_tags(content, file_path)
         licenses.extend(tag_licenses)
         
-        # Method 2: Detect by filename (for dedicated license files)
-        if self._is_license_file(file_path):
+        # Method 2: If in single file mode, ALWAYS treat as potential license content
+        if single_file_mode:
+            # Apply three-tier detection on full text
+            detected = self._detect_license_from_text(content, file_path)
+            if detected:
+                licenses.append(detected)
+        # Method 3: Detect by filename (for dedicated license files)
+        elif self._is_license_file(file_path):
             # Apply three-tier detection on full text
             detected = self._detect_license_from_text(content, file_path)
             if detected:
                 licenses.append(detected)
         
-        # Method 3: Check for license indicators in regular files
+        # Method 4: Check for license indicators in regular files
         elif self._contains_license_text(content):
             # Extract potential license block
             license_block = self._extract_license_block(content)
@@ -896,17 +905,26 @@ class LicenseDetector:
         """
         text_lower = text.lower()
         
-        # MIT License patterns
+        # MIT License patterns - check for key phrases
+        mit_key_phrase = r'permission is hereby granted.*free of charge.*to any person.*obtaining.*copy.*software'
         mit_patterns = [
             r'permission is hereby granted.*free of charge.*to any person',
             r'mit license',
-            r'software is provided.*as is.*without warranty'
+            r'software is provided.*as is.*without warranty',
+            r'deal in the software without restriction',
+            r'use.*copy.*modify.*merge.*publish.*distribute.*sublicense'
         ]
+        
+        # Strong indicator - the key MIT phrase
+        has_key_phrase = bool(re.search(mit_key_phrase, text_lower))
         
         mit_matches = sum(1 for p in mit_patterns if re.search(p, text_lower))
         mit_score = mit_matches / len(mit_patterns)
         
-        if mit_score >= 0.6:
+        # If we have the key MIT phrase, lower the threshold
+        threshold = 0.4 if has_key_phrase else 0.6
+        
+        if mit_score >= threshold or has_key_phrase:
             # Determine if this is a full license header or just a reference
             match_type_hint = "license_header" if mit_matches >= 2 else "license_reference"
             category, match_type = self._categorize_license(
