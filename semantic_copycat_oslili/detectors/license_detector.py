@@ -905,17 +905,26 @@ class LicenseDetector:
         """
         text_lower = text.lower()
         
-        # MIT License patterns
+        # MIT License patterns - check for key phrases
+        mit_key_phrase = r'permission is hereby granted.*free of charge.*to any person.*obtaining.*copy.*software'
         mit_patterns = [
             r'permission is hereby granted.*free of charge.*to any person',
             r'mit license',
-            r'software is provided.*as is.*without warranty'
+            r'software is provided.*as is.*without warranty',
+            r'deal in the software without restriction',
+            r'use.*copy.*modify.*merge.*publish.*distribute.*sublicense'
         ]
+        
+        # Strong indicator - the key MIT phrase
+        has_key_phrase = bool(re.search(mit_key_phrase, text_lower))
         
         mit_matches = sum(1 for p in mit_patterns if re.search(p, text_lower))
         mit_score = mit_matches / len(mit_patterns)
         
-        if mit_score >= 0.6:
+        # If we have the key MIT phrase, lower the threshold
+        threshold = 0.4 if has_key_phrase else 0.6
+        
+        if mit_score >= threshold or has_key_phrase:
             # Determine if this is a full license header or just a reference
             match_type_hint = "license_header" if mit_matches >= 2 else "license_reference"
             category, match_type = self._categorize_license(
