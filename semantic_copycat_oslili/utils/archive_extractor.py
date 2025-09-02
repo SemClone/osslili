@@ -144,7 +144,17 @@ class ArchiveExtractor:
                         file_path = Path(root) / file
                         if self.is_archive(file_path):
                             logger.debug(f"Found nested archive: {file_path}")
-                            self.extract_archive(file_path, depth + 1)
+                            nested_dir = self.extract_archive(file_path, depth + 1)
+                            if nested_dir:
+                                # For Ruby gems, extract data.tar.gz contents to parent directory
+                                if archive_path.name.endswith('.gem') and file == 'data.tar.gz':
+                                    # Move contents up to gem extract directory
+                                    for item in nested_dir.iterdir():
+                                        dest = extract_dir / item.name
+                                        if item.is_dir():
+                                            shutil.copytree(item, dest, dirs_exist_ok=True)
+                                        else:
+                                            shutil.copy2(item, dest)
             
             return extract_dir
             
