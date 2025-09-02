@@ -5,10 +5,9 @@ Main detector class for license and copyright detection.
 import logging
 import time
 from pathlib import Path
-from typing import List, Optional, Dict, Any
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import List, Optional
 
-from .models import Config, DetectionResult, DetectedLicense, CopyrightInfo
+from .models import Config, DetectionResult
 from .input_processor import InputProcessor
 
 logger = logging.getLogger(__name__)

@@ -6,7 +6,6 @@ Downloads and caches SPDX license list data.
 import json
 import logging
 import hashlib
-import os
 import re
 from pathlib import Path
 from typing import Dict, List, Optional, Any

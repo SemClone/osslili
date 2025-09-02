@@ -45,6 +45,7 @@ class ArchiveExtractor:
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Context manager exit - cleanup temp files."""
         self.cleanup()
+        return False  # Don't suppress exceptions
         
     def cleanup(self):
         """Clean up temporary extracted files."""

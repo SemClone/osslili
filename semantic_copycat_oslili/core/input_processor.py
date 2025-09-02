@@ -5,7 +5,7 @@ Input processing module for handling files and local paths.
 import os
 import logging
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 logger = logging.getLogger(__name__)
 

@@ -6,7 +6,7 @@ import logging
 import re
 import fnmatch
 from pathlib import Path
-from typing import List, Optional, Dict, Set, Tuple
+from typing import List, Optional, Set
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from fuzzywuzzy import fuzz
