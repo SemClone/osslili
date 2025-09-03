@@ -112,7 +112,7 @@ oslili [OPTIONS] PATH
 - `-c, --config`: Path to YAML configuration file
 - `--similarity-threshold`: License similarity threshold (0.0-1.0, default: 0.97)
 - `--max-depth`, `--max-recursion-depth`: Maximum directory recursion depth (default: 10, use -1 for unlimited)
-- `--max-extraction-depth`: Maximum archive extraction depth for nested archives (default: 10)
+- `--max-extraction-depth`: Maximum archive extraction depth for nested archives (default: 3)
 - `-t, --threads`: Number of processing threads (default: CPU count)
 
 #### Logging Options
@@ -274,7 +274,7 @@ Create a `config.yaml` file:
 # License detection settings
 similarity_threshold: 0.97  # Minimum similarity for license matching
 max_recursion_depth: 10     # Maximum directory recursion depth
-max_extraction_depth: 10    # Maximum archive extraction depth
+max_extraction_depth: 3     # Maximum archive extraction depth
 
 # Performance settings
 thread_count: 4              # Number of parallel threads

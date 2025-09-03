@@ -17,13 +17,14 @@ Creates a new detector instance with optional configuration.
 #### process_local_path
 
 ```python
-process_local_path(path: str) -> DetectionResult
+process_local_path(path: str, extract_archives: bool = True) -> DetectionResult
 ```
 
 Process a local directory or file to detect licenses and copyrights.
 
 **Parameters:**
 - `path`: Path to local directory or file to analyze
+- `extract_archives`: Whether to extract and scan archives (default: True)
 
 **Returns:** DetectionResult object containing detected licenses and copyrights
 
@@ -109,7 +110,7 @@ class DetectedLicense:
     detection_method: str         # How it was detected (dice-sorensen, tlsh, regex, tag, filename)
     source_file: Optional[str]    # Where it was found
     category: Optional[str]       # License category (declared, detected, referenced)
-    match_type: Optional[str]     # Type of match (full_text, spdx_identifier, etc.)
+    match_type: Optional[str]     # Type of match (license_file, package_metadata, spdx_identifier, documentation, license_header, license_reference, text_similarity, etc.)
 ```
 
 ### CopyrightInfo
@@ -140,7 +141,7 @@ class LicenseCategory(Enum):
 class Config:
     similarity_threshold: float = 0.97      # License similarity threshold
     max_recursion_depth: int = 10          # Maximum directory recursion depth
-    max_extraction_depth: int = 10         # Maximum archive extraction depth
+    max_extraction_depth: int = 3          # Maximum archive extraction depth (default: 3)
     thread_count: int = 4                   # Number of parallel threads
     verbose: bool = False                   # Enable verbose output
     debug: bool = False                     # Enable debug output
@@ -378,3 +379,73 @@ result2 = detector.process_local_path("/path/to/project")
 
 # Cache automatically invalidates when files are modified
 ```
+
+## License Tag Identification
+
+OSLILI automatically detects various forms of license tags and identifiers in source code:
+
+### Supported Tag Formats
+
+1. **SPDX-License-Identifier**
+   - `SPDX-License-Identifier: MIT`
+   - `SPDX-License-Identifier: Apache-2.0`
+   - Commonly found in source code headers
+
+2. **Package Metadata**
+   - `package.json`: `"license": "MIT"`
+   - `pyproject.toml`: `license = "Apache-2.0"` or `license = {text = "MIT"}`
+   - `setup.py`: `license='BSD-3-Clause'`
+   - `Cargo.toml`: `license = "MIT OR Apache-2.0"`
+   - `composer.json`: `"license": "GPL-3.0"`
+
+3. **Documentation Tags**
+   - `@license MIT` (JSDoc style)
+   - `License: Apache-2.0` (in metadata files)
+   - `Licensed under the MIT License`
+   - `License-Expression: MIT` (Python METADATA)
+
+### License Expression Support
+
+OSLILI parses complex license expressions:
+- `MIT OR Apache-2.0` - Dual licensing
+- `GPL-3.0-or-later` - Version with modifier
+- `Apache-2.0 WITH LLVM-exception` - License with exception
+
+### Tag Detection Example
+
+```python
+from semantic_copycat_oslili import LicenseCopyrightDetector
+
+detector = LicenseCopyrightDetector()
+result = detector.process_local_path("/path/to/source.js")
+
+# Filter by detection method
+tag_licenses = [l for l in result.licenses if l.detection_method == "tag"]
+for license in tag_licenses:
+    print(f"Tag found: {license.spdx_id} in {license.source_file}")
+    print(f"  Match type: {license.match_type}")
+```
+
+### Detection Methods
+
+OSLILI uses multiple methods to detect licenses:
+
+1. **Tag Detection (`detection_method: "tag"`)**
+   - SPDX identifiers in comments
+   - Package metadata declarations
+   - High confidence (1.0)
+
+2. **Text Similarity (`detection_method: "dice-sorensen"` or `"tlsh"`)**
+   - Full license text comparison
+   - Fuzzy matching for variants
+   - Confidence based on similarity score
+
+3. **Pattern Matching (`detection_method: "regex"`)**
+   - License references in text
+   - Copyright headers
+   - Variable confidence based on context
+
+4. **Filename Detection (`detection_method: "filename"`)**
+   - LICENSE, COPYING files
+   - Standard naming patterns
+   - High confidence when content matches
