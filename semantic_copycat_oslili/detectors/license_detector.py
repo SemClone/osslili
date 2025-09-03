@@ -392,7 +392,9 @@ class LicenseDetector:
                 return True
         
         # Check common names
-        license_names = ['license', 'licence', 'copying', 'copyright', 'notice', 'legal']
+        license_names = ['license', 'licence', 'copying', 'copyright', 'notice', 'legal',
+                        'gpl', 'copyleft', 'eula', 'commercial', 'agreement', 'bundle',
+                        'third-party', 'third_party']
         for name in license_names:
             if name in name_lower:
                 return True
