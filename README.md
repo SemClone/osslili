@@ -12,7 +12,7 @@ A high-performance tool for identifying licenses and copyright information in lo
 
 The tool outputs standardized JSON evidence showing exactly where each license was detected, the detection method used, and confidence scores.
 
-## Key Features
+### Key Features
 
 - **Evidence-based output**: Shows exact file paths, confidence scores, and detection methods
 - **License hierarchy**: Categorizes licenses as declared vs detected vs referenced
@@ -29,6 +29,32 @@ The tool outputs standardized JSON evidence showing exactly where each license w
 - **No file limits**: Processes files of any size with intelligent sampling
 - **Enhanced metadata support**: Detects licenses in package.json, METADATA, pyproject.toml
 - **False positive filtering**: Advanced filtering for code patterns and invalid matches
+
+### How It Works
+
+#### Three-Tier License Detection System
+
+The tool uses a sophisticated multi-tier approach for maximum accuracy:
+
+1. **Tier 1: Dice-Sørensen Similarity with TLSH Confirmation**
+   - Compares license text using Dice-Sørensen coefficient (97% threshold)
+   - Confirms matches using TLSH fuzzy hashing to prevent false positives
+   - Achieves 97-100% accuracy on standard SPDX licenses
+
+2. **Tier 2: TLSH Fuzzy Hash Matching**
+   - Uses Trend Micro Locality Sensitive Hashing for variant detection
+   - Catches license variants like MIT-0, BSD-2-Clause vs BSD-3-Clause
+   - Pre-computed hashes for all 700+ SPDX licenses
+
+3. **Tier 3: Pattern Recognition**
+   - Regex-based detection for license references and identifiers
+   - Extracts from comments, headers, and documentation
+
+#### Additional Detection Methods
+
+- **Package Metadata Scanning**: Detects licenses from package.json, composer.json, pyproject.toml, etc.
+- **Copyright Extraction**: Advanced pattern matching with validation and deduplication
+- **SPDX Identifier Detection**: Finds SPDX-License-Identifier tags in source files
 
 ## Installation
 
@@ -123,31 +149,6 @@ oslili ./project --debug
 }
 ```
 
-## How It Works
-
-### Three-Tier License Detection System
-
-The tool uses a sophisticated multi-tier approach for maximum accuracy:
-
-1. **Tier 1: Dice-Sørensen Similarity with TLSH Confirmation**
-   - Compares license text using Dice-Sørensen coefficient (97% threshold)
-   - Confirms matches using TLSH fuzzy hashing to prevent false positives
-   - Achieves 97-100% accuracy on standard SPDX licenses
-
-2. **Tier 2: TLSH Fuzzy Hash Matching**
-   - Uses Trend Micro Locality Sensitive Hashing for variant detection
-   - Catches license variants like MIT-0, BSD-2-Clause vs BSD-3-Clause
-   - Pre-computed hashes for all 700+ SPDX licenses
-
-3. **Tier 3: Pattern Recognition**
-   - Regex-based detection for license references and identifiers
-   - Extracts from comments, headers, and documentation
-
-### Additional Detection Methods
-
-- **Package Metadata Scanning**: Detects licenses from package.json, composer.json, pyproject.toml, etc.
-- **Copyright Extraction**: Advanced pattern matching with validation and deduplication
-- **SPDX Identifier Detection**: Finds SPDX-License-Identifier tags in source files
 
 ### Library Usage
 
@@ -177,13 +178,6 @@ for copyright in result.copyrights:
     print(f"Copyright: © {copyright.holder}")
 ```
 
-## License Detection
-
-The package uses a three-tier license detection system:
-
-1. **Tier 1**: Dice-Sørensen similarity (97% threshold)
-2. **Tier 2**: TLSH fuzzy hashing with confirmation
-3. **Tier 3**: Machine learning or regex pattern matching
 
 ## Output Format
 
