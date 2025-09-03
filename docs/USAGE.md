@@ -290,6 +290,15 @@ license_filename_patterns:
   - "COPYING*"
   - "NOTICE*"
   - "COPYRIGHT*"
+  - "*GPL*"
+  - "*COPYLEFT*"
+  - "*EULA*"
+  - "*COMMERCIAL*"
+  - "*AGREEMENT*"
+  - "*BUNDLE*"
+  - "*THIRD-PARTY*"
+  - "*THIRD_PARTY*"
+  - "LEGAL*"
 
 # License name mappings
 custom_aliases:

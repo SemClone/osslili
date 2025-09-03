@@ -5,6 +5,23 @@ All notable changes to semantic-copycat-oslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.5] - 2025-09-03
+
+### Added
+- **Expanded License File Detection**: Added comprehensive license file patterns
+  - GPL variants (`*GPL*`)
+  - Copyleft files (`*COPYLEFT*`)
+  - EULA files (`*EULA*`)
+  - Commercial license files (`*COMMERCIAL*`)
+  - Agreement files (`*AGREEMENT*`)
+  - Bundle license files (`*BUNDLE*`)
+  - Third-party license files (`*THIRD-PARTY*`, `*THIRD_PARTY*`)
+  - Legal documents (`LEGAL*`)
+
+### Improved
+- **License Detection Coverage**: Extended fallback keyword detection to include: gpl, copyleft, eula, commercial, agreement, bundle, third-party, third_party
+- **Pattern Flexibility**: All patterns now support characters before/after keywords (., -, _, etc.)
+
 ## [1.3.4] - 2025-09-02
 
 ### Added

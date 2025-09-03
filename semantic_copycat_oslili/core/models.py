@@ -110,7 +110,9 @@ class Config:
         "LICENSE*", "LICENCE*", "COPYING*", "NOTICE*",
         "MIT-LICENSE*", "APACHE-LICENSE*", "BSD-LICENSE*",
         "UNLICENSE*", "COPYRIGHT*", "3rdpartylicenses.txt",
-        "THIRD_PARTY_NOTICES*"
+        "THIRD_PARTY_NOTICES*", "*GPL*", "*COPYLEFT*", 
+        "*EULA*", "*COMMERCIAL*", "*AGREEMENT*", "*BUNDLE*",
+        "*THIRD-PARTY*", "*THIRD_PARTY*", "LEGAL*"
     ])
     custom_aliases: Dict[str, str] = field(default_factory=lambda: {
         "Apache 2": "Apache-2.0",
