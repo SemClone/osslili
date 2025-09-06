@@ -14,6 +14,7 @@ class DetectionMethod(Enum):
     ML = "ml"
     REGEX = "regex"
     TAG = "tag"
+    KEYWORD = "keyword"  # License keyword detection (GPL, BSD, Apache, etc.)
     FILENAME = "filename"
 
 
