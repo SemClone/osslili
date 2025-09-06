@@ -471,24 +471,11 @@ class SPDXLicenseData:
     
     def _compute_all_license_hashes(self):
         """Compute SHA-256 and MD5 hashes for all licenses."""
+        # This method is kept for backward compatibility but won't compute anything
+        # since license texts aren't stored in bundled data.
+        # Hashes are pre-computed and loaded from exact_hashes.json instead.
         self._license_hashes = {}
-        
-        if not self._bundled_data or 'license_texts' not in self._bundled_data:
-            logger.debug("No license texts available for hash computation")
-            return
-        
-        license_texts = self._bundled_data.get('license_texts', {})
-        
-        for license_id, text in license_texts.items():
-            if text:
-                # Compute both SHA-256 and MD5 for compatibility
-                self._license_hashes[license_id] = {
-                    'sha256': self.compute_text_hash(text, 'sha256'),
-                    'md5': self.compute_text_hash(text, 'md5'),
-                    'text_length': len(text)
-                }
-        
-        logger.debug(f"Computed hashes for {len(self._license_hashes)} licenses")
+        logger.debug("Hash computation skipped - using pre-computed hashes from exact_hashes.json")
     
     def get_license_hash(self, license_id: str, algorithm: str = 'sha256') -> Optional[str]:
         """

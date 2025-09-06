@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 """
-Script to compute SHA-256 and MD5 hashes for all SPDX licenses and save them.
-Uses the existing license text retrieval mechanism from SPDXLicenseData.
+Script to compute SHA-256 and MD5 hashes for all SPDX licenses.
+
+This script:
+1. Downloads license texts for all SPDX licenses
+2. Computes SHA-256 and MD5 hashes using normalized text
+3. Saves hashes to semantic_copycat_oslili/data/exact_hashes.json
+
+Run this after updating SPDX data to regenerate hashes.
 """
 
 import json
