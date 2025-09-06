@@ -8,11 +8,13 @@ from enum import Enum
 
 
 class DetectionMethod(Enum):
+    HASH = "hash"  # Exact hash matching (SHA-256/MD5)
     DICE_SORENSEN = "dice-sorensen"
     TLSH = "tlsh"
     ML = "ml"
     REGEX = "regex"
     TAG = "tag"
+    KEYWORD = "keyword"  # License keyword detection (GPL, BSD, Apache, etc.)
     FILENAME = "filename"
 
 

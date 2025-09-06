@@ -6,7 +6,7 @@ import logging
 import re
 import fnmatch
 from pathlib import Path
-from typing import List, Optional, Set
+from typing import List, Optional, Set, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from fuzzywuzzy import fuzz
@@ -33,6 +33,8 @@ class LicenseDetector:
         self.config = config
         self.input_processor = InputProcessor()
         self.spdx_data = SPDXLicenseData(config)
+        # Ensure SPDX data and hashes are loaded
+        _ = self.spdx_data.licenses  # Trigger lazy loading of licenses and hashes
         self.tlsh_detector = TLSHDetector(config, self.spdx_data)
         
         # License filename patterns
@@ -103,6 +105,7 @@ class LicenseDetector:
         
         return patterns
     
+    
     def _compile_spdx_patterns(self) -> List[re.Pattern]:
         """Compile SPDX identifier patterns."""
         return [
@@ -122,8 +125,8 @@ class LicenseDetector:
             re.compile(r'^\s*License:\s*([A-Za-z0-9\-\.]+)', re.IGNORECASE | re.MULTILINE),
             # @license <license>
             re.compile(r'@license\s+([A-Za-z0-9\-\.]+)', re.IGNORECASE),
-            # Licensed under <license>
-            re.compile(r'Licensed under (?:the\s+)?([^,\n]+?)(?:\s+[Ll]icense)?', re.IGNORECASE),
+            # Licensed under <license> - Fixed to capture full license name
+            re.compile(r'[Ll]icensed\s+under\s+(?:the\s+)?([A-Za-z0-9\-\.\s]+?)(?:\s+[Ll]icense)?(?:[,\n;]|$)', re.IGNORECASE),
         ]
     
     def detect_licenses(self, path: Path) -> List[DetectedLicense]:
@@ -358,6 +361,10 @@ class LicenseDetector:
         tag_licenses = self._detect_spdx_tags(content, file_path)
         licenses.extend(tag_licenses)
         
+        # Method 1b: Detect license keywords (base licenses)
+        keyword_licenses = self._detect_license_keywords(content, file_path)
+        licenses.extend(keyword_licenses)
+        
         # Method 2: If in single file mode, ALWAYS treat as potential license content
         if single_file_mode:
             # Apply three-tier detection on full text
@@ -507,6 +514,100 @@ class LicenseDetector:
                                     category=category,
                                     match_type=match_type
                                 ))
+        
+        return licenses
+    
+    def _detect_license_keywords(self, content: str, file_path: Path) -> List[DetectedLicense]:
+        """
+        Detect license keywords for common base licenses.
+        This handles variations like "GPL" for GPL/LGPL/AGPL, "BSD" for any BSD variant.
+        """
+        licenses = []
+        
+        # Base license families with common variations
+        base_license_mapping = {
+            # GPL family
+            'GPL-3.0': ['GPL-3', 'GPLv3', 'GPL version 3', 'GNU General Public License v3'],
+            'GPL-2.0': ['GPL-2', 'GPLv2', 'GPL version 2', 'GNU General Public License v2'],
+            'LGPL-3.0': ['LGPL-3', 'LGPLv3', 'Lesser GPL v3', 'GNU Lesser General Public License v3'],
+            'LGPL-2.1': ['LGPL-2.1', 'LGPLv2.1', 'Lesser GPL v2.1'],
+            'AGPL-3.0': ['AGPL-3', 'AGPLv3', 'Affero GPL v3', 'GNU Affero General Public License v3'],
+            
+            # BSD family
+            'BSD-3-Clause': ['BSD-3-Clause', 'BSD 3-Clause', '3-clause BSD', 'New BSD', 'Modified BSD'],
+            'BSD-2-Clause': ['BSD-2-Clause', 'BSD 2-Clause', '2-clause BSD', 'Simplified BSD', 'FreeBSD'],
+            
+            # Apache
+            'Apache-2.0': ['Apache-2.0', 'Apache 2.0', 'Apache License 2.0', 'Apache License, Version 2.0', 'ALv2'],
+            'Apache-1.1': ['Apache-1.1', 'Apache 1.1', 'Apache License 1.1'],
+            
+            # MIT
+            'MIT': ['MIT', 'MIT License', 'X11', 'Expat'],
+            
+            # Mozilla
+            'MPL-2.0': ['MPL-2.0', 'MPL 2.0', 'Mozilla Public License 2.0'],
+            'MPL-1.1': ['MPL-1.1', 'MPL 1.1', 'Mozilla Public License 1.1'],
+            
+            # Creative Commons
+            'CC0-1.0': ['CC0', 'CC0-1.0', 'Creative Commons Zero', 'Public Domain'],
+            'CC-BY-4.0': ['CC-BY-4.0', 'CC BY 4.0', 'Creative Commons Attribution 4.0'],
+            'CC-BY-SA-4.0': ['CC-BY-SA-4.0', 'CC BY-SA 4.0', 'Creative Commons Attribution-ShareAlike 4.0'],
+            
+            # Others
+            'ISC': ['ISC', 'ISC License'],
+            'Artistic-2.0': ['Artistic-2.0', 'Artistic License 2.0'],
+            'Unlicense': ['Unlicense', 'The Unlicense'],
+        }
+        
+        # Contextual patterns that suggest license mentions
+        context_patterns = [
+            r'[Ll]icensed\s+under\s+(?:the\s+)?',
+            r'(?:distributed|released|available)\s+under\s+(?:the\s+)?',
+            r'(?:uses?|using)\s+(?:the\s+)?',
+            r'(?:dual|tri)\s+licensed?:?\s*',
+            r'subject\s+to\s+(?:the\s+)?',
+            r'terms\s+of\s+(?:the\s+)?',
+        ]
+        
+        # Build regex for each license family
+        for spdx_id, variations in base_license_mapping.items():
+            # Escape special chars and create alternation pattern
+            escaped = [re.escape(v) for v in variations]
+            variation_pattern = '(?:' + '|'.join(escaped) + ')'
+            
+            # Look for the license in various contexts
+            full_pattern = rf'\b{variation_pattern}\b(?:\s+[Ll]icense)?'
+            
+            matches = re.finditer(full_pattern, content, re.IGNORECASE)
+            for match in matches:
+                # Check if it appears in a license context
+                # Look 50 chars before the match for context
+                start = max(0, match.start() - 50)
+                context = content[start:match.end()]
+                
+                # Check if any context pattern matches
+                has_context = any(re.search(pattern, context, re.IGNORECASE) for pattern in context_patterns)
+                
+                # Also accept if it's a standalone mention at beginning of line or after certain punctuation
+                # Check for comment or line start markers
+                if match.start() > 0:
+                    # Look back for comment markers or line start
+                    prefix = content[max(0, match.start()-3):match.start()]
+                    line_start = any(c in prefix for c in '\n*#/') or prefix.strip() in ['', '//', '/*', '#', '*']
+                else:
+                    line_start = True
+                
+                if has_context or line_start:
+                    licenses.append(DetectedLicense(
+                        spdx_id=spdx_id,
+                        name=spdx_id,
+                        confidence=0.85,  # Lower confidence for keyword detection
+                        detection_method=DetectionMethod.KEYWORD.value,
+                        source_file=str(file_path),
+                        category='detected',
+                        match_type='keyword'
+                    ))
+                    break  # Only one detection per license family per file
         
         return licenses
     
@@ -730,7 +831,7 @@ class LicenseDetector:
     
     def _detect_license_from_text(self, text: str, file_path: Path) -> Optional[DetectedLicense]:
         """
-        Detect license from text using three-tier detection.
+        Detect license from text using four-tier detection.
         
         Args:
             text: License text
@@ -739,21 +840,10 @@ class LicenseDetector:
         Returns:
             Detected license or None
         """
-        # Quick check for obvious MIT license
-        text_lower = text.lower()
-        if 'permission is hereby granted, free of charge' in text_lower and 'mit license' in text_lower:
-            category, match_type = self._categorize_license(
-                file_path, DetectionMethod.REGEX.value
-            )
-            return DetectedLicense(
-                spdx_id="MIT",
-                name="MIT License",
-                confidence=1.0,
-                detection_method=DetectionMethod.REGEX.value,
-                source_file=str(file_path),
-                category=category,
-                match_type=match_type
-            )
+        # Tier 0: Exact hash matching (SHA-256 and MD5)
+        detected = self._tier0_exact_hash(text, file_path)
+        if detected:
+            return detected
         
         # Tier 1: Dice-Sørensen similarity
         detected = self._tier1_dice_sorensen(text, file_path)
@@ -771,6 +861,48 @@ class LicenseDetector:
             return detected
         
         # No match found
+        return None
+    
+    def _tier0_exact_hash(self, text: str, file_path: Path) -> Optional[DetectedLicense]:
+        """
+        Tier 0: Exact hash matching using SHA-256 and MD5.
+        
+        Args:
+            text: License text
+            file_path: Source file
+            
+        Returns:
+            Detected license or None
+        """
+        # Compute SHA-256 hash of the input text
+        sha256_hash = self.spdx_data.compute_text_hash(text, 'sha256')
+        
+        # Try to find exact match by SHA-256
+        license_id = self.spdx_data.find_license_by_hash(sha256_hash, 'sha256')
+        
+        if not license_id:
+            # Fall back to MD5 if SHA-256 doesn't match
+            md5_hash = self.spdx_data.compute_text_hash(text, 'md5')
+            license_id = self.spdx_data.find_license_by_hash(md5_hash, 'md5')
+        
+        if license_id:
+            license_info = self.spdx_data.get_license_info(license_id)
+            category, match_type = self._categorize_license(
+                file_path, DetectionMethod.HASH.value
+            )
+            
+            logger.debug(f"Exact hash match found for {license_id}")
+            
+            return DetectedLicense(
+                spdx_id=license_id,
+                name=license_info.get('name', license_id) if license_info else license_id,
+                confidence=1.0,  # Exact match = 100% confidence
+                detection_method=DetectionMethod.HASH.value,
+                source_file=str(file_path),
+                category=category,
+                match_type="exact_hash"
+            )
+        
         return None
     
     def _tier1_dice_sorensen(self, text: str, file_path: Path) -> Optional[DetectedLicense]:
@@ -792,8 +924,8 @@ class LicenseDetector:
         if not input_bigrams:
             return None
         
-        best_match = None
-        best_score = 0.0
+        # Keep track of all matches to handle ties
+        matches = []
         
         # Compare with known licenses
         for license_id in self.spdx_data.get_all_license_ids():
@@ -812,13 +944,39 @@ class LicenseDetector:
             # Calculate Dice-Sørensen coefficient
             score = self._dice_coefficient(input_bigrams, license_bigrams)
             
-            if score > best_score:
-                best_score = score
-                best_match = license_id
+            if score >= 0.9:  # Only keep high-scoring matches
+                matches.append((license_id, score))
+        
+        if not matches:
+            return None
+        
+        # Sort by score descending
+        matches.sort(key=lambda x: -x[1])
+        best_score = matches[0][1]
+        
+        # Get all matches within 1% of best score
+        close_matches = [(lid, score) for lid, score in matches if score >= best_score - 0.01]
+        
+        # Choose the best match, with special handling for known problematic pairs
+        best_match = close_matches[0][0]
+        
+        # Special case: Prefer Apache-2.0 over Pixar when scores are close
+        # Pixar is "Modified Apache 2.0 License", so Apache-2.0 is more likely correct
+        license_ids = [m[0] for m in close_matches]
+        if 'Apache-2.0' in license_ids and 'Pixar' in license_ids:
+            # Find Apache-2.0 score
+            for lid, score in close_matches:
+                if lid == 'Apache-2.0':
+                    best_match = 'Apache-2.0'
+                    best_score = score
+                    logger.debug(f"Preferring Apache-2.0 over Pixar (Dice-Sørensen scores within 1%)")
+                    break
         
         if best_match and best_score >= 0.9:  # 90% threshold
-            # Confirm with TLSH to reduce false positives
-            if self.tlsh_detector.confirm_license_match(text, best_match):
+            
+            # For very high confidence (>95%), skip TLSH confirmation
+            # For lower confidence, confirm with TLSH to reduce false positives
+            if best_score >= 0.95 or self.tlsh_detector.confirm_license_match(text, best_match):
                 license_info = self.spdx_data.get_license_info(best_match)
                 category, match_type = self._categorize_license(
                     file_path, DetectionMethod.DICE_SORENSEN.value

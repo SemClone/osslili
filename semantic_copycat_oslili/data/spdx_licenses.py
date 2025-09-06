@@ -54,6 +54,7 @@ class SPDXLicenseData:
         self._license_index = {}
         self._aliases = {}
         self._name_mappings = {}
+        self._license_hashes = {}  # Store SHA-256 and MD5 hashes
     
     @property
     def licenses(self) -> Dict[str, Any]:
@@ -97,6 +98,8 @@ class SPDXLicenseData:
                 
                 # Build index
                 self._build_license_index()
+                # Load or compute hashes
+                self._load_license_hashes()
                 return
             except Exception as e:
                 logger.warning(f"Failed to load bundled data: {e}")
@@ -112,6 +115,8 @@ class SPDXLicenseData:
         
         # Build index
         self._build_license_index()
+        # Load or compute hashes
+        self._load_license_hashes()
     
     def _is_cache_valid(self, cache_file: Path) -> bool:
         """Check if cache file is valid and recent."""
@@ -301,7 +306,11 @@ class SPDXLicenseData:
         if self._bundled_data and 'licenses' in self._bundled_data:
             return list(self._bundled_data['licenses'].keys())
         
-        # Fall back to getting from index
+        # Fall back to getting from licenses dict
+        if isinstance(self.licenses, dict):
+            return list(self.licenses.keys())
+        
+        # Legacy format support
         license_ids = []
         for license_info in self.licenses.get('licenses', []):
             license_id = license_info.get('licenseId')
@@ -437,4 +446,65 @@ class SPDXLicenseData:
         
         hasher.update(normalized.encode('utf-8'))
         return hasher.hexdigest()
+    
+    def _load_license_hashes(self):
+        """Load or compute hashes for all bundled licenses."""
+        # First try to load from exact_hashes.json file
+        exact_hash_file = Path(__file__).parent / 'exact_hashes.json'
+        if exact_hash_file.exists():
+            try:
+                with open(exact_hash_file, 'r', encoding='utf-8') as f:
+                    self._license_hashes = json.load(f)
+                logger.debug(f"Loaded {len(self._license_hashes)} pre-computed exact hashes")
+                return
+            except Exception as e:
+                logger.warning(f"Failed to load exact hashes: {e}")
+        
+        # Fall back to bundled data if available
+        if self._bundled_data and 'license_hashes' in self._bundled_data:
+            # Use pre-computed hashes if available
+            self._license_hashes = self._bundled_data['license_hashes']
+            logger.debug(f"Loaded {len(self._license_hashes)} pre-computed license hashes")
+        else:
+            # Compute hashes for all licenses
+            self._compute_all_license_hashes()
+    
+    def _compute_all_license_hashes(self):
+        """Compute SHA-256 and MD5 hashes for all licenses."""
+        # This method is kept for backward compatibility but won't compute anything
+        # since license texts aren't stored in bundled data.
+        # Hashes are pre-computed and loaded from exact_hashes.json instead.
+        self._license_hashes = {}
+        logger.debug("Hash computation skipped - using pre-computed hashes from exact_hashes.json")
+    
+    def get_license_hash(self, license_id: str, algorithm: str = 'sha256') -> Optional[str]:
+        """
+        Get pre-computed hash for a license.
+        
+        Args:
+            license_id: SPDX license ID
+            algorithm: Hash algorithm ('sha256' or 'md5')
+            
+        Returns:
+            Hash hex digest or None
+        """
+        if license_id in self._license_hashes:
+            return self._license_hashes[license_id].get(algorithm)
+        return None
+    
+    def find_license_by_hash(self, text_hash: str, algorithm: str = 'sha256') -> Optional[str]:
+        """
+        Find license ID by text hash.
+        
+        Args:
+            text_hash: Hash hex digest to search for
+            algorithm: Hash algorithm used
+            
+        Returns:
+            License ID if found, None otherwise
+        """
+        for license_id, hashes in self._license_hashes.items():
+            if hashes.get(algorithm) == text_hash:
+                return license_id
+        return None
     
