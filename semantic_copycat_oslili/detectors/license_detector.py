@@ -33,6 +33,8 @@ class LicenseDetector:
         self.config = config
         self.input_processor = InputProcessor()
         self.spdx_data = SPDXLicenseData(config)
+        # Ensure SPDX data and hashes are loaded
+        _ = self.spdx_data.licenses  # Trigger lazy loading of licenses and hashes
         self.tlsh_detector = TLSHDetector(config, self.spdx_data)
         
         # License filename patterns
@@ -838,22 +840,6 @@ class LicenseDetector:
         Returns:
             Detected license or None
         """
-        # Quick check for obvious MIT license
-        text_lower = text.lower()
-        if 'permission is hereby granted, free of charge' in text_lower and 'mit license' in text_lower:
-            category, match_type = self._categorize_license(
-                file_path, DetectionMethod.REGEX.value
-            )
-            return DetectedLicense(
-                spdx_id="MIT",
-                name="MIT License",
-                confidence=1.0,
-                detection_method=DetectionMethod.REGEX.value,
-                source_file=str(file_path),
-                category=category,
-                match_type=match_type
-            )
-        
         # Tier 0: Exact hash matching (SHA-256 and MD5)
         detected = self._tier0_exact_hash(text, file_path)
         if detected:
