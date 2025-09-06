@@ -730,7 +730,7 @@ class LicenseDetector:
     
     def _detect_license_from_text(self, text: str, file_path: Path) -> Optional[DetectedLicense]:
         """
-        Detect license from text using three-tier detection.
+        Detect license from text using four-tier detection.
         
         Args:
             text: License text
@@ -755,6 +755,11 @@ class LicenseDetector:
                 match_type=match_type
             )
         
+        # Tier 0: Exact hash matching (SHA-256 and MD5)
+        detected = self._tier0_exact_hash(text, file_path)
+        if detected:
+            return detected
+        
         # Tier 1: Dice-Sørensen similarity
         detected = self._tier1_dice_sorensen(text, file_path)
         if detected and detected.confidence >= self.config.similarity_threshold:
@@ -771,6 +776,48 @@ class LicenseDetector:
             return detected
         
         # No match found
+        return None
+    
+    def _tier0_exact_hash(self, text: str, file_path: Path) -> Optional[DetectedLicense]:
+        """
+        Tier 0: Exact hash matching using SHA-256 and MD5.
+        
+        Args:
+            text: License text
+            file_path: Source file
+            
+        Returns:
+            Detected license or None
+        """
+        # Compute SHA-256 hash of the input text
+        sha256_hash = self.spdx_data.compute_text_hash(text, 'sha256')
+        
+        # Try to find exact match by SHA-256
+        license_id = self.spdx_data.find_license_by_hash(sha256_hash, 'sha256')
+        
+        if not license_id:
+            # Fall back to MD5 if SHA-256 doesn't match
+            md5_hash = self.spdx_data.compute_text_hash(text, 'md5')
+            license_id = self.spdx_data.find_license_by_hash(md5_hash, 'md5')
+        
+        if license_id:
+            license_info = self.spdx_data.get_license_info(license_id)
+            category, match_type = self._categorize_license(
+                file_path, DetectionMethod.HASH.value
+            )
+            
+            logger.debug(f"Exact hash match found for {license_id}")
+            
+            return DetectedLicense(
+                spdx_id=license_id,
+                name=license_info.get('name', license_id) if license_info else license_id,
+                confidence=1.0,  # Exact match = 100% confidence
+                detection_method=DetectionMethod.HASH.value,
+                source_file=str(file_path),
+                category=category,
+                match_type="exact_hash"
+            )
+        
         return None
     
     def _tier1_dice_sorensen(self, text: str, file_path: Path) -> Optional[DetectedLicense]:
@@ -792,8 +839,8 @@ class LicenseDetector:
         if not input_bigrams:
             return None
         
-        best_match = None
-        best_score = 0.0
+        # Keep track of all matches to handle ties
+        matches = []
         
         # Compare with known licenses
         for license_id in self.spdx_data.get_all_license_ids():
@@ -812,13 +859,39 @@ class LicenseDetector:
             # Calculate Dice-Sørensen coefficient
             score = self._dice_coefficient(input_bigrams, license_bigrams)
             
-            if score > best_score:
-                best_score = score
-                best_match = license_id
+            if score >= 0.9:  # Only keep high-scoring matches
+                matches.append((license_id, score))
+        
+        if not matches:
+            return None
+        
+        # Sort by score descending
+        matches.sort(key=lambda x: -x[1])
+        best_score = matches[0][1]
+        
+        # Get all matches within 1% of best score
+        close_matches = [(lid, score) for lid, score in matches if score >= best_score - 0.01]
+        
+        # Choose the best match, with special handling for known problematic pairs
+        best_match = close_matches[0][0]
+        
+        # Special case: Prefer Apache-2.0 over Pixar when scores are close
+        # Pixar is "Modified Apache 2.0 License", so Apache-2.0 is more likely correct
+        license_ids = [m[0] for m in close_matches]
+        if 'Apache-2.0' in license_ids and 'Pixar' in license_ids:
+            # Find Apache-2.0 score
+            for lid, score in close_matches:
+                if lid == 'Apache-2.0':
+                    best_match = 'Apache-2.0'
+                    best_score = score
+                    logger.debug(f"Preferring Apache-2.0 over Pixar (Dice-Sørensen scores within 1%)")
+                    break
         
         if best_match and best_score >= 0.9:  # 90% threshold
-            # Confirm with TLSH to reduce false positives
-            if self.tlsh_detector.confirm_license_match(text, best_match):
+            
+            # For very high confidence (>95%), skip TLSH confirmation
+            # For lower confidence, confirm with TLSH to reduce false positives
+            if best_score >= 0.95 or self.tlsh_detector.confirm_license_match(text, best_match):
                 license_info = self.spdx_data.get_license_info(best_match)
                 category, match_type = self._categorize_license(
                     file_path, DetectionMethod.DICE_SORENSEN.value

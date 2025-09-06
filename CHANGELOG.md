@@ -5,6 +5,37 @@ All notable changes to semantic-copycat-oslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.6] - 2025-09-06
+
+### Added
+- **Tier 0 Exact Hash Matching**: Added SHA-256 and MD5 hash matching as the first detection tier
+  - Pre-computed hashes for all 699 SPDX licenses
+  - Support for license variants and aliases
+  - 100% confidence for exact matches
+  - New `DetectionMethod.HASH` enum value
+- **Hash Inventory System**: Comprehensive hash inventory for license matching
+  - Standard SPDX license hashes
+  - Common variants (e.g., gradle-wrapper Apache-2.0)
+  - Hash lookup tables for fast matching
+  - Support for hash collisions (e.g., GPL versions)
+
+### Improved
+- **Detection Tier Reorganization**: Four-tier system: Hash → Dice-Sørensen → TLSH → Regex
+  - Exact hash matching runs first for perfect matches
+  - Dice-Sørensen no longer requires TLSH confirmation for >95% confidence
+  - Better performance and accuracy
+- **Apache-2.0 vs Pixar Disambiguation**: Special handling for Modified Apache 2.0 License
+  - Prefers Apache-2.0 over Pixar when Dice-Sørensen scores are within 1%
+  - Fixes issue #16 where Apache-2.0 was incorrectly detected as Pixar
+  - Handles gradle-wrapper.jar Apache license variant correctly
+
+### Fixed
+- **TLSH Hash Collision**: Resolved Apache-2.0 being misidentified as Pixar license
+  - TLSH hashes were too similar (distance 8-24)
+  - Now handled by preferring base license over modified versions
+  - Exact hash matching bypasses fuzzy matching issues
+- **License Loading**: Fixed `get_all_license_ids()` to properly handle dictionary format
+
 ## [1.3.5] - 2025-09-03
 
 ### Added

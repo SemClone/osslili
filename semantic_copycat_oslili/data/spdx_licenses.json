@@ -1,7 +1,7 @@
 {
-  "version": "5dbff5c",
-  "release_date": "2025-07-29T00:00:00Z",
-  "download_date": "2025-08-16T01:00:50.814243",
+  "version": "f54d7c8",
+  "release_date": "2025-08-20T00:00:00Z",
+  "download_date": "2025-09-06T10:54:41.273841",
   "licenses": {
     "0BSD": {
       "name": "BSD Zero Clause License",
@@ -815,7 +815,7 @@
         "https://www.eclipse.org/org/documents/edl-v10.php"
       ],
       "text": "Copyright (c) <year> <owner>. \n\nRedistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:\n\n1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.\n\n2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.\n\n3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.\n\nTHIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n",
-      "standardLicenseTemplate": "<<var;name=\"copyright\";original=\"Copyright (c) <year> <owner>.  \";match=\".{0,5000}\">>\nRedistribution and use in source and binary forms<<var;name=\"theme\";original=\"\";match=\"()|( of the theme)\">>, with or without modification, <<var;name=\"tobe\";original=\"are\";match=\"are|is\">> permitted provided that the following conditions are met:\n\n   <<var;name=\"bullet\";original=\"1.\";match=\".{0,20}\">> Redistributions of <<var;name=\"code\";original=\"source code\";match=\"source code|works\">> must retain the <<var;name=\"above\";original=\"above\";match=\"above|original\">> copyright notice, this list of conditions and the following disclaimer.\n   <<var;name=\"bullet\";original=\"2.\";match=\".{0,20}\">> Redistributions in binary form must reproduce the <<var;name=\"above2\";original=\"above\";match=\"above|original\">> copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.\n   <<var;name=\"bullet\";original=\"3.\";match=\".{0,20}\">> <<var;name=\"organizationClause3\";original=\"Neither the name of the copyright holder nor the names of its contributors may\";match=\"(The\\s+name\\s+of.+may\\s+not)|(Neither\\s+the\\s+names?\\s+of.+nor\\s+the\\s+names\\s+of\\s+its\\s+contributors\\s+may)|(Neither\\s+the\\s+names?\\s+of.+nor\\s+the\\s+names\\s+of\\s+their\\s+contributors\\s+may)|(\\s*Neither\\s+the\\s+name\\s+of.+nor\\s+the\\s+names\\s+of\\s+its\\s+authors\\s+and\\s+contributors\\s+may)|(Neither\\s+the\\s+name\\s+of.+nor\\s+the\\s+names\\s+of\\s+(specific\\s+)?contributors,?\\s+may)|(Neither\\s+the\\s+name.+nor\\s+the\\s+names\\s+of\\s+contributors\\s+may)|(The\\s+names\\s+of\\s+its\\s+contributors\\s+may\\s+not)|(The\\s+names\\s+of\\s+any\\s+contributors\\s+may\\s+not)|(The\\s+names\\s+of\\s+the\\s+contributors\\s+may\\s+not)|(None\\s+of\\s+the\\s+names\\s+of.+and\\s+any\\s+contributors\\s+may)|(Neither\\s+my\\s+name.+nor\\s+the\\s+names\\s+of\\s+contributors\\s+to\\s+this\\s+code\\s+may)|(Neither\\s+name\\s+of\\s+copyright\\s+holders\\s+nor\\s+the\\s+names\\s+of\\s+its\\s+contributors\\s+may)\">> be used to endorse or promote products derived from this <<var;name=\"software\";original=\"software\";match=\"software|work\">> without<<beginOptional>> specific<<endOptional>> prior written permission. <<var;name=\"contact\";original=\"\";match=\"(To obtain permission, contact .*)?\">>\nTHIS <<var;name=\"software2\";original=\"SOFTWARE\";match=\"(SOFTWARE)|(THEME)\">> IS PROVIDED <<var;name=\"copyrightHolderAsIs\";original=\"BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS\";match=\".*\">> \"AS IS\" AND ANY <<var;name=\"express\";original=\"EXPRESS\";match=\"EXPRESS(ED)?\">> OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL <<var;name=\"copyrightHolderLiability\";original=\"THE COPYRIGHT HOLDER OR CONTRIBUTORS\";match=\".+\">> BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS <<var;name=\"software3\";original=\"SOFTWARE\";match=\"(SOFTWARE)|(THEME)\">> , EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n"
+      "standardLicenseTemplate": "<<var;name=\"copyright\";original=\"Copyright (c) <year> <owner>.  \";match=\".{0,5000}\">>\nRedistribution and use in source and binary forms<<var;name=\"theme\";original=\"\";match=\"()|( of the theme)\">>, with or without modification, <<var;name=\"tobe\";original=\"are\";match=\"are|is\">> permitted provided that the following conditions are met:\n\n   <<var;name=\"bullet\";original=\"1.\";match=\".{0,20}\">> Redistributions of <<var;name=\"code\";original=\"source code\";match=\"source code|works\">> must retain the <<var;name=\"above\";original=\"above\";match=\"above|original\">> copyright notice, this list of conditions and the following disclaimer.\n   <<var;name=\"bullet\";original=\"2.\";match=\".{0,20}\">> Redistributions in binary form must reproduce the <<var;name=\"above2\";original=\"above\";match=\"above|original\">> copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.\n   <<var;name=\"bullet\";original=\"3.\";match=\".{0,20}\">> <<var;name=\"organizationClause3\";original=\"Neither the name of the copyright holder nor the names of its contributors may\";match=\"(The\\s+name\\s+of.+may\\s+not)|(Neither\\s+the\\s+names?\\s+of.+nor\\s+the\\s+names\\s+of\\s+its\\s+contributors\\s+may)|(Neither\\s+the\\s+names?\\s+of.+nor\\s+the\\s+names\\s+of\\s+their\\s+contributors\\s+may)|(Neither\\s+the\\s+names?\\s+of.+nor\\s+the\\s+names\\s+of\\s+any\\s+contributors\\s+may)|(\\s*Neither\\s+the\\s+name\\s+of.+nor\\s+the\\s+names\\s+of\\s+its\\s+authors\\s+and\\s+contributors\\s+may)|(Neither\\s+the\\s+name\\s+of.+nor\\s+the\\s+names\\s+of\\s+(specific\\s+)?contributors,?\\s+may)|(Neither\\s+the\\s+name.+nor\\s+the\\s+names\\s+of\\s+contributors\\s+may)|(The\\s+names\\s+of\\s+its\\s+contributors\\s+may\\s+not)|(The\\s+names\\s+of\\s+any\\s+contributors\\s+may\\s+not)|(The\\s+names\\s+of\\s+the\\s+contributors\\s+may\\s+not)|(None\\s+of\\s+the\\s+names\\s+of.+and\\s+any\\s+contributors\\s+may)|(Neither\\s+my\\s+name.+nor\\s+the\\s+names\\s+of\\s+contributors\\s+to\\s+this\\s+code\\s+may)|(Neither\\s+name\\s+of\\s+copyright\\s+holders\\s+nor\\s+the\\s+names\\s+of\\s+its\\s+contributors\\s+may)\">> be used to endorse or promote products derived from this <<var;name=\"software\";original=\"software\";match=\"software|work\">> without<<beginOptional>> specific<<endOptional>> prior written permission. <<var;name=\"contact\";original=\"\";match=\"(To obtain permission, contact .*)?\">>\nTHIS <<var;name=\"software2\";original=\"SOFTWARE\";match=\"(SOFTWARE)|(THEME)\">> IS PROVIDED <<var;name=\"copyrightHolderAsIs\";original=\"BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS\";match=\".*\">> \"AS IS\" AND ANY <<var;name=\"express\";original=\"EXPRESS\";match=\"EXPRESS(ED)?\">> OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL <<var;name=\"copyrightHolderLiability\";original=\"THE COPYRIGHT HOLDER OR CONTRIBUTORS\";match=\".+\">> BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS <<var;name=\"software3\";original=\"SOFTWARE\";match=\"(SOFTWARE)|(THEME)\">> , EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n"
     },
     "BSD-3-Clause-acpica": {
       "name": "BSD 3-Clause acpica variant",
@@ -947,6 +947,16 @@
       "isFsfLibre": false,
       "seeAlso": [
         "https://github.com/xmlark/msv/blob/b9316e2f2270bc1606952ea4939ec87fbba157f3/xsdlib/src/main/java/com/sun/msv/datatype/regexp/InternalImpl.java"
+      ]
+    },
+    "BSD-3-Clause-Tso": {
+      "name": "BSD 3-Clause Tso variant",
+      "reference": "https://spdx.org/licenses/BSD-3-Clause-Tso.html",
+      "isDeprecatedLicenseId": false,
+      "isOsiApproved": false,
+      "isFsfLibre": false,
+      "seeAlso": [
+        "https://www.x.org/archive/current/doc/xorg-docs/License.html#Theodore_Tso"
       ]
     },
     "BSD-4-Clause": {
@@ -2518,6 +2528,16 @@
       "isFsfLibre": false,
       "seeAlso": [
         "http://www.erlang.org/EPLICENSE"
+      ]
+    },
+    "ESA-PL-weak-copyleft-2.4": {
+      "name": "European Space Agency Public License – v2.4 – Weak Copyleft (Type 2)",
+      "reference": "https://spdx.org/licenses/ESA-PL-weak-copyleft-2.4.html",
+      "isDeprecatedLicenseId": false,
+      "isOsiApproved": false,
+      "isFsfLibre": false,
+      "seeAlso": [
+        "https://essr.esa.int/license/european-space-agency-public-license-v2-4-weak-copyleft-type-2"
       ]
     },
     "etalab-2.0": {
@@ -7022,6 +7042,17 @@
         "https://fedoraproject.org/wiki/Licensing/Wsuipa"
       ]
     },
+    "WTFNMFPL": {
+      "name": "Do What The F*ck You Want To But It's Not My Fault Public License",
+      "reference": "https://spdx.org/licenses/WTFNMFPL.html",
+      "isDeprecatedLicenseId": false,
+      "isOsiApproved": false,
+      "isFsfLibre": false,
+      "seeAlso": [
+        "https://github.com/adversary-org/wtfnmf/raw/refs/tags/1.0/COPYING.WTFNMFPL",
+        "https://github.com/adversary-org/wtfnmf/raw/3f2cd8235a64350a57a51b9739715edaea63ec1a/COPYING.WTFNMFPL-utf8"
+      ]
+    },
     "WTFPL": {
       "name": "Do What The F*ck You Want To Public License",
       "reference": "https://spdx.org/licenses/WTFPL.html",
@@ -7583,6 +7614,8 @@
     "bsd 3-clause open mpi variant": "BSD-3-Clause-Open-MPI",
     "BSD 3-Clause Sun Microsystems": "BSD-3-Clause-Sun",
     "bsd 3-clause sun microsystems": "BSD-3-Clause-Sun",
+    "BSD 3-Clause Tso variant": "BSD-3-Clause-Tso",
+    "bsd 3-clause tso variant": "BSD-3-Clause-Tso",
     "BSD 4-Clause \"Original\" or \"Old\" License": "BSD-4-Clause",
     "bsd 4-clause \"original\" or \"old\" license": "BSD-4-Clause",
     "BSD 4-Clause \"Original\" or \"Old\"": "BSD-4-Clause",
@@ -7947,6 +7980,8 @@
     "eclipse public license 2.0": "EPL-2.0",
     "Erlang Public License v1.1": "ErlPL-1.1",
     "erlang public license v1.1": "ErlPL-1.1",
+    "European Space Agency Public License – v2.4 – Weak Copyleft (Type 2)": "ESA-PL-weak-copyleft-2.4",
+    "european space agency public license – v2.4 – weak copyleft (type 2)": "ESA-PL-weak-copyleft-2.4",
     "Etalab Open License 2.0": "etalab-2.0",
     "etalab open license 2.0": "etalab-2.0",
     "EU DataGrid Software License": "EUDatagrid",
@@ -9082,6 +9117,10 @@
     "wsuipa license": "Wsuipa",
     "Wsuipa": "Wsuipa",
     "wsuipa": "Wsuipa",
+    "Do What The F*ck You Want To But It's Not My Fault Public License": "WTFNMFPL",
+    "do what the f*ck you want to but it's not my fault public license": "WTFNMFPL",
+    "Do What The F*ck You Want To But It's Not My Fault Public": "WTFNMFPL",
+    "do what the f*ck you want to but it's not my fault public": "WTFNMFPL",
     "Do What The F*ck You Want To Public License": "WTFPL",
     "do what the f*ck you want to public license": "WTFPL",
     "Do What The F*ck You Want To Public": "WTFPL",
