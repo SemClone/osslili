@@ -130,10 +130,95 @@ class LicenseCopyrightDetector:
         
         return result
     
+    def extract_package_metadata(self, path: str) -> DetectionResult:
+        """
+        Fast-path API for extracting license information from package metadata files only.
+        This method skips full text analysis and only extracts from structured metadata.
+
+        Supports:
+        - package.json (Node.js)
+        - pyproject.toml, setup.py, setup.cfg (Python)
+        - pom.xml (Maven/Java)
+        - Cargo.toml (Rust)
+        - *.gemspec (Ruby)
+        - *.nuspec (NuGet/.NET)
+        - composer.json (PHP)
+        - build.gradle (Gradle/Java)
+
+        Args:
+            path: Path to package metadata file or directory containing metadata files
+
+        Returns:
+            DetectionResult with licenses extracted from metadata only
+        """
+        start_time = time.time()
+
+        # Validate path
+        is_valid, path_obj, error = self.input_processor.validate_local_path(path)
+
+        result = DetectionResult(
+            path=str(path),
+            package_name=Path(path).name
+        )
+
+        if not is_valid:
+            result.errors.append(error)
+            return result
+
+        try:
+            from ..detectors.license_detector import LicenseDetector
+            detector = LicenseDetector(self.config)
+
+            # List of package metadata filenames to look for
+            metadata_files = [
+                'package.json', 'pyproject.toml', 'setup.py', 'setup.cfg',
+                'pom.xml', 'Cargo.toml', 'composer.json', 'build.gradle'
+            ]
+
+            files_to_scan = []
+
+            if path_obj.is_file():
+                # Single file mode
+                files_to_scan = [path_obj]
+            else:
+                # Directory mode - find metadata files
+                for metadata_file in metadata_files:
+                    candidate = path_obj / metadata_file
+                    if candidate.exists() and candidate.is_file():
+                        files_to_scan.append(candidate)
+
+                # Also check for .gemspec and .nuspec files
+                for pattern in ['*.gemspec', '*.nuspec']:
+                    files_to_scan.extend(path_obj.glob(pattern))
+
+            # Extract metadata from each file
+            for file_path in files_to_scan:
+                try:
+                    content = self.input_processor.read_text_file(file_path)
+                    if content:
+                        metadata_licenses = detector._extract_package_metadata(content, file_path)
+                        result.licenses.extend(metadata_licenses)
+                except Exception as e:
+                    logger.debug(f"Error reading {file_path}: {e}")
+
+            # Calculate confidence scores
+            if result.licenses:
+                result.confidence_scores['license'] = max(l.confidence for l in result.licenses)
+            else:
+                result.confidence_scores['license'] = 0.0
+
+        except Exception as e:
+            logger.error(f"Error extracting metadata from {path}: {e}")
+            result.errors.append(str(e))
+        finally:
+            result.processing_time = time.time() - start_time
+
+        return result
+
     def _process_local_path(self, path: Path, result: DetectionResult):
         """
         Process a local directory or file.
-        
+
         Args:
             path: Path to local directory or file
             result: DetectionResult to populate
@@ -143,22 +228,22 @@ class LicenseCopyrightDetector:
         licenses = self.license_detector.detect_licenses(path)
         logger.debug(f"License detector returned {len(licenses)} licenses")
         result.licenses.extend(licenses)
-        
+
         # Extract copyright information
         copyrights = self.copyright_extractor.extract_copyrights(path)
         result.copyrights.extend(copyrights)
-        
+
         # Calculate confidence scores
         if result.licenses:
             result.confidence_scores['license'] = max(l.confidence for l in result.licenses)
         else:
             result.confidence_scores['license'] = 0.0
-        
+
         if result.copyrights:
             result.confidence_scores['copyright'] = max(c.confidence for c in result.copyrights)
         else:
             result.confidence_scores['copyright'] = 0.0
-        
+
         logger.debug(f"Found {len(result.licenses)} license(s) and {len(result.copyrights)} copyright(s)")
     
     def generate_evidence(self, results: List[DetectionResult]) -> str:
