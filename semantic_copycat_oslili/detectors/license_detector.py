@@ -499,16 +499,25 @@ class LicenseDetector:
             root = ET.fromstring(content)
 
             # Maven uses namespace, need to handle it
+            # Extract namespace from root tag if present
+            namespace = ''
+            if root.tag.startswith('{'):
+                namespace = root.tag[1:root.tag.index('}')]
+
             # Try without namespace first
             license_elements = root.findall('.//license')
-            if not license_elements:
-                # Try with common Maven namespace
-                namespaces = {'m': 'http://maven.apache.org/POM/4.0.0'}
+
+            # Try with namespace if no results
+            if not license_elements and namespace:
+                namespaces = {'m': namespace}
                 license_elements = root.findall('.//m:license', namespaces)
 
             for license_elem in license_elements:
-                # Try to find name element
-                name_elem = license_elem.find('name') or license_elem.find('{http://maven.apache.org/POM/4.0.0}name')
+                # Try to find name element with and without namespace
+                name_elem = license_elem.find('name')
+                if name_elem is None and namespace:
+                    name_elem = license_elem.find(f'{{{namespace}}}name')
+
                 if name_elem is not None and name_elem.text:
                     license_name = name_elem.text.strip()
                     normalized_id = self._normalize_license_id(license_name)
