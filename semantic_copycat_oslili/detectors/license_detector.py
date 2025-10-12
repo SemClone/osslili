@@ -117,8 +117,10 @@ class LicenseDetector:
             re.compile(r'SPDX-License-Identifier:\s*([^\n]+?)(?:\s*\*/)?(?:\s*-->)?$', re.IGNORECASE | re.MULTILINE),
             # Python METADATA: License-Expression: <license>
             re.compile(r'License-Expression:\s*([^\s\n]+)', re.IGNORECASE),
-            # package.json style: "license": "MIT"
+            # package.json style: "license": "MIT" or licenses array with "type": "MIT"
             re.compile(r'"license"\s*:\s*"([^"]+)"', re.IGNORECASE),
+            # package.json licenses array: {"type": "MIT", ...}
+            re.compile(r'"type"\s*:\s*"([^"]+)"', re.IGNORECASE),
             # pyproject.toml style: license = {text = "Apache-2.0"}
             re.compile(r'license\s*=\s*\{[^}]*text\s*=\s*"([^"]+)"', re.IGNORECASE),
             # pyproject.toml style: license = "MIT"
