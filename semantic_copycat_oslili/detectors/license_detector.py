@@ -514,6 +514,10 @@ class LicenseDetector:
         elif file_name.endswith('composer.json') or file_name == 'composer.json':
             metadata_licenses.extend(self._extract_from_composer_json(content, file_path))
 
+        # pyproject.toml (Python)
+        elif file_name.endswith('pyproject.toml') or file_name == 'pyproject.toml':
+            metadata_licenses.extend(self._extract_from_pyproject_toml(content, file_path))
+
         # Add metadata licenses, but skip if the same license was already found in header
         for license in metadata_licenses:
             # If same SPDX ID was found in header, prefer the metadata version
@@ -1121,9 +1125,45 @@ class LicenseDetector:
                         match_type='keyword'
                     ))
                     break  # Only one detection per license family per file
-        
         return licenses
-    
+
+    def _extract_from_pyproject_toml(self, content: str, file_path: Path) -> List[DetectedLicense]:
+        """Extract licenses from Python pyproject.toml files."""
+        licenses = []
+        import re
+
+        # Patterns for different pyproject.toml license formats
+        patterns = [
+            # Pattern for license = "LICENSE_ID"
+            (re.compile(r'^\s*license\s*=\s*"([^"]+)"', re.MULTILINE), 'simple'),
+            # Pattern for license = {text = "LICENSE_ID"}
+            (re.compile(r'license\s*=\s*\{[^}]*text\s*=\s*"([^"]+)"', re.IGNORECASE), 'dict'),
+        ]
+
+        for pattern, format_type in patterns:
+            for match in pattern.finditer(content):
+                license_id = match.group(1).strip()
+                license_ids = self._parse_license_expression(license_id)
+
+                for lid in license_ids:
+                    normalized_id = self._normalize_license_id(lid)
+                    license_info = self.spdx_data.get_license_info(normalized_id)
+
+                    licenses.append(DetectedLicense(
+                        spdx_id=license_info['licenseId'] if license_info else normalized_id,
+                        name=license_info.get('name', normalized_id) if license_info else lid,
+                        confidence=1.0,
+                        detection_method=DetectionMethod.TAG.value,
+                        source_file=str(file_path),
+                        category=LicenseCategory.DECLARED.value,
+                        match_type="package_metadata"
+                    ))
+
+                # Only process first match of each format to avoid duplicates
+                break
+
+        return licenses
+
     def _normalize_license_id(self, license_id: str) -> str:
         """
         Normalize license ID to match SPDX format.
