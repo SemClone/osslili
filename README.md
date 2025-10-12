@@ -77,7 +77,7 @@ oslili /path/to/project
 # Generate different output formats
 oslili ./my-project -f kissbom -o kissbom.json
 oslili ./my-project -f cyclonedx-json -o sbom.json
-oslili ./my-project -f notices -o NOTICE.txt
+oslili ./my-project -f cyclonedx-xml -o sbom.xml
 
 # Scan with parallel processing (4 threads)
 oslili ./my-project --threads 4
@@ -168,7 +168,7 @@ result = detector.process_local_path("/path/to/LICENSE")
 evidence = detector.generate_evidence([result])
 kissbom = detector.generate_kissbom([result])
 cyclonedx = detector.generate_cyclonedx([result], format_type="json")
-notices = detector.generate_notices([result])
+cyclonedx_xml = detector.generate_cyclonedx([result], format_type="xml")
 
 # Access results directly
 for license in result.licenses:
