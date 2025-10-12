@@ -5,6 +5,7 @@ License detection module with multi-tier detection system.
 import logging
 import re
 import fnmatch
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import List, Optional, Set, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -65,8 +66,9 @@ class LicenseDetector:
             return LicenseCategory.DECLARED.value, "license_file"
         
         # Package metadata files
-        if file_name in ['package.json', 'setup.py', 'setup.cfg', 'pyproject.toml', 
-                         'cargo.toml', 'pom.xml', 'build.gradle', 'composer.json']:
+        if file_name in ['package.json', 'setup.py', 'setup.cfg', 'pyproject.toml',
+                         'cargo.toml', 'pom.xml', 'build.gradle', 'composer.json'] or \
+           file_name.endswith('.gemspec') or file_name.endswith('.nuspec'):
             return LicenseCategory.DECLARED.value, "package_metadata"
         
         # SPDX tags in any file are considered declared
@@ -357,10 +359,14 @@ class LicenseDetector:
         if not content:
             return licenses
         
+        # Method 0: Extract from package metadata files first (highest priority)
+        metadata_licenses = self._extract_package_metadata(content, file_path)
+        licenses.extend(metadata_licenses)
+
         # Method 1: Detect SPDX tags
         tag_licenses = self._detect_spdx_tags(content, file_path)
         licenses.extend(tag_licenses)
-        
+
         # Method 1b: Detect license keywords (base licenses)
         keyword_licenses = self._detect_license_keywords(content, file_path)
         licenses.extend(keyword_licenses)
@@ -451,6 +457,506 @@ class LicenseDetector:
         
         return None
     
+    def _extract_package_metadata(self, content: str, file_path: Path) -> List[DetectedLicense]:
+        """
+        Extract license information from package metadata files.
+        Supports: pom.xml, *.nuspec, *.gemspec, Cargo.toml, setup.cfg, setup.py, package.json, composer.json
+
+        Also extracts SPDX tags from source headers in metadata files.
+        """
+        licenses = []
+        file_name = file_path.name.lower()
+        seen_licenses = {}  # Track licenses by (spdx_id, match_type) to avoid duplicates
+
+        # First, check for SPDX tags in the header/comments of the metadata file
+        header_licenses = self._extract_header_licenses(content, file_path)
+        for license in header_licenses:
+            key = (license.spdx_id, license.match_type)
+            if key not in seen_licenses:
+                licenses.append(license)
+                seen_licenses[key] = license
+
+        # Then extract from structured metadata
+        metadata_licenses = []
+
+        # Check if file matches metadata patterns (handles temp files with suffixes)
+        # pom.xml (Maven)
+        if file_name.endswith('pom.xml') or file_name == 'pom.xml':
+            metadata_licenses.extend(self._extract_from_pom_xml(content, file_path))
+
+        # *.nuspec (NuGet)
+        elif file_name.endswith('.nuspec'):
+            metadata_licenses.extend(self._extract_from_nuspec(content, file_path))
+
+        # *.gemspec (Ruby)
+        elif file_name.endswith('.gemspec'):
+            metadata_licenses.extend(self._extract_from_gemspec(content, file_path))
+
+        # Cargo.toml (Rust)
+        elif file_name.endswith('cargo.toml') or file_name == 'cargo.toml':
+            metadata_licenses.extend(self._extract_from_cargo_toml(content, file_path))
+
+        # setup.cfg (Python)
+        elif file_name.endswith('setup.cfg') or file_name == 'setup.cfg':
+            metadata_licenses.extend(self._extract_from_setup_cfg(content, file_path))
+
+        # setup.py (Python)
+        elif file_name.endswith('setup.py') or file_name == 'setup.py':
+            metadata_licenses.extend(self._extract_from_setup_py(content, file_path))
+
+        # package.json (Node.js)
+        elif file_name.endswith('package.json') or file_name == 'package.json':
+            metadata_licenses.extend(self._extract_from_package_json(content, file_path))
+
+        # composer.json (PHP)
+        elif file_name.endswith('composer.json') or file_name == 'composer.json':
+            metadata_licenses.extend(self._extract_from_composer_json(content, file_path))
+
+        # Add metadata licenses, but skip if the same license was already found in header
+        for license in metadata_licenses:
+            # If same SPDX ID was found in header, prefer the metadata version
+            # as it's more authoritative
+            header_key = (license.spdx_id, "header_tag")
+            if header_key in seen_licenses:
+                # Replace header version with metadata version
+                idx = licenses.index(seen_licenses[header_key])
+                licenses[idx] = license
+                seen_licenses[(license.spdx_id, license.match_type)] = license
+                del seen_licenses[header_key]
+            else:
+                key = (license.spdx_id, license.match_type)
+                if key not in seen_licenses:
+                    licenses.append(license)
+                    seen_licenses[key] = license
+
+        return licenses
+
+    def _extract_header_licenses(self, content: str, file_path: Path) -> List[DetectedLicense]:
+        """
+        Extract license information from the header/comments of a metadata file.
+        This includes SPDX tags and license references in comments.
+        """
+        licenses = []
+
+        # Only check first 30 lines for header licenses
+        lines = content.splitlines()[:30]
+        header_content = '\n'.join(lines)
+
+        # Extract SPDX tags from comments
+        spdx_patterns = [
+            r'(?:^|\s)SPDX-License-Identifier:\s*([^\s\n]+)',
+            r'(?:^|\s)License:\s*([^\s\n]+)',
+        ]
+
+        for pattern in spdx_patterns:
+            matches = re.finditer(pattern, header_content, re.IGNORECASE | re.MULTILINE)
+            for match in matches:
+                license_id = match.group(1).strip()
+                # Remove comment markers if present
+                license_id = license_id.rstrip('*/>').strip()
+
+                normalized_id = self._normalize_license_id(license_id)
+                license_info = self.spdx_data.get_license_info(normalized_id)
+
+                if license_info:
+                    licenses.append(DetectedLicense(
+                        spdx_id=license_info['licenseId'],
+                        name=license_info.get('name', normalized_id),
+                        confidence=1.0,
+                        detection_method=DetectionMethod.TAG.value,
+                        source_file=str(file_path),
+                        category=LicenseCategory.DECLARED.value,
+                        match_type="header_tag"
+                    ))
+
+        return licenses
+
+    def _extract_from_pom_xml(self, content: str, file_path: Path) -> List[DetectedLicense]:
+        """Extract licenses from Maven pom.xml files."""
+        licenses = []
+
+        try:
+            root = ET.fromstring(content)
+
+            # Maven uses namespace, need to handle it
+            # Extract namespace from root tag if present
+            namespace = ''
+            if root.tag.startswith('{'):
+                namespace = root.tag[1:root.tag.index('}')]
+
+            # Try without namespace first
+            license_elements = root.findall('.//license')
+
+            # Try with namespace if no results
+            if not license_elements and namespace:
+                namespaces = {'m': namespace}
+                license_elements = root.findall('.//m:license', namespaces)
+
+            for license_elem in license_elements:
+                # Try to find name element with and without namespace
+                name_elem = license_elem.find('name')
+                if name_elem is None and namespace:
+                    name_elem = license_elem.find(f'{{{namespace}}}name')
+
+                if name_elem is not None and name_elem.text:
+                    license_name = name_elem.text.strip()
+                    normalized_id = self._normalize_license_id(license_name)
+
+                    license_info = self.spdx_data.get_license_info(normalized_id)
+
+                    licenses.append(DetectedLicense(
+                        spdx_id=license_info['licenseId'] if license_info else normalized_id,
+                        name=license_info.get('name', normalized_id) if license_info else license_name,
+                        confidence=1.0,
+                        detection_method=DetectionMethod.TAG.value,
+                        source_file=str(file_path),
+                        category=LicenseCategory.DECLARED.value,
+                        match_type="package_metadata"
+                    ))
+        except ET.ParseError as e:
+            logger.debug(f"Failed to parse pom.xml {file_path}: {e}")
+
+        return licenses
+
+    def _extract_from_nuspec(self, content: str, file_path: Path) -> List[DetectedLicense]:
+        """Extract licenses from NuGet .nuspec files."""
+        licenses = []
+
+        try:
+            root = ET.fromstring(content)
+
+            # NuGet uses namespace
+            namespaces = {'nuget': 'http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd',
+                         'nuget2': 'http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd',
+                         'nuget3': 'http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd',
+                         'nuget4': 'http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd'}
+
+            # Try different namespace versions and also without namespace
+            license_elem = None
+            for ns_prefix, ns_uri in namespaces.items():
+                license_elem = root.find(f'.//{{{ns_uri}}}license')
+                if license_elem is not None:
+                    break
+
+            # Try without namespace
+            if license_elem is None:
+                license_elem = root.find('.//license')
+
+            if license_elem is not None and license_elem.text:
+                license_text = license_elem.text.strip()
+                normalized_id = self._normalize_license_id(license_text)
+
+                license_info = self.spdx_data.get_license_info(normalized_id)
+
+                licenses.append(DetectedLicense(
+                    spdx_id=license_info['licenseId'] if license_info else normalized_id,
+                    name=license_info.get('name', normalized_id) if license_info else license_text,
+                    confidence=1.0,
+                    detection_method=DetectionMethod.TAG.value,
+                    source_file=str(file_path),
+                    category=LicenseCategory.DECLARED.value,
+                    match_type="package_metadata"
+                ))
+        except ET.ParseError as e:
+            logger.debug(f"Failed to parse .nuspec {file_path}: {e}")
+
+        return licenses
+
+    def _extract_from_gemspec(self, content: str, file_path: Path) -> List[DetectedLicense]:
+        """Extract licenses from Ruby .gemspec files."""
+        licenses = []
+        found_licenses = set()  # Track already found licenses to avoid duplicates
+
+        # Gemspec uses Ruby syntax, so we use regex patterns
+        # Pattern: spec.license = "MIT" or spec.licenses = ["MIT", "Apache-2.0"]
+        patterns = [
+            r'(?:s|spec|gem)\.licenses?\s*=\s*\[([^\]]+)\]',  # Array format
+            r'(?:s|spec|gem)\.licenses?\s*=\s*["\']([^"\']+)["\']',  # Single string format
+        ]
+
+        for pattern in patterns:
+            matches = re.finditer(pattern, content, re.IGNORECASE)
+            for match in matches:
+                license_text = match.group(1)
+
+                # Handle array format: ["MIT", "Apache-2.0"]
+                if ',' in license_text or '"' in license_text or "'" in license_text:
+                    # Extract individual license strings
+                    license_items = re.findall(r'["\']([^"\']+)["\']', license_text)
+                    if not license_items:
+                        license_items = [item.strip() for item in license_text.split(',')]
+                else:
+                    license_items = [license_text]
+
+                for license_item in license_items:
+                    license_item = license_item.strip()
+                    if not license_item:
+                        continue
+
+                    normalized_id = self._normalize_license_id(license_item)
+
+                    # Skip if already found this license
+                    if normalized_id in found_licenses:
+                        continue
+                    found_licenses.add(normalized_id)
+
+                    license_info = self.spdx_data.get_license_info(normalized_id)
+
+                    licenses.append(DetectedLicense(
+                        spdx_id=license_info['licenseId'] if license_info else normalized_id,
+                        name=license_info.get('name', normalized_id) if license_info else license_item,
+                        confidence=1.0,
+                        detection_method=DetectionMethod.TAG.value,
+                        source_file=str(file_path),
+                        category=LicenseCategory.DECLARED.value,
+                        match_type="package_metadata"
+                    ))
+
+        return licenses
+
+    def _extract_from_cargo_toml(self, content: str, file_path: Path) -> List[DetectedLicense]:
+        """Extract licenses from Rust Cargo.toml files."""
+        licenses = []
+        found_licenses = set()  # Track already found licenses to avoid duplicates
+
+        # Cargo.toml format: license = "MIT OR Apache-2.0"
+        # Pattern to match license field in [package] section
+        pattern = r'^\s*license\s*=\s*["\']([^"\']+)["\']'
+
+        matches = re.finditer(pattern, content, re.IGNORECASE | re.MULTILINE)
+        for match in matches:
+            license_expr = match.group(1).strip()
+
+            # Parse license expression (may contain OR, AND)
+            license_ids = self._parse_license_expression(license_expr)
+
+            for license_id in license_ids:
+                normalized_id = self._normalize_license_id(license_id)
+
+                # Skip if already found this license
+                if normalized_id in found_licenses:
+                    continue
+                found_licenses.add(normalized_id)
+
+                license_info = self.spdx_data.get_license_info(normalized_id)
+
+                licenses.append(DetectedLicense(
+                    spdx_id=license_info['licenseId'] if license_info else normalized_id,
+                    name=license_info.get('name', normalized_id) if license_info else license_id,
+                    confidence=1.0,
+                    detection_method=DetectionMethod.TAG.value,
+                    source_file=str(file_path),
+                    category=LicenseCategory.DECLARED.value,
+                    match_type="package_metadata"
+                ))
+
+        return licenses
+
+    def _extract_from_setup_cfg(self, content: str, file_path: Path) -> List[DetectedLicense]:
+        """Extract licenses from Python setup.cfg files."""
+        licenses = []
+
+        # setup.cfg format:
+        # [metadata]
+        # license = MIT
+        # Or classifiers with License :: OSI Approved :: MIT License
+
+        # Simple license field
+        license_pattern = r'^\s*license\s*=\s*(.+)$'
+        matches = re.finditer(license_pattern, content, re.IGNORECASE | re.MULTILINE)
+        for match in matches:
+            license_text = match.group(1).strip()
+            normalized_id = self._normalize_license_id(license_text)
+            license_info = self.spdx_data.get_license_info(normalized_id)
+
+            licenses.append(DetectedLicense(
+                spdx_id=license_info['licenseId'] if license_info else normalized_id,
+                name=license_info.get('name', normalized_id) if license_info else license_text,
+                confidence=1.0,
+                detection_method=DetectionMethod.TAG.value,
+                source_file=str(file_path),
+                category=LicenseCategory.DECLARED.value,
+                match_type="package_metadata"
+            ))
+
+        # License classifiers
+        licenses.extend(self._extract_python_classifiers(content, file_path))
+
+        return licenses
+
+    def _extract_from_setup_py(self, content: str, file_path: Path) -> List[DetectedLicense]:
+        """Extract licenses from Python setup.py files."""
+        licenses = []
+
+        # setup.py format: license="MIT" or license='MIT'
+        license_pattern = r'license\s*=\s*["\']([^"\']+)["\']'
+        matches = re.finditer(license_pattern, content, re.IGNORECASE)
+        for match in matches:
+            license_text = match.group(1).strip()
+            normalized_id = self._normalize_license_id(license_text)
+            license_info = self.spdx_data.get_license_info(normalized_id)
+
+            licenses.append(DetectedLicense(
+                spdx_id=license_info['licenseId'] if license_info else normalized_id,
+                name=license_info.get('name', normalized_id) if license_info else license_text,
+                confidence=1.0,
+                detection_method=DetectionMethod.TAG.value,
+                source_file=str(file_path),
+                category=LicenseCategory.DECLARED.value,
+                match_type="package_metadata"
+            ))
+
+        # License classifiers
+        licenses.extend(self._extract_python_classifiers(content, file_path))
+
+        return licenses
+
+    def _extract_python_classifiers(self, content: str, file_path: Path) -> List[DetectedLicense]:
+        """Extract license from Python trove classifiers."""
+        licenses = []
+
+        # Patterns for both quoted (setup.py) and unquoted (setup.cfg) classifiers
+        classifier_patterns = [
+            r'["\']License\s*::\s*OSI Approved\s*::\s*([^"\']+)["\']',  # Quoted
+            r'^\s*License\s*::\s*OSI Approved\s*::\s*(.+?)$'  # Unquoted (on its own line)
+        ]
+
+        for pattern in classifier_patterns:
+            matches = re.finditer(pattern, content, re.IGNORECASE | re.MULTILINE)
+
+            for match in matches:
+                license_name = match.group(1).strip()
+                # Remove " License" suffix if present
+                license_name = re.sub(r'\s+License$', '', license_name, flags=re.IGNORECASE)
+
+                normalized_id = self._normalize_license_id(license_name)
+                license_info = self.spdx_data.get_license_info(normalized_id)
+
+                licenses.append(DetectedLicense(
+                    spdx_id=license_info['licenseId'] if license_info else normalized_id,
+                    name=license_info.get('name', normalized_id) if license_info else license_name,
+                    confidence=1.0,
+                    detection_method=DetectionMethod.TAG.value,
+                    source_file=str(file_path),
+                    category=LicenseCategory.DECLARED.value,
+                    match_type="package_metadata_classifier"
+                ))
+
+        return licenses
+
+    def _extract_from_package_json(self, content: str, file_path: Path) -> List[DetectedLicense]:
+        """Extract licenses from Node.js package.json files."""
+        licenses = []
+
+        try:
+            import json
+            data = json.loads(content)
+
+            # Check for license field
+            if 'license' in data:
+                license_value = data['license']
+                # Handle SPDX expression or plain string
+                if isinstance(license_value, str):
+                    license_ids = self._parse_license_expression(license_value)
+                    for license_id in license_ids:
+                        normalized_id = self._normalize_license_id(license_id)
+                        license_info = self.spdx_data.get_license_info(normalized_id)
+
+                        licenses.append(DetectedLicense(
+                            spdx_id=license_info['licenseId'] if license_info else normalized_id,
+                            name=license_info.get('name', normalized_id) if license_info else license_id,
+                            confidence=1.0,
+                            detection_method=DetectionMethod.TAG.value,
+                            source_file=str(file_path),
+                            category=LicenseCategory.DECLARED.value,
+                            match_type="package_metadata"
+                        ))
+
+            # Also check licenses field (array)
+            if 'licenses' in data:
+                licenses_array = data['licenses']
+                if isinstance(licenses_array, list):
+                    for license_obj in licenses_array:
+                        if isinstance(license_obj, dict) and 'type' in license_obj:
+                            license_id = license_obj['type']
+                        elif isinstance(license_obj, str):
+                            license_id = license_obj
+                        else:
+                            continue
+
+                        normalized_id = self._normalize_license_id(license_id)
+                        license_info = self.spdx_data.get_license_info(normalized_id)
+
+                        licenses.append(DetectedLicense(
+                            spdx_id=license_info['licenseId'] if license_info else normalized_id,
+                            name=license_info.get('name', normalized_id) if license_info else license_id,
+                            confidence=1.0,
+                            detection_method=DetectionMethod.TAG.value,
+                            source_file=str(file_path),
+                            category=LicenseCategory.DECLARED.value,
+                            match_type="package_metadata"
+                        ))
+        except (json.JSONDecodeError, KeyError) as e:
+            logger.debug(f"Failed to parse package.json {file_path}: {e}")
+
+        return licenses
+
+    def _extract_from_composer_json(self, content: str, file_path: Path) -> List[DetectedLicense]:
+        """Extract licenses from PHP composer.json files."""
+        licenses = []
+
+        try:
+            import json
+            # Remove single-line comments (// ...) which are not valid JSON but common in composer.json
+            lines = content.splitlines()
+            cleaned_lines = []
+            for line in lines:
+                # Remove // style comments
+                comment_pos = line.find('//')
+                if comment_pos >= 0:
+                    # Check if // is not inside a string
+                    before_comment = line[:comment_pos]
+                    quote_count = before_comment.count('"') - before_comment.count('\\"')
+                    if quote_count % 2 == 0:  # Even number of quotes, so // is outside strings
+                        line = line[:comment_pos]
+                cleaned_lines.append(line)
+            cleaned_content = '\n'.join(cleaned_lines)
+
+            data = json.loads(cleaned_content)
+
+            # Check for license field (can be string or array)
+            if 'license' in data:
+                license_value = data['license']
+                if isinstance(license_value, str):
+                    # Single license
+                    license_ids = self._parse_license_expression(license_value)
+                elif isinstance(license_value, list):
+                    # Array of licenses
+                    license_ids = []
+                    for lic in license_value:
+                        if isinstance(lic, str):
+                            license_ids.extend(self._parse_license_expression(lic))
+                else:
+                    license_ids = []
+
+                for license_id in license_ids:
+                    normalized_id = self._normalize_license_id(license_id)
+                    license_info = self.spdx_data.get_license_info(normalized_id)
+
+                    licenses.append(DetectedLicense(
+                        spdx_id=license_info['licenseId'] if license_info else normalized_id,
+                        name=license_info.get('name', normalized_id) if license_info else license_id,
+                        confidence=1.0,
+                        detection_method=DetectionMethod.TAG.value,
+                        source_file=str(file_path),
+                        category=LicenseCategory.DECLARED.value,
+                        match_type="package_metadata"
+                    ))
+        except (json.JSONDecodeError, KeyError) as e:
+            logger.debug(f"Failed to parse composer.json {file_path}: {e}")
+
+        return licenses
+
     def _detect_spdx_tags(self, content: str, file_path: Path) -> List[DetectedLicense]:
         """Detect SPDX license identifiers in content."""
         licenses = []
