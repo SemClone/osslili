@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "semantic-copycat-oslili"
-version = "1.3.6"
+version = "1.4.0"
 description = "Semantic Copycat Open Source License Identification Library"
 readme = "README.md"
 requires-python = ">=3.8"
