@@ -5,6 +5,46 @@ All notable changes to semantic-copycat-oslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2025-10-12
+
+### Added
+- **Source Header License Detection in Metadata Files**: Extract SPDX tags and license references from comments/headers
+  - Detects licenses in XML comments (pom.xml)
+  - Detects licenses in Python comments (setup.py, setup.cfg)
+  - Detects licenses in TOML comments (Cargo.toml)
+  - Detects licenses in Ruby comments (*.gemspec)
+  - New `_extract_header_licenses()` method for comprehensive header scanning
+- **Enhanced Package Metadata Support**: Added extraction methods for additional formats
+  - Full support for package.json (Node.js) with SPDX expressions and arrays
+  - Full support for composer.json (PHP) with comment cleaning
+  - Improved extraction from all major package formats
+- **Fast-path Metadata API**: New `extract_package_metadata()` method for metadata-only extraction
+  - Skips full text analysis for faster processing
+  - Supports all major package metadata formats
+  - Returns licenses from both structured metadata and source headers
+
+### Improved
+- **Intelligent License Deduplication**: Smart handling when same license found in multiple locations
+  - Prefers metadata version over header version as more authoritative
+  - Prevents duplicate licenses in results
+  - Tracks licenses by (spdx_id, match_type) for accurate deduplication
+- **Python Classifier Extraction**: Fixed to handle both quoted and unquoted formats
+  - Works with setup.py quoted classifiers
+  - Works with setup.cfg unquoted classifiers
+  - Properly extracts OSI Approved licenses from trove classifiers
+- **File Pattern Matching**: Enhanced to handle temporary files and various naming conventions
+  - Supports files ending with metadata names (e.g., temp_xyz.package.json)
+  - Better handling of edge cases in file detection
+- **Gemspec and Cargo.toml Processing**: Added duplicate prevention
+  - Tracks found licenses to avoid duplicates
+  - Handles both single and array license declarations
+
+### Fixed
+- **Duplicate License Detection**: Resolved issues with licenses appearing multiple times
+  - Fixed gemspec pattern matching causing duplicates
+  - Fixed Cargo.toml SPDX expression parsing duplicates
+  - Improved overall deduplication logic
+
 ## [1.3.6] - 2025-09-06
 
 ### Added
