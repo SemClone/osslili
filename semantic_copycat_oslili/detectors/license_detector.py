@@ -1146,15 +1146,18 @@ class LicenseDetector:
                 try:
                     license_content = self.input_processor.read_text_file(license_file_path)
                     if license_content:
-                        # Detect license from the file content
-                        detected = self._detect_license_from_text(license_content, license_file_path)
-                        if detected:
+                        # Detect license from the file content using Dice-Sørensen with TLSH confirmation
+                        detected_licenses = self._detect_from_full_text(license_content, license_file_path)
+                        for detected in detected_licenses:
                             # Update the source to show it came from pyproject.toml reference
                             detected.source_file = str(file_path)
                             detected.match_type = "package_metadata_file"
+                            detected.category = LicenseCategory.DECLARED.value
                             licenses.append(detected)
                 except Exception as e:
                     logger.debug(f"Failed to read license file {license_file_path}: {e}")
+            else:
+                logger.debug(f"License file {license_file_path} referenced in pyproject.toml does not exist")
 
         # Patterns for other pyproject.toml license formats
         patterns = [

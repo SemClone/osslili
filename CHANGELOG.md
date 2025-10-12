@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.1] - 2025-10-12
+
+### Fixed
+- **pyproject.toml PEP 639 File Reference**: Fixed license detection from `license = {file = "LICENSE"}` format
+  - Changed from non-existent `_detect_license_from_text()` to proper `_detect_from_full_text()` method
+  - Now correctly reads and detects licenses from referenced files in pyproject.toml
+  - Properly sets category as DECLARED for licenses from metadata file references
+  - Added debug logging when referenced license file doesn't exist
+
 ### Removed
 - **Notices Output Format**: Removed human-readable notices format to focus on scanning and verification
   - Removed `notices_formatter.py` module
