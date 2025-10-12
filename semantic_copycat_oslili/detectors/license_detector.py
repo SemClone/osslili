@@ -1132,7 +1132,31 @@ class LicenseDetector:
         licenses = []
         import re
 
-        # Patterns for different pyproject.toml license formats
+        # First check for license = {file = "LICENSE"} format (PEP 639)
+        file_pattern = re.compile(r'license\s*=\s*\{[^}]*file\s*=\s*"([^"]+)"', re.IGNORECASE)
+        file_match = file_pattern.search(content)
+
+        if file_match:
+            # Extract the license file path
+            license_file_name = file_match.group(1).strip()
+            license_file_path = file_path.parent / license_file_name
+
+            # Try to read and detect license from the referenced file
+            if license_file_path.exists():
+                try:
+                    license_content = self.input_processor.read_text_file(license_file_path)
+                    if license_content:
+                        # Detect license from the file content
+                        detected = self._detect_license_from_text(license_content, license_file_path)
+                        if detected:
+                            # Update the source to show it came from pyproject.toml reference
+                            detected.source_file = str(file_path)
+                            detected.match_type = "package_metadata_file"
+                            licenses.append(detected)
+                except Exception as e:
+                    logger.debug(f"Failed to read license file {license_file_path}: {e}")
+
+        # Patterns for other pyproject.toml license formats
         patterns = [
             # Pattern for license = "LICENSE_ID"
             (re.compile(r'^\s*license\s*=\s*"([^"]+)"', re.MULTILINE), 'simple'),
