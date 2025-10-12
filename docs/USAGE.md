@@ -105,7 +105,6 @@ oslili [OPTIONS] PATH
   - `kissbom`: Simple JSON format with packages and licenses
   - `cyclonedx-json`: CycloneDX SBOM in JSON format
   - `cyclonedx-xml`: CycloneDX SBOM in XML format
-  - `notices`: Human-readable legal notices with license texts
 
 #### Configuration Options
 
@@ -132,8 +131,8 @@ oslili ./my-app -f kissbom -o kissbom.json
 # Generate CycloneDX SBOM
 oslili ./src -f cyclonedx-json -o sbom.json
 
-# Generate human-readable notices
-oslili ./project -f notices -o NOTICE.txt
+# Generate CycloneDX SBOM in XML format
+oslili ./project -f cyclonedx-xml -o sbom.xml
 
 # Use custom configuration
 oslili /project --config my-config.yaml
@@ -259,9 +258,9 @@ cyclonedx = detector.generate_cyclonedx([result], format_type="json")
 with open("sbom.json", "w") as f:
     f.write(cyclonedx)
 
-notices = detector.generate_notices([result])
-with open("NOTICE.txt", "w") as f:
-    f.write(notices)
+cyclonedx_xml = detector.generate_cyclonedx([result], format_type="xml")
+with open("sbom.xml", "w") as f:
+    f.write(cyclonedx_xml)
 ```
 
 ## Configuration
@@ -411,43 +410,17 @@ Industry-standard SBOM format (JSON or XML):
 }
 ```
 
-### Human-Readable Notices
-
-Text format suitable for NOTICE files:
-
-```
-================================================================================
-THIRD-PARTY SOFTWARE NOTICES AND INFORMATION
-================================================================================
-
-1. my-project
-----------------------------------------
-   Path: /path/to/project
-   License: Apache-2.0
-   Copyright notices:
-      Copyright 2024 John Doe
-
-================================================================================
-LICENSE TEXTS
-================================================================================
-
-## Apache-2.0
-----------------------------------------
-Apache License
-Version 2.0, January 2004
-...
-```
 
 ## Real-World Examples
 
-### Example 1: Generate NOTICE file for a project
+### Example 1: Generate SBOM for a project
 
 ```bash
-# Generate NOTICE file for current project
-oslili . -f notices -o NOTICE.txt
+# Generate CycloneDX SBOM for current project
+oslili . -f cyclonedx-json -o sbom.json
 
 # View results
-cat NOTICE.txt
+cat sbom.json
 ```
 
 ### Example 2: Analyze multiple projects and create combined SBOM

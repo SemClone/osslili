@@ -288,17 +288,3 @@ class LicenseCopyrightDetector:
         from ..formatters.cyclonedx_formatter import CycloneDXFormatter
         formatter = CycloneDXFormatter()
         return formatter.format(results, format_type)
-    
-    def generate_notices(self, results: List[DetectionResult]) -> str:
-        """
-        Generate human-readable legal notices with license texts.
-        
-        Args:
-            results: List of detection results
-            
-        Returns:
-            Legal notices as formatted string
-        """
-        from ..formatters.notices_formatter import NoticesFormatter
-        formatter = NoticesFormatter()
-        return formatter.format(results)

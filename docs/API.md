@@ -68,19 +68,6 @@ Generate CycloneDX SBOM output.
 
 **Returns:** CycloneDX SBOM as string
 
-#### generate_notices
-
-```python
-generate_notices(results: List[DetectionResult]) -> str
-```
-
-Generate human-readable legal notices with license texts.
-
-**Parameters:**
-- `results`: List of detection results
-
-**Returns:** Legal notices as formatted string
-
 ## Data Models
 
 ### DetectionResult
@@ -160,7 +147,7 @@ Arguments:
 
 Options:
   -o, --output PATH                    Output file path (default: stdout)
-  -f, --output-format                  Output format (evidence|kissbom|cyclonedx-json|cyclonedx-xml|notices)
+  -f, --output-format                  Output format (evidence|kissbom|cyclonedx-json|cyclonedx-xml)
   -v, --verbose                        Enable verbose logging
   -d, --debug                          Enable debug logging
   -t, --threads INTEGER                Number of processing threads

@@ -5,6 +5,16 @@ All notable changes to semantic-copycat-oslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Removed
+- **Notices Output Format**: Removed human-readable notices format to focus on scanning and verification
+  - Removed `notices_formatter.py` module
+  - Removed `generate_notices()` method from LicenseCopyrightDetector
+  - Removed notices option from CLI output formats
+  - Updated documentation to remove references to notices format
+  - This simplifies the codebase and clarifies the tool's primary purpose as a scanner/verifier
+
 ## [1.4.0] - 2025-10-12
 
 ### Added

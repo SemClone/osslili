@@ -16,7 +16,7 @@ The tool outputs standardized JSON evidence showing exactly where each license w
 
 - **Evidence-based output**: Shows exact file paths, confidence scores, and detection methods
 - **License hierarchy**: Categorizes licenses as declared vs detected vs referenced
-- **Multiple output formats**: Evidence JSON, KissBOM, CycloneDX SBOM, and human-readable notices
+- **Multiple output formats**: Evidence JSON, KissBOM, CycloneDX SBOM
 - **Archive extraction**: Automatically extracts and scans zip, tar, and other archive formats
 - **Caching support**: Speed up repeated scans with intelligent caching
 - **Parallel processing**: Multi-threaded scanning with configurable thread count

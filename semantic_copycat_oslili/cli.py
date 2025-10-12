@@ -82,7 +82,7 @@ def detect_input_type(input_path: str) -> str:
 )
 @click.option(
     '--output-format', '-f',
-    type=click.Choice(['evidence', 'kissbom', 'cyclonedx-json', 'cyclonedx-xml', 'notices']),
+    type=click.Choice(['evidence', 'kissbom', 'cyclonedx-json', 'cyclonedx-xml']),
     default='evidence',
     help='Output format (default: evidence)'
 )
@@ -225,8 +225,6 @@ def main(
             output_data = detector.generate_cyclonedx(results, format_type='json')
         elif output_format == 'cyclonedx-xml':
             output_data = detector.generate_cyclonedx(results, format_type='xml')
-        elif output_format == 'notices':
-            output_data = detector.generate_notices(results)
         else:
             output_data = detector.generate_evidence(results)
         
