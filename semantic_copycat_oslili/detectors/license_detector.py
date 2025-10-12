@@ -112,13 +112,15 @@ class LicenseDetector:
         """Compile SPDX identifier patterns."""
         return [
             # SPDX-License-Identifier: <license>
-            # Match until end of line, comment marker, or semicolon
-            # Strip trailing comment markers and whitespace
-            re.compile(r'SPDX-License-Identifier:\s*([^\n;#*]+?)(?:\s*[*/]*\s*)?$', re.IGNORECASE | re.MULTILINE),
+            # Match complex expressions including parentheses, AND, OR, WITH
+            # Stop at newline or end of comment markers
+            re.compile(r'SPDX-License-Identifier:\s*([^\n]+?)(?:\s*\*/)?(?:\s*-->)?$', re.IGNORECASE | re.MULTILINE),
             # Python METADATA: License-Expression: <license>
             re.compile(r'License-Expression:\s*([^\s\n]+)', re.IGNORECASE),
-            # package.json style: "license": "MIT"
+            # package.json style: "license": "MIT" or licenses array with "type": "MIT"
             re.compile(r'"license"\s*:\s*"([^"]+)"', re.IGNORECASE),
+            # package.json licenses array: {"type": "MIT", ...}
+            re.compile(r'"type"\s*:\s*"([^"]+)"', re.IGNORECASE),
             # pyproject.toml style: license = {text = "Apache-2.0"}
             re.compile(r'license\s*=\s*\{[^}]*text\s*=\s*"([^"]+)"', re.IGNORECASE),
             # pyproject.toml style: license = "MIT"
@@ -985,13 +987,18 @@ class LicenseDetector:
                 for lid in license_ids:
                     if lid not in found_ids:
                         found_ids.add(lid)
-                        
+
+                        # Skip SPDX exceptions (they modify licenses, not standalone)
+                        # Common exceptions end with "-exception" or are known exception IDs
+                        if 'exception' in lid.lower() and not lid.startswith('Font-exception'):
+                            continue
+
                         # Normalize license ID
                         normalized_id = self._normalize_license_id(lid)
-                        
+
                         # Get license info
                         license_info = self.spdx_data.get_license_info(normalized_id)
-                        
+
                         if license_info:
                             category, match_type = self._categorize_license(
                                 file_path, DetectionMethod.TAG.value
@@ -1318,21 +1325,64 @@ class LicenseDetector:
         return license_text
     
     def _parse_license_expression(self, expression: str) -> List[str]:
-        """Parse SPDX license expression."""
+        """Parse SPDX license expression including complex formats."""
         # Don't split if it contains "or later" or "or-later" (common suffix)
         expression_lower = expression.lower()
         if 'or later' in expression_lower or 'or-later' in expression_lower:
-            # This is likely a single license with suffix, not an OR expression
-            return [expression.strip()]
-        
-        # Simple parser for license expressions
-        # Split on AND, OR, WITH operators
-        expression = expression.replace('(', '').replace(')', '')
-        
-        # Split on operators (but not "or later")
-        parts = re.split(r'\s+(?:AND|OR|WITH)\s+', expression, flags=re.IGNORECASE)
-        
-        return [p.strip() for p in parts if p.strip()]
+            # Check if this is really a suffix or an OR expression
+            # GPL-2.0-or-later is a suffix, but "MIT OR Apache" is an expression
+            if not re.search(r'\s+OR\s+(?!later)', expression, re.IGNORECASE):
+                return [expression.strip()]
+
+        # Handle comma-separated licenses (e.g., "MIT, Apache-2.0, BSD")
+        if ',' in expression and not any(op in expression.upper() for op in [' OR ', ' AND ', ' WITH ']):
+            parts = [p.strip() for p in expression.split(',')]
+            return [p for p in parts if p]
+
+        # Collect all licenses found in the expression
+        licenses = []
+
+        # First handle WITH exceptions specially (keep them together)
+        # e.g., "GPL-3.0 WITH Classpath-exception-2.0"
+        with_pattern = r'([A-Za-z0-9\-\.]+)\s+WITH\s+([A-Za-z0-9\-\.]+)'
+        with_matches = re.findall(with_pattern, expression, re.IGNORECASE)
+
+        # Keep track of what we've processed
+        processed = set()
+
+        for base_license, exception in with_matches:
+            # Add both the base license and the exception
+            licenses.append(base_license.strip())
+            licenses.append(exception.strip())
+            processed.add(f"{base_license} WITH {exception}")
+
+        # Replace WITH expressions with placeholder to avoid re-processing
+        temp_expression = expression
+        for match in re.finditer(with_pattern, expression, re.IGNORECASE):
+            temp_expression = temp_expression.replace(match.group(), '__WITH__')
+
+        # Remove parentheses but keep track of the structure
+        # For now, just flatten everything
+        temp_expression = temp_expression.replace('(', '').replace(')', '')
+
+        # Split on AND/OR operators
+        parts = re.split(r'\s+(?:AND|OR)\s+', temp_expression, flags=re.IGNORECASE)
+
+        for part in parts:
+            part = part.strip()
+            if part and part != '__WITH__' and part not in processed:
+                # This might be a license ID
+                licenses.append(part)
+
+        # Remove duplicates while preserving order
+        seen = set()
+        result = []
+        for lic in licenses:
+            if lic not in seen:
+                seen.add(lic)
+                result.append(lic)
+
+        return result if result else [expression.strip()]
     
     
     def _detect_license_from_text(self, text: str, file_path: Path) -> Optional[DetectedLicense]:
@@ -1707,10 +1757,16 @@ class LicenseDetector:
         # Skip empty or too short
         if not license_id or len(license_id) < 2:
             return True
-        
+
+        # Skip if it's a valid SPDX expression with parentheses (not a false positive)
+        if any(op in license_id.upper() for op in [' OR ', ' AND ', ' WITH ']):
+            # This looks like a valid SPDX expression, not a false positive
+            return False
+
         # Skip if contains regex patterns or code-like syntax
+        # Note: Removed '(' and ')' as they're valid in SPDX expressions
         false_positive_patterns = [
-            '\\', '{', '}', '[', ']', '(', ')', 
+            '\\', '{', '}', '[', ']',
             '<', '>', '?:', '^', '$', '*', '+',
             'var;', 'name=', 'original=', 'match=',
             '.{0', '\\n', '\\s', '\\d'
