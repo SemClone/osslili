@@ -19,7 +19,7 @@ This document presents a comprehensive comparison between OSLILI (semantic-copyc
 1. **Initial Comparison**: ScanCode scan of 4 COPYING files vs OSLILI full directory scan
 2. **Sample Comparison**: ScanCode scan of 29 representative files (COPYING files + sample .c files)
 3. **Directory Analysis**: OSLILI scan of entire ffmpeg-8.0 directory
-4. **Real-world Testing**: Both tools on `/Users/ovalenzuela/Downloads/` directory
+4. **Real-world Testing**: Both tools on `Downloads/` directory
 
 ### Scanning Configuration
 
@@ -152,7 +152,7 @@ oslili /path/to/ffmpeg-8.0 --output-format evidence
 
 ## Real-World Test Results
 
-### Test on `/Users/ovalenzuela/Downloads/` Directory
+### Test on `Downloads/` Directory
 
 **OSLILI Results:**
 - 45 license instances detected
