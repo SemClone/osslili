@@ -369,31 +369,38 @@ class LicenseDetector:
         tag_licenses = self._detect_spdx_tags(content, file_path)
         licenses.extend(tag_licenses)
 
-        # Method 1b: Detect license keywords (base licenses)
+        # Method 2: Detect license keywords (base licenses) with enhanced patterns
         keyword_licenses = self._detect_license_keywords(content, file_path)
         licenses.extend(keyword_licenses)
-        
-        # Method 2: If in single file mode, ALWAYS treat as potential license content
-        if single_file_mode:
-            # Apply three-tier detection on full text
+
+        # Method 3: Apply full three-tier detection
+        # For single file mode or dedicated license files, use full content
+        if single_file_mode or self._is_license_file(file_path):
             detected = self._detect_license_from_text(content, file_path)
             if detected:
                 licenses.append(detected)
-        # Method 3: Detect by filename (for dedicated license files)
-        elif self._is_license_file(file_path):
-            # Apply three-tier detection on full text
-            detected = self._detect_license_from_text(content, file_path)
-            if detected:
-                licenses.append(detected)
-        
-        # Method 4: Check for license indicators in regular files
+        # For regular files, if they contain license indicators, try both:
+        # - License block extraction (for embedded licenses)
+        # - Regex detection on full content (for scattered references)
         elif self._contains_license_text(content):
-            # Extract potential license block
+            # Try extracting a license block first
             license_block = self._extract_license_block(content)
             if license_block:
                 detected = self._detect_license_from_text(license_block, file_path)
                 if detected:
                     licenses.append(detected)
+
+            # Also try regex patterns on the full content
+            # This catches references that aren't in a clear block
+            regex_detected = self._tier3_regex_matching(content, file_path)
+            if regex_detected:
+                licenses.append(regex_detected)
+        # For all other files, still apply regex detection
+        # This ensures we catch any license references
+        else:
+            regex_detected = self._tier3_regex_matching(content, file_path)
+            if regex_detected:
+                licenses.append(regex_detected)
         
         return licenses
     
@@ -1038,94 +1045,234 @@ class LicenseDetector:
         """
         Detect license keywords for common base licenses.
         This handles variations like "GPL" for GPL/LGPL/AGPL, "BSD" for any BSD variant.
+        Enhanced with fuzzy matching and multi-line pattern support.
         """
+        from typing import Optional
+        import re
         licenses = []
-        
+
         # Base license families with common variations
         base_license_mapping = {
             # GPL family
-            'GPL-3.0': ['GPL-3', 'GPLv3', 'GPL version 3', 'GNU General Public License v3'],
-            'GPL-2.0': ['GPL-2', 'GPLv2', 'GPL version 2', 'GNU General Public License v2'],
-            'LGPL-3.0': ['LGPL-3', 'LGPLv3', 'Lesser GPL v3', 'GNU Lesser General Public License v3'],
-            'LGPL-2.1': ['LGPL-2.1', 'LGPLv2.1', 'Lesser GPL v2.1'],
+            'GPL-3.0': ['GPL-3', 'GPLv3', 'GPL version 3', 'GNU General Public License v3',
+                        'GNU General Public License version 3', 'GPL v3'],
+            'GPL-2.0': ['GPL-2', 'GPLv2', 'GPL version 2', 'GNU General Public License v2',
+                        'GNU General Public License version 2', 'GPL v2', 'GNU GPL v2',
+                        'terms-of-the-GNU-GPL', 'GNU-GPL-v2'],  # Add normalization patterns
+            'GPL': ['GPL', 'the GPL', 'GNU GPL', 'General Public License'],  # Generic GPL
+            'LGPL-3.0': ['LGPL-3', 'LGPLv3', 'Lesser GPL v3', 'GNU Lesser General Public License v3',
+                         'GNU Lesser General Public License version 3', 'LGPL v3'],
+            'LGPL-2.1': ['LGPL-2.1', 'LGPLv2.1', 'Lesser GPL v2.1', 'GNU Lesser General Public License v2.1',
+                         'GNU Lesser General Public License version 2.1', 'LGPL v2.1'],
             'AGPL-3.0': ['AGPL-3', 'AGPLv3', 'Affero GPL v3', 'GNU Affero General Public License v3'],
-            
+
             # BSD family
             'BSD-3-Clause': ['BSD-3-Clause', 'BSD 3-Clause', '3-clause BSD', 'New BSD', 'Modified BSD'],
             'BSD-2-Clause': ['BSD-2-Clause', 'BSD 2-Clause', '2-clause BSD', 'Simplified BSD', 'FreeBSD'],
-            
-            # Apache
-            'Apache-2.0': ['Apache-2.0', 'Apache 2.0', 'Apache License 2.0', 'Apache License, Version 2.0', 'ALv2'],
+
+            # Apache - Enhanced with multi-line patterns
+            'Apache-2.0': ['Apache-2.0', 'Apache 2.0', 'Apache License 2.0', 'Apache License, Version 2.0', 'ALv2',
+                          'Apache License Version 2.0'],  # Added for multi-line
             'Apache-1.1': ['Apache-1.1', 'Apache 1.1', 'Apache License 1.1'],
-            
+
             # MIT
-            'MIT': ['MIT', 'MIT License', 'X11', 'Expat'],
-            
+            'MIT': ['MIT', 'MIT License', 'X11', 'Expat', 'under MIT', 'MIT license',
+                    'the MIT License', 'MIT/X11', 'MIT-style'],
+
             # Mozilla
             'MPL-2.0': ['MPL-2.0', 'MPL 2.0', 'Mozilla Public License 2.0'],
             'MPL-1.1': ['MPL-1.1', 'MPL 1.1', 'Mozilla Public License 1.1'],
-            
+
             # Creative Commons
             'CC0-1.0': ['CC0', 'CC0-1.0', 'Creative Commons Zero', 'Public Domain'],
             'CC-BY-4.0': ['CC-BY-4.0', 'CC BY 4.0', 'Creative Commons Attribution 4.0'],
             'CC-BY-SA-4.0': ['CC-BY-SA-4.0', 'CC BY-SA 4.0', 'Creative Commons Attribution-ShareAlike 4.0'],
-            
+
             # Others
             'ISC': ['ISC', 'ISC License'],
             'Artistic-2.0': ['Artistic-2.0', 'Artistic License 2.0'],
             'Unlicense': ['Unlicense', 'The Unlicense'],
+            # Additional patterns from scancode-licensedb
+            'Python-2.0': ['Python', 'Python License', 'Python Software Foundation License', 'PSF', 'PYTHON',
+                           'Python Software Foundation', 'PSF License', 'the Python Software Foundation License'],
+            'PHP-3.0': ['PHP', 'PHP License', 'PHP-3.0', 'PHP 3.0'],
+            'PHP-3.01': ['PHP-3.01', 'PHP 3.01', 'PHP License 3.01'],
+            'Ruby': ['Ruby', 'Ruby License', 'RUBY'],
+            'Perl': ['Perl', 'Perl License', 'Artistic-Perl'],
+            'Zlib': ['zlib', 'Zlib', 'ZLIB License'],
+            'OpenSSL': ['OpenSSL', 'OpenSSL License', 'OpenSSL/SSLeay'],
+            'JSON': ['JSON', 'JSON License', 'The JSON License'],
+            '0BSD': ['0BSD', 'BSD Zero Clause', 'BSD-0-Clause', 'Free Public License'],
+            'PostgreSQL': ['PostgreSQL', 'PostgreSQL License', 'PGSQL'],
+            'WTFPL': ['WTFPL', 'Do What The F*ck You Want To Public License'],
+            'Vim': ['Vim', 'Vim License', 'VIM'],
+            'Beerware': ['Beerware', 'Beer-ware', 'THE BEER-WARE LICENSE'],
         }
-        
+
+        # Helper method for version suffixes
+        def handle_version_suffix(base_license: str, context: str) -> str:
+            """
+            Handle version suffixes like +, -or-later, -only.
+            """
+            # Check for + suffix or "or later" text
+            if '+' in context or 'or later' in context.lower() or 'or-later' in context.lower():
+                if not base_license.endswith('-or-later') and not base_license.endswith('-only'):
+                    return base_license + '-or-later'
+            # Check for "only" suffix
+            elif 'only' in context.lower() and not 'or later' in context.lower():
+                if not base_license.endswith('-only') and not base_license.endswith('-or-later'):
+                    return base_license + '-only'
+            return base_license
+
+        # Helper method for fuzzy patterns
+        def create_fuzzy_pattern(text: str) -> Optional[str]:
+            """
+            Create a fuzzy regex pattern that allows for common typos.
+            """
+            if len(text) < 3:
+                return None
+
+            # Common typo patterns
+            typo_replacements = {
+                'license': r'licen[sc]e',  # License/Lisense
+                'general': r'gen[ae]ral',  # General/Genaral
+                'public': r'publ[il]c',    # Public/Publlc
+            }
+
+            pattern = re.escape(text)
+            for correct, fuzzy in typo_replacements.items():
+                pattern = pattern.replace(correct, fuzzy, 1)  # Replace once
+                pattern = pattern.replace(correct.capitalize(), fuzzy, 1)
+
+            return pattern if pattern != re.escape(text) else None
+
+        # Multi-line regex patterns for complex license headers
+        multi_line_patterns = {
+            'Apache-2.0': [
+                r'Apache\s+License\s*[\r\n]+\s*Version\s+2\.0',  # Apache License\nVersion 2.0
+                r'Licensed\s+under\s+the\s+Apache\s+License[,]?\s+Version\s+2\.0',
+            ],
+            'GPL-3.0': [
+                r'GNU\s+GENERAL\s+PUBLIC\s+LICENSE\s*[\r\n]+\s*Version\s+3',
+                r'GPL\s+version\s+3',
+            ],
+            'GPL-2.0': [
+                r'GNU\s+GENERAL\s+PUBLIC\s+LICENSE\s*[\r\n]+\s*Version\s+2',
+                r'GPL\s+version\s+2',
+            ],
+            'MIT': [
+                r'MIT\s+Licen[sc]e',  # Handles typos like "Lisense"
+                r'Permission\s+is\s+hereby\s+granted[,]?\s+free\s+of\s+charge',
+            ],
+        }
+
         # Contextual patterns that suggest license mentions
         context_patterns = [
-            r'[Ll]icensed\s+under\s+(?:the\s+)?',
+            r'[Ll]icensed?\s+under\s+(?:the\s+)?',
             r'(?:distributed|released|available)\s+under\s+(?:the\s+)?',
             r'(?:uses?|using)\s+(?:the\s+)?',
             r'(?:dual|tri)\s+licensed?:?\s*',
+            r'under\s+(?:the\s+)?',  # Simple "under X license"
+            r'(?:copyright|©).*under\s+',  # Copyright under X
+            r'\bsoftware\s+under\s+',  # Software under X
+            r'\bcode\s+under\s+',  # Code under X
             r'subject\s+to\s+(?:the\s+)?',
             r'terms\s+of\s+(?:the\s+)?',
+            r'This\s+(?:program|software|project)\s+is\s+',
         ]
-        
-        # Build regex for each license family
+
+        found_licenses = set()  # Track found licenses to avoid duplicates
+
+        # First, try multi-line regex patterns for complex license headers
+        for spdx_id, patterns in multi_line_patterns.items():
+            for pattern in patterns:
+                if re.search(pattern, content, re.IGNORECASE | re.MULTILINE | re.DOTALL):
+                    if spdx_id not in found_licenses:
+                        found_licenses.add(spdx_id)
+                        # Handle version suffixes
+                        final_spdx_id = handle_version_suffix(spdx_id, content)
+                        licenses.append(DetectedLicense(
+                            spdx_id=final_spdx_id,
+                            name=final_spdx_id,
+                            confidence=0.90,  # Higher confidence for regex patterns
+                            detection_method=DetectionMethod.KEYWORD.value,
+                            source_file=str(file_path),
+                            category='detected',
+                            match_type='keyword'
+                        ))
+                    break
+
+        # Then check standard keyword patterns
         for spdx_id, variations in base_license_mapping.items():
-            # Escape special chars and create alternation pattern
-            escaped = [re.escape(v) for v in variations]
-            variation_pattern = '(?:' + '|'.join(escaped) + ')'
-            
-            # Look for the license in various contexts
-            full_pattern = rf'\b{variation_pattern}\b(?:\s+[Ll]icense)?'
-            
-            matches = re.finditer(full_pattern, content, re.IGNORECASE)
-            for match in matches:
-                # Check if it appears in a license context
-                # Look 50 chars before the match for context
-                start = max(0, match.start() - 50)
-                context = content[start:match.end()]
-                
-                # Check if any context pattern matches
-                has_context = any(re.search(pattern, context, re.IGNORECASE) for pattern in context_patterns)
-                
-                # Also accept if it's a standalone mention at beginning of line or after certain punctuation
-                # Check for comment or line start markers
-                if match.start() > 0:
-                    # Look back for comment markers or line start
-                    prefix = content[max(0, match.start()-3):match.start()]
-                    line_start = any(c in prefix for c in '\n*#/') or prefix.strip() in ['', '//', '/*', '#', '*']
-                else:
-                    line_start = True
-                
-                if has_context or line_start:
-                    licenses.append(DetectedLicense(
-                        spdx_id=spdx_id,
-                        name=spdx_id,
-                        confidence=0.85,  # Lower confidence for keyword detection
-                        detection_method=DetectionMethod.KEYWORD.value,
-                        source_file=str(file_path),
-                        category='detected',
-                        match_type='keyword'
-                    ))
-                    break  # Only one detection per license family per file
+            if spdx_id in found_licenses:
+                continue
+
+            # Check exact matches first
+            for variation in variations:
+                if variation.lower() in content.lower():
+                    # Check context
+                    pattern_re = re.compile(re.escape(variation), re.IGNORECASE)
+                    match = pattern_re.search(content)
+                    if match:
+                        # Check if it appears in a license context
+                        start = max(0, match.start() - 50)
+                        context = content[start:match.end()]
+                        has_context = any(re.search(pattern, context, re.IGNORECASE) for pattern in context_patterns)
+
+                        # Check for comment or line start
+                        if match.start() > 0:
+                            prefix = content[max(0, match.start()-3):match.start()]
+                            line_start = any(c in prefix for c in '\n*#/') or prefix.strip() in ['', '//', '/*', '#', '*']
+                        else:
+                            line_start = True
+
+                        if has_context or line_start:
+                            # Handle version suffixes and normalization
+                            final_spdx_id = handle_version_suffix(spdx_id, content[match.start():match.end()+20])
+
+                            # Normalize generic GPL to GPL-2.0-or-later if no version specified
+                            if final_spdx_id == 'GPL':
+                                # Look for version hints nearby
+                                context_text = content[max(0, match.start()-100):min(len(content), match.end()+100)]
+                                if '3' in context_text or 'v3' in context_text or 'version 3' in context_text.lower():
+                                    final_spdx_id = 'GPL-3.0'
+                                elif '2' in context_text or 'v2' in context_text or 'version 2' in context_text.lower():
+                                    final_spdx_id = 'GPL-2.0'
+                                else:
+                                    final_spdx_id = 'GPL-2.0-or-later'  # Default for generic GPL
+
+                            licenses.append(DetectedLicense(
+                                spdx_id=final_spdx_id,
+                                name=final_spdx_id,
+                                confidence=0.85,
+                                detection_method=DetectionMethod.KEYWORD.value,
+                                source_file=str(file_path),
+                                category='detected',
+                                match_type='keyword'
+                            ))
+                            found_licenses.add(spdx_id)
+                            break
+
+            # If no exact match, try fuzzy matching for common typos
+            if spdx_id not in found_licenses and spdx_id in ['MIT', 'Apache-2.0', 'GPL-2.0', 'GPL-3.0']:
+                for variation in variations:
+                    # Use fuzzy matching for common typos
+                    fuzzy_pattern = create_fuzzy_pattern(variation)
+                    if fuzzy_pattern and re.search(fuzzy_pattern, content, re.IGNORECASE):
+                        licenses.append(DetectedLicense(
+                            spdx_id=spdx_id,
+                            name=spdx_id,
+                            confidence=0.75,  # Lower confidence for fuzzy matches
+                            detection_method=DetectionMethod.KEYWORD.value,
+                            source_file=str(file_path),
+                            category='detected',
+                            match_type='keyword_fuzzy'
+                        ))
+                        found_licenses.add(spdx_id)
+                        break
+
         return licenses
+
 
     def _extract_from_pyproject_toml(self, content: str, file_path: Path) -> List[DetectedLicense]:
         """Extract licenses from Python pyproject.toml files."""
