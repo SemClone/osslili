@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.1] - 2025-10-17
+
+### Fixed
+- **Copyright Detection**: Fixed overly aggressive filtering of copyright holders (issue #32)
+  - Copyright holders containing words like "Test", "Demo", etc. are now correctly detected when part of legitimate names
+  - "Test Corporation", "TestCo Inc", and similar names are now properly recognized
+  - Only standalone test/demo placeholders are filtered out (e.g., just "test" or "demo")
+  - Maintains filtering of actual placeholder text while allowing real organizations with these words
+
 ## [1.5.0] - 2025-10-15
 
 ### Added

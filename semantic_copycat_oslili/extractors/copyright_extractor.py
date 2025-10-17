@@ -438,15 +438,28 @@ class CopyrightExtractor:
         invalid_phrases = [
             'copyright', 'license', 'patent', 'you must', 'notice',
             'owner or entity', 'owner that', 'information', 'extraction',
-            'regex match', 'name format', 'years', 'statement', 
+            'regex match', 'name format', 'years', 'statement',
             'holder', 'owner', 's_from', 's =', 'info"', 's_found',
             'evidence', 'by source', 's in ', 'you comply', 'their terms',
             'in result', 'lines that vary', 'may vary', 'will vary',
             'varies', 'variable', 'placeholder', 'example', 'sample',
-            'test', 'demo', 'dummy', 'foo', 'bar', 'baz', 'lorem ipsum',
-            'detector', 'generator', 'scanner', 'analyzer', 'processor'
+            'lorem ipsum', 'detector', 'generator', 'scanner', 'analyzer', 'processor'
         ]
-        
+
+        # Check for exact matches of test placeholders (not as part of larger names)
+        # Only filter if it's EXACTLY these words (case-insensitive)
+        test_placeholders = ['test', 'demo', 'dummy', 'foo', 'bar', 'baz']
+        if holder_lower.strip() in test_placeholders:
+            return ""
+
+        # For test-related words, only filter if they're standalone words
+        # Allow names like "Test Corporation" or "TestCo Inc"
+        test_word_patterns = [r'\btest\b', r'\bdemo\b', r'\bdummy\b', r'\bfoo\b', r'\bbar\b', r'\bbaz\b']
+        for pattern in test_word_patterns:
+            # Check if it's ONLY the test word (not part of a larger name)
+            if re.fullmatch(pattern, holder_lower):
+                return ""
+
         for phrase in invalid_phrases:
             if phrase in holder_lower:
                 return ""
