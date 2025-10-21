@@ -1,0 +1,18 @@
+{
+  "scan_results": [
+    {
+      "path": "downloads/ffmpeg-8.0/compat/djgpp/math.c",
+      "license_evidence": [],
+      "copyright_evidence": []
+    }
+  ],
+  "summary": {
+    "total_files_scanned": 0,
+    "declared_licenses": {},
+    "detected_licenses": {},
+    "referenced_licenses": {},
+    "all_licenses": {},
+    "copyright_holders": [],
+    "copyrights_found": 0
+  }
+}
