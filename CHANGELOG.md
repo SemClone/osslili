@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.3] - 2025-10-21
+
+### Added
+- **Evidence Detail Levels**: New `--evidence-detail` CLI option with 4 levels for controlling output verbosity
+  - `minimal`: Just license counts (compact 1KB output)
+  - `summary`: Adds detection method breakdown (1KB output)
+  - `detailed`: Includes sample evidence (72KB output) - default
+  - `full`: Complete evidence (several MB output)
+- **License Normalizer Utility**: New utility class for consistent license ID normalization
+- **Regex Pattern Matcher**: Optimized regex matching with lookup tables for better performance
+
+### Fixed
+- **Critical Deduplication Bug**: Fixed license detection deduplication that was discarding 99% of detections
+  - Changed deduplication key from (license_id, confidence) to (license_id, confidence, source_file)
+  - Increases detection coverage from ~1% to 99%+ of expected files
+- **File Readability Detection**: Enhanced detection for better source file coverage
+  - Added more permissive encoding detection (UTF-8, Latin-1, cp1252, ISO-8859-1)
+  - Improved binary file detection with magic number signatures
+  - Better handling of files with mixed encodings
+
+### Improved
+- **License Detection Coverage**: Reduced false negatives while maintaining low false positive rate
+  - Reduced license text indicator threshold from 3 to 1 for better coverage
+  - Added validation filtering to reduce false positives
+  - Enhanced match type categorization (license_file, spdx_identifier, package_metadata, etc.)
+- **Performance Optimizations**: Maintained ~117 files/second processing speed
+  - Memory-efficient streaming processing for large files
+  - Optimized regex pattern matching with lookup tables
+  - Parallel processing improvements
+
+### Changed
+- **Evidence Formatter**: Enhanced with detail level filtering and better match type descriptions
+- **License Detector**: Improved categorization logic and false positive filtering
+
 ## [1.5.1] - 2025-10-17
 
 ### Fixed

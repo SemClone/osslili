@@ -13,7 +13,7 @@ if os.environ.get('OSLILI_DEBUG') != '1':
     except ImportError:
         pass
 
-__version__ = "1.5.1"
+__version__ = "1.5.3"
 
 from .core.generator import LicenseCopyrightDetector
 from .core.models import (
