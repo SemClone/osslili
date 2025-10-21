@@ -7,7 +7,7 @@ import re
 import fnmatch
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import List, Optional, Set, Tuple
+from typing import List, Optional, Set
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from fuzzywuzzy import fuzz
@@ -17,6 +17,8 @@ from ..core.input_processor import InputProcessor
 from ..data.spdx_licenses import SPDXLicenseData
 from .tlsh_detector import TLSHDetector
 from ..utils.file_scanner import SafeFileScanner
+from ..utils.license_normalizer import LicenseNormalizer
+from ..utils.regex_matcher import RegexPatternMatcher
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +39,8 @@ class LicenseDetector:
         # Ensure SPDX data and hashes are loaded
         _ = self.spdx_data.licenses  # Trigger lazy loading of licenses and hashes
         self.tlsh_detector = TLSHDetector(config, self.spdx_data)
+        self.license_normalizer = LicenseNormalizer()
+        self.regex_matcher = RegexPatternMatcher()
         
         # License filename patterns
         self.license_patterns = self._compile_filename_patterns()
@@ -95,7 +99,90 @@ class LicenseDetector:
         
         # Default to detected for unknown cases
         return LicenseCategory.DETECTED.value, match_type or "unknown"
-    
+
+    def _is_valid_license_id(self, license_id: str) -> bool:
+        """Validate that detected license ID is actually a license."""
+        if not license_id or not isinstance(license_id, str):
+            return False
+
+        license_lower = license_id.lower().strip()
+
+        # Common false positive words
+        false_positive_words = {
+            'this', 'the', 'that', 'and', 'or', 'with', 'by', 'for', 'in', 'on', 'at',
+            'frame', 'packet', 'data', 'file', 'code', 'text', 'software', 'terms',
+            'license', 'copyright', 'notice', 'header', 'comment', 'version',
+            'able', 'ed', 'ing', 'as', 'is', 'are', 'was', 'were', 'be', 'been',
+            'filter', 'bit', 'flag', 'means', 'we', 'you', 'they', 'them'
+        }
+
+        # Filter partial phrases that contain stopwords
+        partial_phrase_indicators = [
+            'terms-of-the-', 'license-', 'copyright-', 'notice-', 'header-',
+            'version-', 'file-', 'code-', 'software-', '-the-', '-of-', '-and-'
+        ]
+
+        if any(indicator in license_lower for indicator in partial_phrase_indicators):
+            return False
+
+        # Too short (but allow well-known short licenses like ISC)
+        if len(license_id) < 3:
+            return False
+
+        # Exact match against false positives
+        if license_lower in false_positive_words:
+            return False
+
+        # Must contain valid license pattern indicators
+        valid_license_indicators = [
+            'gpl', 'lgpl', 'mit', 'bsd', 'apache', 'mpl', 'isc', 'zlib', 'perl',
+            'python', 'ruby', 'php', 'openssl', 'json', 'vim', 'unlicense',
+            'wtfpl', 'cc-', 'creative', 'copyleft', 'artistic', 'eclipse',
+            'mozilla', 'cddl', 'epl', 'ibm', 'intel', 'nvidia', 'ofl',
+            'sil', 'x11', 'ms-', 'microsoft', 'proprietary', 'commercial',
+            'public-domain', 'domain', 'free', 'open', 'bsl', 'boost', 'ijg',
+            'jpeg', 'clear', 'source'
+        ]
+
+        # Special cases for build flags and restrictions
+        build_flags = ['nonfree', 'unredistributable', 'proprietary', 'commercial']
+        if license_lower in build_flags:
+            return True  # These are valid license restrictions
+
+        # Check if it contains any valid license indicators
+        has_valid_indicator = any(indicator in license_lower for indicator in valid_license_indicators)
+
+        # Additional check: if it looks like a proper SPDX identifier
+        spdx_pattern_indicators = ['-only', '-or-later', '-with-', 'clause']
+        has_spdx_pattern = any(indicator in license_lower for indicator in spdx_pattern_indicators)
+
+        return has_valid_indicator or has_spdx_pattern
+
+    def _create_detected_license(self, spdx_id: str, name: str, confidence: float,
+                                file_path: Path, detection_method: str,
+                                match_type: str = None) -> Optional[DetectedLicense]:
+        """Create a DetectedLicense object with validation."""
+        # Apply false positive filtering
+        if not self._is_valid_license_id(spdx_id):
+            logger.debug(f"Filtered out false positive license: '{spdx_id}' from {file_path}")
+            return None
+
+        # Get category and match info
+        category, match_info = self._categorize_license(file_path, detection_method, match_type)
+
+        from ..core.models import DetectedLicense
+        return DetectedLicense(
+            spdx_id=spdx_id,
+            name=name,
+            confidence=confidence,
+            detection_method=detection_method,
+            file_path=str(file_path),
+            match_type=match_info,
+            category=category,
+            text_snippet="",  # Can be filled later if needed
+            match_lines=[]
+        )
+
     def _compile_filename_patterns(self) -> List[re.Pattern]:
         """Compile filename patterns for license files."""
         patterns = []
@@ -177,8 +264,8 @@ class LicenseDetector:
                     try:
                         file_licenses = future.result(timeout=30)  # 30 second timeout per file
                         for license in file_licenses:
-                            # Deduplicate by license ID and confidence
-                            key = (license.spdx_id, round(license.confidence, 2))
+                            # Deduplicate by license ID, confidence, and source file
+                            key = (license.spdx_id, round(license.confidence, 2), license.source_file)
                             if key not in processed_licenses:
                                 processed_licenses.add(key)
                                 licenses.append(license)
@@ -191,8 +278,8 @@ class LicenseDetector:
                 try:
                     file_licenses = self._detect_licenses_in_file(file_path, single_file_mode)
                     for license in file_licenses:
-                        # Deduplicate by license ID and confidence
-                        key = (license.spdx_id, round(license.confidence, 2))
+                        # Deduplicate by license ID, confidence, and source file
+                        key = (license.spdx_id, round(license.confidence, 2), license.source_file)
                         if key not in processed_licenses:
                             processed_licenses.add(key)
                             licenses.append(license)
@@ -246,7 +333,7 @@ class LicenseDetector:
         
         return license_files
     
-    def _find_source_files(self, directory: Path, limit: int = 100) -> List[Path]:
+    def _find_source_files(self, directory: Path, limit: int = -1) -> List[Path]:
         """Find all readable files to scan for embedded licenses."""
         source_files = []
         count = 0
@@ -279,7 +366,7 @@ class LicenseDetector:
             if self._is_readable_file(file_path):
                 source_files.append(file_path)
                 count += 1
-                if count >= limit:
+                if limit > 0 and count >= limit:
                     return source_files
         
         return source_files
@@ -316,30 +403,99 @@ class LicenseDetector:
             return ""
     
     def _is_readable_file(self, file_path: Path) -> bool:
-        """Check if a file is likely readable text."""
+        """Check if a file is likely readable text - MODIFIED for better coverage."""
         try:
-            # Try to read first 1KB to check if it's text
+            # Get file extension
+            ext = file_path.suffix.lower()
+
+            # Always include common source code extensions
+            source_extensions = {
+                '.c', '.h', '.cpp', '.cxx', '.hpp', '.cc', '.hh',
+                '.java', '.py', '.js', '.ts', '.go', '.rs', '.rb',
+                '.php', '.pl', '.pm', '.sh', '.bash', '.zsh',
+                '.s', '.asm', '.cl', '.cu', '.comp', '.vert', '.frag',
+                '.m', '.mm', '.swift', '.kt', '.scala', '.clj',
+                '.hs', '.ml', '.fs', '.vb', '.cs', '.v', '.sv',
+                '.txt', '.md', '.rst', '.tex', '.texi', '.yml', '.yaml',
+                '.json', '.xml', '.html', '.css', '.scss', '.less',
+                '.makefile', '.mak', '.mk', '.cmake', '.ninja',
+                '.dockerfile', '.gitignore', '.editorconfig',
+                '.rc', '.cfg', '.conf', '.ini', '.properties'
+            }
+
+            # Files without extensions (often makefiles, scripts, configs)
+            if not ext:
+                # Check filename patterns for known file types
+                name_lower = file_path.name.lower()
+                if any(pattern in name_lower for pattern in [
+                    'makefile', 'dockerfile', 'readme', 'license',
+                    'copying', 'notice', 'changelog', 'authors',
+                    'contributors', 'maintainers', 'install'
+                ]):
+                    return True
+
+            # If it's a known source extension, assume readable
+            if ext in source_extensions:
+                return True
+
+            # For other files, do the content check but be more permissive
+            # Try to read first 2KB instead of 1KB for better detection
             with open(file_path, 'rb') as f:
-                chunk = f.read(1024)
+                chunk = f.read(2048)
                 if not chunk:
                     return True  # Empty files are "readable"
-                
-                # Check for null bytes (binary indicator)
-                if b'\x00' in chunk:
+
+                # Check for high density of null bytes (binary indicator)
+                # Allow some null bytes for files that might have embedded nulls
+                null_count = chunk.count(b'\x00')
+                if null_count > len(chunk) * 0.1:  # More than 10% null bytes
                     return False
-                
-                # Try to decode as UTF-8
+
+                # Check for other binary indicators
+                # Look for common binary file magic numbers in first 16 bytes
+                if len(chunk) >= 16:
+                    magic_start = chunk[:16]
+                    binary_signatures = [
+                        b'\x7fELF',      # ELF executable
+                        b'MZ',           # PE executable
+                        b'\x89PNG',      # PNG image
+                        b'\xff\xd8\xff', # JPEG image
+                        b'GIF8',         # GIF image
+                        b'\x00\x00\x01\x00', # ICO file
+                        b'PK\x03\x04',   # ZIP archive
+                        b'\x1f\x8b',     # GZIP
+                        b'BZh',          # BZIP2
+                    ]
+                    if any(magic_start.startswith(sig) for sig in binary_signatures):
+                        return False
+
+                # Try to decode - be more permissive with encoding errors
                 try:
+                    # First try UTF-8
                     chunk.decode('utf-8')
                     return True
                 except UnicodeDecodeError:
-                    # Try with common encodings
-                    for encoding in ['latin-1', 'cp1252', 'iso-8859-1']:
+                    # Try with more encodings and be permissive with errors
+                    for encoding in ['latin-1', 'cp1252', 'iso-8859-1', 'utf-16', 'ascii']:
                         try:
-                            chunk.decode(encoding)
-                            return True
-                        except UnicodeDecodeError:
+                            chunk.decode(encoding, errors='ignore')
+                            # If we can decode at least 80% without errors, consider it text
+                            try:
+                                decoded = chunk.decode(encoding, errors='strict')
+                                return True
+                            except UnicodeDecodeError:
+                                # Check if we can decode most of it
+                                decoded_ignore = chunk.decode(encoding, errors='ignore')
+                                if len(decoded_ignore) >= len(chunk) * 0.8:
+                                    return True
+                        except (UnicodeDecodeError, LookupError):
                             continue
+
+                    # Last resort: if it looks like text (printable chars), allow it
+                    printable_count = sum(1 for b in chunk if 32 <= b <= 126 or b in [9, 10, 13])
+                    if printable_count >= len(chunk) * 0.7:  # 70% printable chars
+                        return True
+
                     return False
         except (OSError, IOError):
             return False
@@ -401,8 +557,16 @@ class LicenseDetector:
             regex_detected = self._tier3_regex_matching(content, file_path)
             if regex_detected:
                 licenses.append(regex_detected)
-        
-        return licenses
+
+        # Apply false positive filtering to all detected licenses
+        filtered_licenses = []
+        for license in licenses:
+            if self._is_valid_license_id(license.spdx_id):
+                filtered_licenses.append(license)
+            else:
+                logger.debug(f"Filtered out false positive license: '{license.spdx_id}' from {file_path}")
+
+        return filtered_licenses
     
     def _is_license_file(self, file_path: Path) -> bool:
         """Check if file is likely a license file."""
@@ -426,12 +590,12 @@ class LicenseDetector:
     def _contains_license_text(self, content: str) -> bool:
         """Check if content contains license-related text."""
         content_lower = content.lower()
-        
+
         # Check for license indicators
-        indicator_count = sum(1 for indicator in self.license_indicators 
+        indicator_count = sum(1 for indicator in self.license_indicators
                              if indicator in content_lower)
-        
-        return indicator_count >= 3  # At least 3 indicators
+
+        return indicator_count >= 1  # At least 1 indicator (reduced from 3 for better coverage)
     
     def _extract_license_block(self, content: str) -> Optional[str]:
         """Extract license block from content."""
@@ -1092,7 +1256,7 @@ class LicenseDetector:
             'ISC': ['ISC', 'ISC License'],
             'Artistic-2.0': ['Artistic-2.0', 'Artistic License 2.0'],
             'Unlicense': ['Unlicense', 'The Unlicense'],
-            # Additional patterns from scancode-licensedb
+            # Additional patterns from license database
             'Python-2.0': ['Python', 'Python License', 'Python Software Foundation License', 'PSF', 'PYTHON',
                            'Python Software Foundation', 'PSF License', 'the Python Software Foundation License'],
             'PHP-3.0': ['PHP', 'PHP License', 'PHP-3.0', 'PHP 3.0'],
@@ -1107,6 +1271,16 @@ class LicenseDetector:
             'WTFPL': ['WTFPL', 'Do What The F*ck You Want To Public License'],
             'Vim': ['Vim', 'Vim License', 'VIM'],
             'Beerware': ['Beerware', 'Beer-ware', 'THE BEER-WARE LICENSE'],
+
+            # Additional license patterns for better coverage
+            'GPL-1.0': ['GPL-1', 'GPLv1', 'GPL version 1', 'GNU General Public License v1',
+                        'GNU General Public License version 1', 'GPL v1'],
+            'BSD-3-Clause-Clear': ['BSD-3-Clause-Clear', 'BSD 3-Clause Clear License',
+                                  'Clear BSD License', 'BSD Clear'],
+            'BSD-Source-Code': ['BSD-Source-Code', 'BSD Source Code Attribution'],
+            'BSL-1.0': ['BSL-1.0', 'Boost Software License', 'Boost Software License 1.0',
+                        'BSL', 'Boost License'],
+            'IJG': ['IJG', 'Independent JPEG Group', 'JPEG License', 'libjpeg'],
         }
 
         # Helper method for version suffixes
@@ -1341,166 +1515,9 @@ class LicenseDetector:
     def _normalize_license_id(self, license_id: str) -> str:
         """
         Normalize license ID to match SPDX format.
-        Handles common variations and aliases using SPDX data mappings.
+        Delegates to external LicenseNormalizer for maintainability.
         """
-        if not license_id:
-            return license_id
-        
-        # Remove whitespace and normalize case for lookup
-        normalized = license_id.strip()
-        lookup_key = normalized.lower()
-        
-        # First, check the bundled SPDX aliases
-        if hasattr(self.spdx_data, 'aliases') and self.spdx_data.aliases:
-            if lookup_key in self.spdx_data.aliases:
-                return self.spdx_data.aliases[lookup_key]
-        
-        # Check name mappings (includes full names to SPDX IDs)
-        if hasattr(self.spdx_data, 'name_mappings') and self.spdx_data.name_mappings:
-            if lookup_key in self.spdx_data.name_mappings:
-                return self.spdx_data.name_mappings[lookup_key]
-        
-        # Check for common aliases first
-        common_aliases = {
-            'new bsd': 'BSD-3-Clause',
-            'new bsd license': 'BSD-3-Clause',
-            'simplified bsd': 'BSD-2-Clause', 
-            'simplified bsd license': 'BSD-2-Clause',
-            'the mit license': 'MIT',
-            'cc0': 'CC0-1.0',
-            'cc zero': 'CC0-1.0',
-        }
-        
-        if lookup_key in common_aliases:
-            return common_aliases[lookup_key]
-        
-        # Try variations of the input
-        variations = [
-            lookup_key,
-            lookup_key.replace(' license', ''),
-            lookup_key.replace(' public license', ''),
-            lookup_key.replace(' general public license', ''),
-            lookup_key.replace('licence', 'license'),  # British spelling
-            lookup_key.replace('-', ' '),
-            lookup_key.replace('_', ' '),
-            lookup_key.replace('.', ' '),
-        ]
-        
-        for variant in variations:
-            if hasattr(self.spdx_data, 'name_mappings') and self.spdx_data.name_mappings:
-                if variant in self.spdx_data.name_mappings:
-                    return self.spdx_data.name_mappings[variant]
-        
-        # Common replacements for normalization
-        replacements = {
-            ' License': '',
-            ' license': '',
-            ' Licence': '',
-            ' licence': '',
-            'Apache ': 'Apache-',
-            'GPL ': 'GPL-',
-            'LGPL ': 'LGPL-',
-            'BSD ': 'BSD-',
-            'MIT ': 'MIT',
-            'Mozilla ': 'MPL-',
-            'Creative Commons ': 'CC-',
-            ' version ': '-',
-            ' Version ': '-',
-            ' v': '-',
-            ' V': '-',
-            'v.': '-',
-            'V.': '-',
-            ' or later': '-or-later',
-            ' OR LATER': '-or-later',
-            ' only': '-only',
-            ' ONLY': '-only',
-            ' ': '-'
-        }
-        
-        # Handle + suffix BEFORE other replacements (for GPL-3.0+, etc.)
-        if normalized.endswith('+'):
-            normalized = normalized[:-1] + '-or-later'
-        
-        for old, new in replacements.items():
-            normalized = normalized.replace(old, new)
-        
-        # Check if normalized version exists in SPDX
-        if self._is_valid_spdx_id(normalized):
-            return normalized
-        
-        # Handle specific cases as fallback
-        normalized_upper = normalized.upper()
-        
-        if normalized_upper == 'MIT':
-            return 'MIT'
-        elif normalized_upper == 'ISC':
-            return 'ISC'
-        elif normalized_upper == 'UNLICENSE':
-            return 'Unlicense'
-        elif normalized_upper == 'ZLIB':
-            return 'Zlib'
-        elif normalized_upper == 'WTFPL':
-            return 'WTFPL'
-        elif normalized_upper.startswith('APACHE'):
-            if '2' in normalized:
-                return 'Apache-2.0'
-            elif '1.1' in normalized:
-                return 'Apache-1.1'
-            elif '1' in normalized:
-                return 'Apache-1.0'
-        elif normalized_upper.startswith('GPL') or normalized_upper.startswith('LGPL') or normalized_upper.startswith('AGPL'):
-            version = self._extract_version(normalized)
-            if 'LGPL' in normalized_upper:
-                base = 'LGPL'
-            elif 'AGPL' in normalized_upper:
-                base = 'AGPL'
-            else:
-                base = 'GPL'
-            
-            if version:
-                # Ensure version has .0 if it's a single digit (GPL-3 -> GPL-3.0)
-                if '.' not in version and version in ['1', '2', '3']:
-                    version = f'{version}.0'
-                
-                # Handle suffixes
-                if 'later' in normalized.lower() or normalized.endswith('+') or normalized.endswith('-or-later'):
-                    suffix = '-or-later'
-                elif 'only' in normalized.lower() or normalized.endswith('-only'):
-                    suffix = '-only'
-                else:
-                    suffix = ''
-                    
-                return f'{base}-{version}{suffix}'
-        elif normalized_upper.startswith('BSD'):
-            if '3' in normalized or 'three' in normalized.lower() or 'new' in normalized.lower():
-                return 'BSD-3-Clause'
-            elif '2' in normalized or 'two' in normalized.lower() or 'simplified' in normalized.lower():
-                return 'BSD-2-Clause'
-            elif '4' in normalized or 'four' in normalized.lower() or 'original' in normalized.lower():
-                return 'BSD-4-Clause'
-            elif '0' in normalized or 'zero' in normalized.lower():
-                return '0BSD'
-        elif normalized_upper.startswith('CC'):
-            # Creative Commons licenses
-            return self._normalize_cc_license(normalized)
-        elif 'PYTHON' in normalized_upper:
-            if '2' in normalized:
-                return 'Python-2.0'
-            else:
-                return 'PSF-2.0'
-        elif 'RUBY' in normalized_upper:
-            return 'Ruby'
-        elif 'PHP' in normalized_upper:
-            if '3.01' in normalized:
-                return 'PHP-3.01'
-            elif '3' in normalized:
-                return 'PHP-3.0'
-        elif 'PERL' in normalized_upper:
-            return 'Artistic-1.0-Perl'
-        elif 'POSTGRESQL' in normalized_upper:
-            return 'PostgreSQL'
-        
-        return normalized
+        return self.license_normalizer.normalize_license_id(license_id, self.spdx_data)
     
     def _is_valid_spdx_id(self, license_id: str) -> bool:
         """Check if a license ID exists in SPDX data."""
@@ -1824,147 +1841,18 @@ class LicenseDetector:
     
     def _tier3_regex_matching(self, text: str, file_path: Path) -> Optional[DetectedLicense]:
         """
-        Tier 3: Regex pattern matching fallback.
-        
+        Tier 3: Regex pattern matching using optimized lookup tables.
+
         Args:
             text: License text
             file_path: Source file
-            
+
         Returns:
             Detected license or None
         """
-        text_lower = text.lower()
-        
-        # MIT License patterns - check for key phrases
-        mit_key_phrase = r'permission is hereby granted.*free of charge.*to any person.*obtaining.*copy.*software'
-        mit_patterns = [
-            r'permission is hereby granted.*free of charge.*to any person',
-            r'mit license',
-            r'software is provided.*as is.*without warranty',
-            r'deal in the software without restriction',
-            r'use.*copy.*modify.*merge.*publish.*distribute.*sublicense'
-        ]
-        
-        # Strong indicator - the key MIT phrase
-        has_key_phrase = bool(re.search(mit_key_phrase, text_lower))
-        
-        mit_matches = sum(1 for p in mit_patterns if re.search(p, text_lower))
-        mit_score = mit_matches / len(mit_patterns)
-        
-        # If we have the key MIT phrase, lower the threshold
-        threshold = 0.4 if has_key_phrase else 0.6
-        
-        if mit_score >= threshold or has_key_phrase:
-            # Determine if this is a full license header or just a reference
-            match_type_hint = "license_header" if mit_matches >= 2 else "license_reference"
-            category, match_type = self._categorize_license(
-                file_path, DetectionMethod.REGEX.value, match_type_hint
-            )
-            # Adjust confidence based on context and match type
-            confidence = self._adjust_regex_confidence(mit_score, category, match_type, mit_matches)
-            return DetectedLicense(
-                spdx_id="MIT",
-                name="MIT License",
-                confidence=confidence,
-                detection_method=DetectionMethod.REGEX.value,
-                source_file=str(file_path),
-                category=category,
-                match_type=match_type
-            )
-        
-        # Apache 2.0 patterns
-        apache_patterns = [
-            r'apache license.*version 2\.0',
-            r'licensed under the apache license',
-            r'www\.apache\.org/licenses/license-2\.0'
-        ]
-        
-        apache_matches = sum(1 for p in apache_patterns if re.search(p, text_lower))
-        apache_score = apache_matches / len(apache_patterns)
-        
-        if apache_score >= 0.6:
-            # Determine if this is a full license header or just a reference
-            match_type_hint = "license_header" if apache_matches >= 2 else "license_reference"
-            category, match_type = self._categorize_license(
-                file_path, DetectionMethod.REGEX.value, match_type_hint
-            )
-            # Adjust confidence based on context and match type
-            confidence = self._adjust_regex_confidence(apache_score, category, match_type, apache_matches)
-            return DetectedLicense(
-                spdx_id="Apache-2.0",
-                name="Apache License 2.0",
-                confidence=confidence,
-                detection_method=DetectionMethod.REGEX.value,
-                source_file=str(file_path),
-                category=category,
-                match_type=match_type
-            )
-        
-        # GPL patterns
-        gpl_patterns = [
-            r'gnu general public license',
-            r'gpl.*version [23]',
-            r'free software foundation'
-        ]
-        
-        gpl_matches = sum(1 for p in gpl_patterns if re.search(p, text_lower))
-        gpl_score = gpl_matches / len(gpl_patterns)
-        
-        if gpl_score >= 0.6:
-            # Determine GPL version
-            if 'version 3' in text_lower or 'gplv3' in text_lower:
-                spdx_id = "GPL-3.0"
-                name = "GNU General Public License v3.0"
-            else:
-                spdx_id = "GPL-2.0"
-                name = "GNU General Public License v2.0"
-            
-            # Determine if this is a full license header or just a reference
-            match_type_hint = "license_header" if gpl_matches >= 2 else "license_reference"
-            category, match_type = self._categorize_license(
-                file_path, DetectionMethod.REGEX.value, match_type_hint
-            )
-            # Adjust confidence based on context and match type
-            confidence = self._adjust_regex_confidence(gpl_score, category, match_type, gpl_matches)
-            return DetectedLicense(
-                spdx_id=spdx_id,
-                name=name,
-                confidence=confidence,
-                detection_method=DetectionMethod.REGEX.value,
-                source_file=str(file_path),
-                category=category,
-                match_type=match_type
-            )
-        
-        # BSD patterns
-        bsd_patterns = [
-            r'redistribution and use in source and binary forms',
-            r'bsd.*license',
-            r'neither the name.*nor the names of its contributors'
-        ]
-        
-        bsd_matches = sum(1 for p in bsd_patterns if re.search(p, text_lower))
-        bsd_score = bsd_matches / len(bsd_patterns)
-        
-        if bsd_score >= 0.6:
-            # Determine if this is a full license header or just a reference
-            match_type_hint = "license_header" if bsd_matches >= 2 else "license_reference"
-            category, match_type = self._categorize_license(
-                file_path, DetectionMethod.REGEX.value, match_type_hint
-            )
-            # Adjust confidence based on context and match type
-            confidence = self._adjust_regex_confidence(bsd_score, category, match_type, bsd_matches)
-            return DetectedLicense(
-                spdx_id="BSD-3-Clause",
-                name="BSD 3-Clause License",
-                confidence=confidence,
-                detection_method=DetectionMethod.REGEX.value,
-                source_file=str(file_path),
-                category=category,
-                match_type=match_type
-            )
-        
-        return None
+        return self.regex_matcher.match_license_patterns(
+            text, file_path, self._categorize_license, self._adjust_regex_confidence
+        )
     
     def _is_false_positive_license(self, license_id: str) -> bool:
         """Check if a detected license ID is likely a false positive."""

@@ -123,6 +123,12 @@ def detect_input_type(input_path: str) -> str:
     default=10,
     help='Maximum archive extraction depth (default: 10)'
 )
+@click.option(
+    '--evidence-detail', '--detail',
+    type=click.Choice(['minimal', 'summary', 'detailed', 'full']),
+    default='detailed',
+    help='Evidence detail level: minimal (license summary only), summary (per-method counts), detailed (sample detections), full (all detections)'
+)
 @click.version_option(version=__version__, prog_name='oslili')
 def main(
     input_path: str,
@@ -134,7 +140,8 @@ def main(
     config: Optional[str],
     similarity_threshold: Optional[float],
     max_depth: Optional[int],
-    max_extraction_depth: Optional[int]
+    max_extraction_depth: Optional[int],
+    evidence_detail: str
 ):
     """
     Scan local source code for license and copyright information.
@@ -218,7 +225,7 @@ def main(
         
         # Generate output based on format
         if output_format == 'evidence':
-            output_data = detector.generate_evidence(results)
+            output_data = detector.generate_evidence(results, detail_level=evidence_detail)
         elif output_format == 'kissbom':
             output_data = detector.generate_kissbom(results)
         elif output_format == 'cyclonedx-json':

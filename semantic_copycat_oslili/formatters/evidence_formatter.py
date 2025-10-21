@@ -3,7 +3,7 @@ Evidence formatter for showing license detection results with file mappings.
 """
 
 import json
-from typing import List, Dict, Any
+from typing import List
 from pathlib import Path
 
 from ..core.models import DetectionResult
@@ -12,13 +12,18 @@ from ..core.models import DetectionResult
 class EvidenceFormatter:
     """Format attribution results as evidence showing file-to-license mappings."""
     
-    def format(self, results: List[DetectionResult]) -> str:
+    def format(self, results: List[DetectionResult], detail_level: str = 'detailed') -> str:
         """
         Format results as evidence showing what was detected where.
-        
+
         Args:
             results: List of attribution results
-            
+            detail_level: Evidence detail level:
+                - 'minimal': Only license summary counts
+                - 'summary': Summary plus detection method counts
+                - 'detailed': Summary, method counts, and sample detections (default)
+                - 'full': All detection evidence included
+
         Returns:
             Evidence as JSON string
         """
@@ -159,5 +164,77 @@ class EvidenceFormatter:
             
             # Update file count
             evidence["summary"]["total_files_scanned"] += len(license_by_file) + len(copyright_by_file)
-        
+
+        # Apply detail level filtering
+        evidence = self._apply_detail_filtering(evidence, detail_level)
+
         return json.dumps(evidence, indent=2)
+
+    def _apply_detail_filtering(self, evidence: dict, detail_level: str) -> dict:
+        """Apply detail level filtering to evidence data."""
+        if detail_level == 'minimal':
+            # Only keep summary license and copyright counts
+            filtered = {
+                "summary": {
+                    "total_files_scanned": evidence["summary"]["total_files_scanned"],
+                    "files_with_licenses": len([r for r in evidence["scan_results"] if r["license_evidence"]]),
+                    "license_breakdown": evidence["summary"]["all_licenses"],
+                    "total_license_detections": sum(len(r["license_evidence"]) for r in evidence["scan_results"]),
+                    "copyrights_found": evidence["summary"]["copyrights_found"],
+                    "unique_copyright_holders": len(evidence["summary"]["copyright_holders"])
+                }
+            }
+            return filtered
+
+        elif detail_level == 'summary':
+            # Add detection method counts
+            method_counts = {}
+            for result in evidence["scan_results"]:
+                for lic_evidence in result["license_evidence"]:
+                    method = lic_evidence["detection_method"]
+                    method_counts[method] = method_counts.get(method, 0) + 1
+
+            filtered = {
+                "summary": {
+                    "total_files_scanned": evidence["summary"]["total_files_scanned"],
+                    "files_with_licenses": len([r for r in evidence["scan_results"] if r["license_evidence"]]),
+                    "license_breakdown": evidence["summary"]["all_licenses"],
+                    "total_license_detections": sum(len(r["license_evidence"]) for r in evidence["scan_results"]),
+                    "detection_methods": method_counts,
+                    "copyrights_found": evidence["summary"]["copyrights_found"],
+                    "unique_copyright_holders": len(evidence["summary"]["copyright_holders"])
+                }
+            }
+            return filtered
+
+        elif detail_level == 'detailed':
+            # Include sample detections (limit to 10 per license type)
+            license_samples = {}
+            filtered_results = []
+
+            for result in evidence["scan_results"]:
+                filtered_result = {
+                    "path": result["path"],
+                    "license_evidence": [],
+                    "copyright_evidence": result["copyright_evidence"][:5] if result["copyright_evidence"] else []  # Limit copyrights
+                }
+
+                for lic_evidence in result["license_evidence"]:
+                    license_id = lic_evidence["detected_license"]
+                    if license_id not in license_samples:
+                        license_samples[license_id] = 0
+
+                    # Include first 10 samples per license type
+                    if license_samples[license_id] < 10:
+                        filtered_result["license_evidence"].append(lic_evidence)
+                        license_samples[license_id] += 1
+
+                if filtered_result["license_evidence"] or filtered_result["copyright_evidence"]:
+                    filtered_results.append(filtered_result)
+
+            evidence["scan_results"] = filtered_results[:100]  # Limit to first 100 scan results
+            return evidence
+
+        else:  # 'full' or any other value
+            # Return complete evidence
+            return evidence

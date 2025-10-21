@@ -1,0 +1,169 @@
+{
+  "license_patterns": [
+    {
+      "spdx_id": "MIT",
+      "name": "MIT License",
+      "patterns": [
+        "permission is hereby granted.*free of charge.*to any person",
+        "mit license",
+        "software is provided.*as is.*without warranty",
+        "deal in the software without restriction",
+        "use.*copy.*modify.*merge.*publish.*distribute.*sublicense"
+      ],
+      "key_phrase": "permission is hereby granted.*free of charge.*to any person.*obtaining.*copy",
+      "threshold": 0.6,
+      "key_phrase_threshold": 0.4
+    },
+    {
+      "spdx_id": "Apache-2.0",
+      "name": "Apache License 2.0",
+      "patterns": [
+        "apache license.*version 2\\.0",
+        "licensed under the apache license",
+        "www\\.apache\\.org/licenses/license-2\\.0"
+      ],
+      "threshold": 0.6
+    },
+    {
+      "spdx_id": "LGPL-2.1",
+      "name": "GNU Lesser General Public License v2.1",
+      "patterns": [
+        "gnu lesser general public license",
+        "lesser general public license",
+        "lgpl.*version [2-3]\\.?[01]?",
+        "library general public license",
+        "version 2\\.1.*license.*or.*later",
+        "lesser.*general.*public.*license",
+        "modify.*terms.*gnu lesser general public",
+        "lgpl-?[23]\\.?[01]?(?:-(?:only|or-later))?"
+      ],
+      "threshold": 0.25,
+      "version_detection": {
+        "v3_patterns": ["version 3", "lgplv3", "lgpl-3"],
+        "v2_1_patterns": ["version 2.1", "lgplv2.1", "lgpl-2.1"],
+        "default": "LGPL-2.1"
+      }
+    },
+    {
+      "spdx_id": "GPL-2.0",
+      "name": "GNU General Public License v2.0",
+      "patterns": [
+        "gnu general public license",
+        "gpl.*version [23]\\.?[01]?",
+        "free software foundation",
+        "general public license.*version [23]",
+        "version [23]\\.?[01]?.*general public license",
+        "gpl-?[23]\\.?[01]?(?:-(?:only|or-later))?",
+        "version.*license.*or.*(?:at your option.*)?any later version"
+      ],
+      "threshold": 0.4,
+      "version_detection": {
+        "v3_patterns": ["version 3", "gplv3"],
+        "default": "GPL-2.0"
+      }
+    },
+    {
+      "spdx_id": "BSD-3-Clause",
+      "name": "BSD 3-Clause License",
+      "patterns": [
+        "redistribution and use in source and binary forms",
+        "bsd.*license",
+        "neither the name.*nor the names of its contributors"
+      ],
+      "threshold": 0.6
+    },
+    {
+      "spdx_id": "IJG",
+      "name": "Independent JPEG Group License",
+      "patterns": [
+        "independent jpeg group",
+        "ijg.*license",
+        "jpeg.*license",
+        "this software is based in part on the work of.*independent jpeg group"
+      ],
+      "threshold": 1,
+      "min_matches": 1
+    },
+    {
+      "spdx_id": "BSL-1.0",
+      "name": "Boost Software License 1.0",
+      "patterns": [
+        "boost software license.*version 1\\.0",
+        "bsl.*1\\.0",
+        "permission is hereby granted.*free of charge.*to any person.*obtaining.*copy.*of.*software.*boost",
+        "www\\.boost\\.org/LICENSE_1_0\\.txt"
+      ],
+      "threshold": 1,
+      "min_matches": 1
+    },
+    {
+      "spdx_id": "CC-BY-4.0",
+      "name": "Creative Commons Attribution 4.0 International",
+      "patterns": [
+        "creative commons attribution.*4\\.0",
+        "cc.*by.*4\\.0",
+        "creativecommons\\.org/licenses/by/4\\.0",
+        "creative commons.*attribution.*international"
+      ],
+      "threshold": 1,
+      "min_matches": 1
+    },
+    {
+      "spdx_id": "GPL-1.0",
+      "name": "GNU General Public License v1.0",
+      "patterns": [
+        "gnu general public license.*version 1",
+        "gpl.*version 1",
+        "gplv1",
+        "free software foundation.*version 1"
+      ],
+      "threshold": 1,
+      "min_matches": 1
+    },
+    {
+      "spdx_id": "BSD-3-Clause-Clear",
+      "name": "BSD 3-Clause Clear License",
+      "patterns": [
+        "bsd.*clear.*license",
+        "clear.*bsd",
+        "redistribution.*binary.*forms.*must reproduce.*copyright notice.*clear"
+      ],
+      "threshold": 1,
+      "min_matches": 1
+    },
+    {
+      "spdx_id": "ISC",
+      "name": "ISC License",
+      "patterns": [
+        "isc license",
+        "permission to use.*copy.*modify.*distribute.*software",
+        "software is provided.*as is.*without warranty.*express.*implied",
+        "internet systems consortium"
+      ],
+      "threshold": 0.5,
+      "min_matches": 2
+    }
+  ],
+  "license_reference_patterns": [
+    {
+      "pattern": "distributed under.*terms.*of.*(?:the\\s+)?([a-z0-9\\-\\.]+).*license",
+      "group": 1
+    },
+    {
+      "pattern": "licensed under.*(?:the\\s+)?([a-z0-9\\-\\.]+).*license",
+      "group": 1
+    },
+    {
+      "pattern": "subject to.*(?:the\\s+)?([a-z0-9\\-\\.]+).*license",
+      "group": 1
+    },
+    {
+      "pattern": "see.*([a-z0-9\\-\\.]+).*license.*for.*details",
+      "group": 1
+    },
+    {
+      "pattern": "license.*file.*([a-z0-9\\-\\.]+)",
+      "group": 1
+    }
+  ]
+}

@@ -246,19 +246,20 @@ class LicenseCopyrightDetector:
 
         logger.debug(f"Found {len(result.licenses)} license(s) and {len(result.copyrights)} copyright(s)")
     
-    def generate_evidence(self, results: List[DetectionResult]) -> str:
+    def generate_evidence(self, results: List[DetectionResult], detail_level: str = 'detailed') -> str:
         """
         Generate evidence showing file-to-license mappings.
-        
+
         Args:
             results: List of attribution results
-            
+            detail_level: Evidence detail level ('minimal', 'summary', 'detailed', 'full')
+
         Returns:
             Evidence as JSON string
         """
         from ..formatters.evidence_formatter import EvidenceFormatter
         formatter = EvidenceFormatter()
-        return formatter.format(results)
+        return formatter.format(results, detail_level=detail_level)
     
     def generate_kissbom(self, results: List[DetectionResult]) -> str:
         """
