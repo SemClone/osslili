@@ -405,6 +405,11 @@ class LicenseDetector:
     def _is_readable_file(self, file_path: Path) -> bool:
         """Check if a file is likely readable text - MODIFIED for better coverage."""
         try:
+            # Skip test reference files (these are test outputs, not source)
+            path_str = str(file_path).lower()
+            if '/tests/ref/' in path_str or '/test/ref/' in path_str:
+                return False
+
             # Get file extension
             ext = file_path.suffix.lower()
 
@@ -427,12 +432,49 @@ class LicenseDetector:
             if not ext:
                 # Check filename patterns for known file types
                 name_lower = file_path.name.lower()
-                if any(pattern in name_lower for pattern in [
+
+                # Common known text files
+                known_text_files = [
                     'makefile', 'dockerfile', 'readme', 'license',
                     'copying', 'notice', 'changelog', 'authors',
-                    'contributors', 'maintainers', 'install'
-                ]):
+                    'contributors', 'maintainers', 'install',
+                    'credits', 'thanks', 'history', 'news', 'releases',
+                    'version', 'manifest', 'codeowners', 'security',
+                    'contributing', 'code_of_conduct', 'funding',
+                    'citation', 'coauthors', 'release_notes', 'release'
+                ]
+
+                if any(pattern in name_lower for pattern in known_text_files):
                     return True
+
+                # For other files without extensions, check if they're text
+                # by reading a small portion and checking content
+                # This will catch files like 'configure', 'bootstrap', etc.
+                try:
+                    with open(file_path, 'rb') as f:
+                        chunk = f.read(512)  # Just check first 512 bytes
+                        if not chunk:
+                            return True  # Empty files are readable
+
+                        # Quick check for binary content
+                        null_count = chunk.count(b'\x00')
+                        if null_count > len(chunk) * 0.05:  # More than 5% null bytes
+                            return False
+
+                        # Try to decode as text
+                        try:
+                            chunk.decode('utf-8')
+                            return True
+                        except UnicodeDecodeError:
+                            # Check if mostly printable ASCII
+                            printable = sum(1 for b in chunk if 32 <= b <= 126 or b in [9, 10, 13])
+                            if printable >= len(chunk) * 0.75:  # 75% printable
+                                return True
+                except:
+                    pass
+
+                # Default to false for files without extensions that don't pass checks
+                return False
 
             # If it's a known source extension, assume readable
             if ext in source_extensions:
