@@ -136,12 +136,12 @@
       "name": "ISC License",
       "patterns": [
         "isc license",
-        "permission to use.*copy.*modify.*distribute.*software",
-        "software is provided.*as is.*without warranty.*express.*implied",
-        "internet systems consortium"
+        "internet systems consortium",
+        "permission to use.*copy.*modify.*distribute.*software.*isc",
+        "isc.*permission.*hereby.*granted"
       ],
       "threshold": 0.5,
-      "min_matches": 2
+      "min_matches": 1
     }
   ],
   "license_reference_patterns": [
