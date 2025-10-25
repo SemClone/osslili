@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.5] - 2025-10-24
+
+### Fixed
+- **False Positive Copyright Detection**: Eliminated false positive copyright holder detections
+  - Fixed overly broad regex patterns that captured programming language constructs
+  - Added filtering for Fortran data types (integer*1, character) being detected as copyright holders
+  - Enhanced filtering for Python code fragments (is not None, or sig_pattern, is np, is not np)
+  - Improved regex patterns to stop at programming keywords (is, or, and)
+  - Added exact match filtering for known false positive patterns
+  - Better handling of contributor phrases like "and individual contributors"
+
+### Improved
+- **Copyright Extraction Accuracy**: More precise copyright holder identification with significantly fewer false positives
+- **Code Pattern Detection**: Enhanced recognition of programming language constructs to prevent them from being interpreted as copyright information
+
 ## [1.5.4] - 2025-10-24
 
 ### Fixed
