@@ -46,19 +46,19 @@ class CopyrightExtractor:
             # Standard copyright format: Copyright (c) YYYY Name
             # More restrictive: stop at common delimiters and code patterns
             re.compile(
-                r'Copyright\s*(?:\(c\)|©)?\s*(\d{4}(?:\s*[-,]\s*\d{4})*)?[\s,]*(?:by\s+)?([A-Za-z][^;\{\}\[\]\(\)<>\n\r]*?)(?:\.|,|\s*$|\s*All\s+rights)',
+                r'Copyright\s*(?:\(c\)|©)?\s*(\d{4}(?:\s*[-,]\s*\d{4})*)?[\s,]*(?:by\s+)?([A-Za-z][^;\{\}\[\]\(\)<>\n\r=!]*?)(?:\.|,|\s*$|\s*All\s+rights|\s+is\s|\s+or\s|\s+and\s)',
                 re.IGNORECASE | re.MULTILINE
             ),
-            
+
             # Alternative format: © YYYY Name
             re.compile(
-                r'©\s*(\d{4}(?:\s*[-,]\s*\d{4})*)?[\s,]*([A-Za-z][^;\{\}\[\]\(\)<>\n\r]*?)(?:\.|,|\s*$|\s*All\s+rights)',
+                r'©\s*(\d{4}(?:\s*[-,]\s*\d{4})*)?[\s,]*([A-Za-z][^;\{\}\[\]\(\)<>\n\r=!]*?)(?:\.|,|\s*$|\s*All\s+rights|\s+is\s|\s+or\s|\s+and\s)',
                 re.IGNORECASE | re.MULTILINE
             ),
-            
+
             # (C) YYYY Name format
             re.compile(
-                r'\(C\)\s*(\d{4}(?:\s*[-,]\s*\d{4})*)?[\s,]*(?:by\s+)?([A-Za-z][^;\{\}\[\]\(\)<>\n\r]*?)(?:\.|,|\s*$|\s*All\s+rights)',
+                r'\(C\)\s*(\d{4}(?:\s*[-,]\s*\d{4})*)?[\s,]*(?:by\s+)?([A-Za-z][^;\{\}\[\]\(\)<>\n\r=!]*?)(?:\.|,|\s*$|\s*All\s+rights|\s+is\s|\s+or\s|\s+and\s)',
                 re.IGNORECASE | re.MULTILINE
             ),
             
@@ -380,7 +380,10 @@ class CopyrightExtractor:
             'public ', 'private ', 'static ', 'void ', 'int ', 'string ',
             'package ', 'module ', 'export ', 'require ', 'use ',
             '==', '!=', '>=', '<=', '&&', '||', '->', '=>', '::',
-            '${', '#{', '{{', '}}', '/*', '*/', '//'
+            '${', '#{', '{{', '}}', '/*', '*/', '//',
+            # Python/programming language patterns
+            'is not ', 'is ', 'not ', 'or ', 'and ', 'in ',
+            'integer*', 'character', 'sig_pattern', 'is np', 'is not np'
         ]
         
         holder_lower = holder.lower()
@@ -445,6 +448,15 @@ class CopyrightExtractor:
             'varies', 'variable', 'placeholder', 'example', 'sample',
             'lorem ipsum', 'detector', 'generator', 'scanner', 'analyzer', 'processor'
         ]
+
+        # Additional check for exact false positive matches
+        exact_false_positives = [
+            'integer*1', 'character', 'is not none', 'or sig_pattern',
+            'is np', 'is not np', 'none', 'true', 'false'
+        ]
+
+        if holder_lower.strip() in exact_false_positives:
+            return ""
 
         # Check for exact matches of test placeholders (not as part of larger names)
         # Only filter if it's EXACTLY these words (case-insensitive)
