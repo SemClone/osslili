@@ -133,16 +133,24 @@ class LicenseDetector:
         if license_lower in false_positive_words:
             return False
 
-        # Must contain valid license pattern indicators
+        # Must contain valid license pattern indicators - Made more specific
         valid_license_indicators = [
-            'gpl', 'lgpl', 'mit', 'bsd', 'apache', 'mpl', 'isc', 'zlib', 'perl',
-            'python', 'ruby', 'php', 'openssl', 'json', 'vim', 'unlicense',
-            'wtfpl', 'cc-', 'creative', 'copyleft', 'artistic', 'eclipse',
-            'mozilla', 'cddl', 'epl', 'ibm', 'intel', 'nvidia', 'ofl',
-            'sil', 'x11', 'ms-', 'microsoft', 'proprietary', 'commercial',
-            'public-domain', 'domain', 'free', 'open', 'bsl', 'boost', 'ijg',
-            'jpeg', 'clear', 'source'
+            'gpl', 'lgpl', 'mit', 'bsd', 'apache', 'mpl', 'zlib', 'openssl',
+            'json', 'vim', 'unlicense', 'wtfpl', 'cc-', 'creative', 'copyleft',
+            'artistic', 'eclipse', 'mozilla', 'cddl', 'epl', 'ibm', 'intel',
+            'nvidia', 'ofl', 'sil', 'x11', 'ms-', 'microsoft', 'proprietary',
+            'commercial', 'public-domain', 'bsl', 'boost', 'ijg', 'jpeg',
+            'foundation', 'software', 'consortium'
         ]
+
+        # Additional validation: single word generic terms should be rejected
+        generic_single_words = ['python', 'ruby', 'php', 'perl', 'java', 'javascript',
+                               'node', 'go', 'rust', 'swift', 'kotlin', 'scala',
+                               'domain', 'free', 'open', 'source', 'clear', 'isc']
+
+        # Reject single generic words unless they're clearly license identifiers
+        if license_lower in generic_single_words:
+            return False
 
         # Special cases for build flags and restrictions
         build_flags = ['nonfree', 'unredistributable', 'proprietary', 'commercial']
@@ -1295,16 +1303,16 @@ class LicenseDetector:
             'CC-BY-SA-4.0': ['CC-BY-SA-4.0', 'CC BY-SA 4.0', 'Creative Commons Attribution-ShareAlike 4.0'],
 
             # Others
-            'ISC': ['ISC', 'ISC License'],
+            'ISC': ['ISC License', 'Internet Systems Consortium License'],
             'Artistic-2.0': ['Artistic-2.0', 'Artistic License 2.0'],
             'Unlicense': ['Unlicense', 'The Unlicense'],
-            # Additional patterns from license database
-            'Python-2.0': ['Python', 'Python License', 'Python Software Foundation License', 'PSF', 'PYTHON',
-                           'Python Software Foundation', 'PSF License', 'the Python Software Foundation License'],
-            'PHP-3.0': ['PHP', 'PHP License', 'PHP-3.0', 'PHP 3.0'],
-            'PHP-3.01': ['PHP-3.01', 'PHP 3.01', 'PHP License 3.01'],
-            'Ruby': ['Ruby', 'Ruby License', 'RUBY'],
-            'Perl': ['Perl', 'Perl License', 'Artistic-Perl'],
+            # Additional patterns from license database - FIXED to be more specific
+            'Python-2.0': ['Python Software Foundation License', 'PSF License', 'Python License 2.0',
+                           'the Python Software Foundation License', 'PYTHON SOFTWARE FOUNDATION LICENSE'],
+            'PHP-3.0': ['PHP License 3.0', 'PHP-3.0', 'The PHP License, version 3.0'],
+            'PHP-3.01': ['PHP License 3.01', 'PHP-3.01', 'The PHP License, version 3.01'],
+            'Ruby': ['Ruby License', 'RUBY LICENSE'],
+            'Perl': ['Perl Artistic License', 'Artistic License (Perl)', 'Perl License'],
             'Zlib': ['zlib', 'Zlib', 'ZLIB License'],
             'OpenSSL': ['OpenSSL', 'OpenSSL License', 'OpenSSL/SSLeay'],
             'JSON': ['JSON', 'JSON License', 'The JSON License'],
@@ -1431,18 +1439,36 @@ class LicenseDetector:
                     match = pattern_re.search(content)
                     if match:
                         # Check if it appears in a license context
-                        start = max(0, match.start() - 50)
-                        context = content[start:match.end()]
+                        start = max(0, match.start() - 100)
+                        end = min(len(content), match.end() + 50)
+                        context = content[start:end]
                         has_context = any(re.search(pattern, context, re.IGNORECASE) for pattern in context_patterns)
 
-                        # Check for comment or line start
+                        # Check for comment or line start (more strict)
+                        line_start = False
                         if match.start() > 0:
-                            prefix = content[max(0, match.start()-3):match.start()]
-                            line_start = any(c in prefix for c in '\n*#/') or prefix.strip() in ['', '//', '/*', '#', '*']
+                            # Look at the entire line leading up to the match
+                            line_start_pos = content.rfind('\n', 0, match.start())
+                            if line_start_pos == -1:
+                                line_start_pos = 0
+                            else:
+                                line_start_pos += 1
+                            line_prefix = content[line_start_pos:match.start()].strip()
+
+                            # Check if line starts with comment markers or license-related keywords
+                            comment_markers = ['#', '//', '/*', '*', '--', '%', ';']
+                            license_keywords = ['license', 'copyright', '©', 'spdx', 'distributed under', 'licensed under']
+
+                            line_start = (
+                                any(line_prefix.startswith(marker) for marker in comment_markers) or
+                                any(keyword in line_prefix.lower() for keyword in license_keywords) or
+                                line_prefix == ''
+                            )
                         else:
                             line_start = True
 
-                        if has_context or line_start:
+                        # Only match if we have strong license context or it's in a clear license statement
+                        if has_context and line_start:
                             # Handle version suffixes and normalization
                             final_spdx_id = handle_version_suffix(spdx_id, content[match.start():match.end()+20])
 

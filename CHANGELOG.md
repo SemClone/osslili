@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.4] - 2025-10-24
+
+### Fixed
+- **False Positive License Detection**: Significantly reduced false positive license detections
+  - Fixed overly broad keyword patterns for Python-2.0, ISC, and Perl licenses
+  - Enhanced context validation to require license-specific contexts for matches
+  - Added filtering for generic programming language names being detected as licenses
+  - Improved ISC license pattern specificity to require actual ISC license text
+  - Strengthened validation to prevent common programming terms from being flagged as licenses
+
+### Improved
+- **License Detection Accuracy**: More precise detection with fewer false positives while maintaining legitimate detection coverage
+- **Context Checking**: Enhanced validation that license keywords appear in actual license contexts rather than general code comments
+
 ## [1.5.3] - 2025-10-21
 
 ### Added
