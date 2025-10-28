@@ -11,7 +11,7 @@ from pathlib import Path
 def update_spdx_licenses():
     """Update SPDX licenses if needed."""
     script_dir = Path(__file__).parent
-    data_file = script_dir.parent / "semantic_copycat_oslili" / "data" / "spdx_licenses.json"
+    data_file = script_dir.parent / "osslili" / "data" / "spdx_licenses.json"
     
     # Check if file exists and is recent (less than 30 days old)
     if data_file.exists():

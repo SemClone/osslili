@@ -1,5 +1,5 @@
 """
-semantic-copycat-oslili: License and copyright detector for software packages.
+osslili: Open Source License Identification Library.
 """
 
 # Suppress SSL warnings before importing anything else
@@ -13,7 +13,7 @@ if os.environ.get('OSLILI_DEBUG') != '1':
     except ImportError:
         pass
 
-__version__ = "1.5.3"
+__version__ = "1.5.6"
 
 from .core.generator import LicenseCopyrightDetector
 from .core.models import (

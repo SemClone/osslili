@@ -1,5 +1,5 @@
 """
-Logging utilities for semantic-copycat-oslili.
+Logging utilities for osslili.
 """
 
 import logging
@@ -46,7 +46,7 @@ def setup_logging(level: int = logging.INFO, log_file: Optional[str] = None):
     # Control our package's logging based on level
     if level > logging.INFO:
         # In normal mode (ERROR level), suppress all but errors
-        logging.getLogger('semantic_copycat_oslili').setLevel(logging.ERROR)
+        logging.getLogger('osslili').setLevel(logging.ERROR)
     else:
         # In verbose/debug mode, use the specified level
-        logging.getLogger('semantic_copycat_oslili').setLevel(level)
+        logging.getLogger('osslili').setLevel(level)

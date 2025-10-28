@@ -1,11 +1,27 @@
 # Changelog
 
-All notable changes to semantic-copycat-oslili will be documented in this file.
+All notable changes to osslili will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.5.6] - 2025-10-27
+
+### Changed
+- **Project Rename**: Renamed project from `semantic-copycat-oslili` to `osslili`
+  - Updated package name and imports throughout codebase
+  - Changed CLI command from `oslili` to `osslili`
+  - Updated repository URL to `https://github.com/SemClone/osslili`
+  - Renamed main Python package directory from `semantic_copycat_oslili` to `osslili`
+  - Updated all documentation, configuration files, and scripts
+  - Simplified project description to "Open Source License Identification Library"
+
+### Technical
+- **Package Structure**: Completely reorganized package structure for the new name
+- **Import Compatibility**: All import statements updated to use new package name
+- **Documentation**: Updated all references across README, docs, and examples
 
 ## [1.5.5] - 2025-10-24
 

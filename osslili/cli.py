@@ -1,5 +1,5 @@
 """
-CLI interface for semantic-copycat-oslili.
+CLI interface for osslili.
 """
 
 import sys
@@ -129,7 +129,7 @@ def detect_input_type(input_path: str) -> str:
     default='detailed',
     help='Evidence detail level: minimal (license summary only), summary (per-method counts), detailed (sample detections), full (all detections)'
 )
-@click.version_option(version=__version__, prog_name='oslili')
+@click.version_option(version=__version__, prog_name='osslili')
 def main(
     input_path: str,
     output: Optional[str],

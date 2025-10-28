@@ -1,10 +1,10 @@
 # SPDX License Data Management
 
-This document describes how to update the bundled SPDX license data used by semantic-copycat-oslili for license detection.
+This document describes how to update the bundled SPDX license data used by osslili for license detection.
 
 ## Overview
 
-The tool uses bundled SPDX license data stored in `semantic_copycat_oslili/data/spdx_licenses.json`. This data includes:
+The tool uses bundled SPDX license data stored in `osslili/data/spdx_licenses.json`. This data includes:
 - 700+ SPDX license definitions
 - License texts for common licenses
 - Aliases and name mappings
@@ -31,8 +31,8 @@ python scripts/build_hook.py
 
 ```bash
 # Create backup of current data
-cp semantic_copycat_oslili/data/spdx_licenses.json semantic_copycat_oslili/data/spdx_licenses.json.backup
-cp semantic_copycat_oslili/data/license_hashes.json semantic_copycat_oslili/data/license_hashes.json.backup
+cp osslili/data/spdx_licenses.json osslili/data/spdx_licenses.json.backup
+cp osslili/data/license_hashes.json osslili/data/license_hashes.json.backup
 ```
 
 ### 3. Run Update Script
@@ -47,22 +47,22 @@ This script will:
 2. Fetch license texts for common licenses
 3. Generate TLSH hashes for fuzzy matching
 4. Create aliases and name mappings
-5. Save to `semantic_copycat_oslili/data/spdx_licenses.json`
+5. Save to `osslili/data/spdx_licenses.json`
 
 ### 4. Verify Update
 
 ```bash
 # Check file was updated
-ls -la semantic_copycat_oslili/data/spdx_licenses.json
+ls -la osslili/data/spdx_licenses.json
 
 # Verify JSON structure
-python -c "import json; data = json.load(open('semantic_copycat_oslili/data/spdx_licenses.json')); print(f'Licenses: {len(data[\"licenses\"])}, Aliases: {len(data[\"aliases\"])}')"
+python -c "import json; data = json.load(open('osslili/data/spdx_licenses.json')); print(f'Licenses: {len(data[\"licenses\"])}, Aliases: {len(data[\"aliases\"])}')"
 
 # Compare with backup
 python -c "
 import json
-old = json.load(open('semantic_copycat_oslili/data/spdx_licenses.json.backup'))
-new = json.load(open('semantic_copycat_oslili/data/spdx_licenses.json'))
+old = json.load(open('osslili/data/spdx_licenses.json.backup'))
+new = json.load(open('osslili/data/spdx_licenses.json'))
 print(f'Old licenses: {len(old[\"licenses\"])}, New licenses: {len(new[\"licenses\"])}')
 print(f'Old aliases: {len(old[\"aliases\"])}, New aliases: {len(new[\"aliases\"])}')
 "
@@ -76,7 +76,7 @@ python -m pytest tests/test_license_detector.py -v
 
 # Or manually test
 python -c "
-from semantic_copycat_oslili import LicenseCopyrightDetector
+from osslili import LicenseCopyrightDetector
 detector = LicenseCopyrightDetector()
 # Test should detect MIT license
 result = detector.process_local_path('LICENSE')
@@ -87,7 +87,7 @@ print(f'Detected: {result.licenses[0].spdx_id if result.licenses else \"None\"}'
 
 ```bash
 # If tests pass, commit the updated data
-git add semantic_copycat_oslili/data/spdx_licenses.json
+git add osslili/data/spdx_licenses.json
 git commit -m "chore: Update SPDX license data to latest version"
 ```
 

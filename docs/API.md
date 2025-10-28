@@ -221,7 +221,7 @@ cache_dir: "~/.cache/oslili"
 ### Basic Usage
 
 ```python
-from semantic_copycat_oslili import LicenseCopyrightDetector
+from osslili import LicenseCopyrightDetector
 
 # Create detector
 detector = LicenseCopyrightDetector()
@@ -249,7 +249,7 @@ print(evidence)
 ### With Configuration
 
 ```python
-from semantic_copycat_oslili import LicenseCopyrightDetector, Config
+from osslili import LicenseCopyrightDetector, Config
 
 # Custom configuration
 config = Config(
@@ -269,7 +269,7 @@ result = detector.process_local_path("/path/to/source")
 ### Processing Multiple Directories
 
 ```python
-from semantic_copycat_oslili import LicenseCopyrightDetector
+from osslili import LicenseCopyrightDetector
 import json
 
 detector = LicenseCopyrightDetector()
@@ -297,7 +297,7 @@ with open("license-evidence.json", "w") as f:
 ### Analyzing with License Hierarchy
 
 ```python
-from semantic_copycat_oslili import LicenseCopyrightDetector
+from osslili import LicenseCopyrightDetector
 
 detector = LicenseCopyrightDetector()
 result = detector.process_local_path("/path/to/project")
@@ -315,7 +315,7 @@ print(f"Referenced licenses: {[l.spdx_id for l in referenced_licenses]}")
 ### Safe Directory Traversal
 
 ```python
-from semantic_copycat_oslili import LicenseCopyrightDetector, Config
+from osslili import LicenseCopyrightDetector, Config
 
 # Configure with depth limiting
 config = Config(
@@ -337,7 +337,7 @@ result = detector.process_local_path("/path/to/deep/project")
 ### Archive Processing
 
 ```python
-from semantic_copycat_oslili import LicenseCopyrightDetector, Config
+from osslili import LicenseCopyrightDetector, Config
 
 # Configure archive extraction
 config = Config(
@@ -357,7 +357,7 @@ result = detector.process_local_path("/path/to/package.tar.gz")
 ### Using Cache
 
 ```python
-from semantic_copycat_oslili import LicenseCopyrightDetector, Config
+from osslili import LicenseCopyrightDetector, Config
 
 # Configure with cache
 config = Config(
@@ -410,7 +410,7 @@ OSLILI parses complex license expressions:
 ### Tag Detection Example
 
 ```python
-from semantic_copycat_oslili import LicenseCopyrightDetector
+from osslili import LicenseCopyrightDetector
 
 detector = LicenseCopyrightDetector()
 result = detector.process_local_path("/path/to/source.js")
