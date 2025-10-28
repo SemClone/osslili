@@ -86,9 +86,9 @@ class CycloneDXFormatter:
                 "timestamp": datetime.utcnow().isoformat() + "Z",
                 "tools": [
                     {
-                        "vendor": "semantic-copycat-oslili",
-                        "name": "oslili",
-                        "version": "1.2.9"
+                        "vendor": "osslili",
+                        "name": "osslili",
+                        "version": "1.5.6"
                     }
                 ]
             },
@@ -114,11 +114,11 @@ class CycloneDXFormatter:
         tools = ET.SubElement(metadata, "tools")
         tool = ET.SubElement(tools, "tool")
         vendor = ET.SubElement(tool, "vendor")
-        vendor.text = "semantic-copycat-oslili"
+        vendor.text = "osslili"
         name = ET.SubElement(tool, "name")
-        name.text = "oslili"
+        name.text = "osslili"
         version = ET.SubElement(tool, "version")
-        version.text = "1.2.9"
+        version.text = "1.5.6"
         
         # Add components
         components = ET.SubElement(root, "components")
