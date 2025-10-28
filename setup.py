@@ -1,5 +1,5 @@
 """
-Setup configuration for semantic-copycat-oslili package.
+Setup configuration for osslili package.
 """
 
 from setuptools import setup, find_packages
@@ -11,14 +11,14 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
     requirements = [line.strip() for line in fh if line.strip() and not line.startswith("#")]
 
 setup(
-    name="semantic-copycat-oslili",
-    version="1.4.1",
+    name="osslili",
+    version="1.5.5",
     author="Oscar Valenzuela B.",
     author_email="oscar.valenzuela.b@gmail.com",
-    description="License and copyright detector for software packages",
+    description="Open Source License Identification Library",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/oscarvalenzuelab/semantic-copycat-oslili",
+    url="https://github.com/SemClone/osslili",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -54,11 +54,11 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "oslili=semantic_copycat_oslili.cli:main",
+            "osslili=osslili.cli:main",
         ],
     },
     include_package_data=True,
     package_data={
-        "semantic_copycat_oslili": ["data/*.json", "data/*.yaml"],
+        "osslili": ["data/*.json", "data/*.yaml"],
     },
 )

@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "semantic-copycat-oslili"
-version = "1.5.5"
-description = "Semantic Copycat Open Source License Identification Library"
+name = "osslili"
+version = "1.5.6"
+description = "Open Source License Identification Library"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "Apache-2.0"}
@@ -80,31 +80,31 @@ ml = [
     "scikit-learn>=1.3.0",
 ]
 all = [
-    "semantic-copycat-oslili[fast,tlsh,purl2src,cyclonedx]",
+    "osslili[fast,tlsh,purl2src,cyclonedx]",
 ]
 
 [project.urls]
-Homepage = "https://github.com/oscarvalenzuelab/semantic-copycat-oslili"
-Documentation = "https://github.com/oscarvalenzuelab/semantic-copycat-oslili#readme"
-Repository = "https://github.com/oscarvalenzuelab/semantic-copycat-oslili.git"
-Issues = "https://github.com/oscarvalenzuelab/semantic-copycat-oslili/issues"
-Changelog = "https://github.com/oscarvalenzuelab/semantic-copycat-oslili/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/SemClone/osslili"
+Documentation = "https://github.com/SemClone/osslili#readme"
+Repository = "https://github.com/SemClone/osslili.git"
+Issues = "https://github.com/SemClone/osslili/issues"
+Changelog = "https://github.com/SemClone/osslili/blob/main/CHANGELOG.md"
 
 [project.scripts]
-oslili = "semantic_copycat_oslili.cli:main"
+osslili = "osslili.cli:main"
 
 [tool.setuptools]
-packages = ["semantic_copycat_oslili", 
-           "semantic_copycat_oslili.core",
-           "semantic_copycat_oslili.data", 
-           "semantic_copycat_oslili.detectors",
-           "semantic_copycat_oslili.extractors",
-           "semantic_copycat_oslili.formatters",
-           "semantic_copycat_oslili.utils"]
+packages = ["osslili",
+           "osslili.core",
+           "osslili.data",
+           "osslili.detectors",
+           "osslili.extractors",
+           "osslili.formatters",
+           "osslili.utils"]
 
 [tool.setuptools.package-data]
-semantic_copycat_oslili = ["data/*.json", "data/*.yaml", "data/*.txt"]
-"semantic_copycat_oslili.data" = ["*.json", "*.yaml", "*.txt"]
+osslili = ["data/*.json", "data/*.yaml", "data/*.txt"]
+"osslili.data" = ["*.json", "*.yaml", "*.txt"]
 
 [tool.black]
 line-length = 100
@@ -134,10 +134,10 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
-addopts = "-v --cov=semantic_copycat_oslili --cov-report=term-missing"
+addopts = "-v --cov=osslili --cov-report=term-missing"
 
 [tool.coverage.run]
-source = ["semantic_copycat_oslili"]
+source = ["osslili"]
 omit = ["*/tests/*", "*/test_*.py"]
 
 [tool.coverage.report]

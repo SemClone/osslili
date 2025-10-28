@@ -181,7 +181,7 @@ def main():
     # Determine output path
     script_dir = Path(__file__).parent
     project_root = script_dir.parent
-    data_dir = project_root / "semantic_copycat_oslili" / "data"
+    data_dir = project_root / "osslili" / "data"
     
     # Ensure data directory exists
     data_dir.mkdir(parents=True, exist_ok=True)

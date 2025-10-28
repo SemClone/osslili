@@ -1,10 +1,10 @@
-# semantic-copycat-oslili
+# osslili
 
 A high-performance tool for identifying licenses and copyright information in local source code, producing detailed evidence of where licenses are detected with support for all 700+ SPDX license identifiers.
 
 ## What It Does
 
-`semantic-copycat-oslili` analyzes local source code to produce evidence of:
+`osslili` analyzes local source code to produce evidence of:
 - **License detection** - Shows which files contain which licenses with confidence scores
 - **SPDX identifiers** - Detects SPDX-License-Identifier tags in ALL readable files
 - **Package metadata** - Extracts licenses from package.json, pyproject.toml, METADATA files
@@ -59,7 +59,7 @@ The tool uses a sophisticated multi-tier approach for maximum accuracy:
 ## Installation
 
 ```bash
-pip install semantic-copycat-oslili
+pip install osslili
 ```
 
 ### Required Dependencies
@@ -72,36 +72,36 @@ The package includes all necessary dependencies including `python-tlsh` for fuzz
 
 ```bash
 # Scan a directory and see evidence (default format)
-oslili /path/to/project
+osslili /path/to/project
 
 # Generate different output formats
-oslili ./my-project -f kissbom -o kissbom.json
-oslili ./my-project -f cyclonedx-json -o sbom.json
-oslili ./my-project -f cyclonedx-xml -o sbom.xml
+osslili ./my-project -f kissbom -o kissbom.json
+osslili ./my-project -f cyclonedx-json -o sbom.json
+osslili ./my-project -f cyclonedx-xml -o sbom.xml
 
 # Scan with parallel processing (4 threads)
-oslili ./my-project --threads 4
+osslili ./my-project --threads 4
 
 # Scan with limited depth (only 2 levels deep)
-oslili ./my-project --max-depth 2
+osslili ./my-project --max-depth 2
 
 # Extract and scan archives
-oslili package.tar.gz --max-extraction-depth 2
+osslili package.tar.gz --max-extraction-depth 2
 
 # Use caching for faster repeated scans
-oslili ./my-project --cache-dir ~/.cache/oslili
+osslili ./my-project --cache-dir ~/.cache/osslili
 
 # Check version
-oslili --version
+osslili --version
 
 # Save results to file
-oslili ./my-project -o license-evidence.json
+osslili ./my-project -o license-evidence.json
 
 # With custom configuration and verbose output
-oslili ./src --config config.yaml --verbose
+osslili ./src --config config.yaml --verbose
 
 # Debug mode for detailed logging
-oslili ./project --debug
+osslili ./project --debug
 ```
 
 ### Example Output
@@ -153,7 +153,7 @@ oslili ./project --debug
 ### Library Usage
 
 ```python
-from semantic_copycat_oslili import LicenseCopyrightDetector
+from osslili import LicenseCopyrightDetector
 
 # Initialize detector
 detector = LicenseCopyrightDetector()
@@ -197,7 +197,7 @@ similarity_threshold: 0.97
 max_recursion_depth: 10
 max_extraction_depth: 10
 thread_count: 4
-cache_dir: "~/.cache/oslili"
+cache_dir: "~/.cache/osslili"
 custom_aliases:
   "Apache 2": "Apache-2.0"
   "MIT License": "MIT"

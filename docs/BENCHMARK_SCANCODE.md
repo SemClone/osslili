@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document presents a comprehensive comparison between OSLILI (semantic-copycat-oslili) and ScanCode Toolkit v32.4.0 for license and copyright detection. The analysis was conducted on the FFmpeg-8.0 codebase to evaluate accuracy, performance, and detection capabilities of both tools.
+This document presents a comprehensive comparison between OSLILI (osslili) and ScanCode Toolkit v32.4.0 for license and copyright detection. The analysis was conducted on the FFmpeg-8.0 codebase to evaluate accuracy, performance, and detection capabilities of both tools.
 
 ## Test Environment
 

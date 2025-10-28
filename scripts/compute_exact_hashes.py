@@ -5,7 +5,7 @@ Script to compute SHA-256 and MD5 hashes for all SPDX licenses.
 This script:
 1. Downloads license texts for all SPDX licenses
 2. Computes SHA-256 and MD5 hashes using normalized text
-3. Saves hashes to semantic_copycat_oslili/data/exact_hashes.json
+3. Saves hashes to osslili/data/exact_hashes.json
 
 Run this after updating SPDX data to regenerate hashes.
 """
@@ -17,7 +17,7 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from semantic_copycat_oslili.data.spdx_licenses import SPDXLicenseData
+from osslili.data.spdx_licenses import SPDXLicenseData
 
 
 class Config:
@@ -35,7 +35,7 @@ def main():
     spdx_data = SPDXLicenseData(config)
     
     # Output file for exact hashes
-    output_file = Path(__file__).parent.parent / "semantic_copycat_oslili" / "data" / "exact_hashes.json"
+    output_file = Path(__file__).parent.parent / "osslili" / "data" / "exact_hashes.json"
     
     print(f"Computing exact hashes for SPDX licenses...")
     

@@ -1,6 +1,6 @@
 # OSLILI Usage Guide
 
-This guide provides comprehensive instructions for using the `semantic-copycat-oslili` package to identify licenses and extract copyright information from local source code.
+This guide provides comprehensive instructions for using the `osslili` package to identify licenses and extract copyright information from local source code.
 
 ## Table of Contents
 
@@ -18,7 +18,7 @@ This guide provides comprehensive instructions for using the `semantic-copycat-o
 ### Basic Installation
 
 ```bash
-pip install semantic-copycat-oslili
+pip install osslili
 ```
 
 ### Dependencies
@@ -35,8 +35,8 @@ The package includes all required dependencies:
 ### Development Installation
 
 ```bash
-git clone https://github.com/oscarvalenzuelab/semantic-copycat-oslili.git
-cd semantic-copycat-oslili
+git clone https://github.com/SemClone/osslili.git
+cd osslili
 pip install -e .[dev]
 ```
 
@@ -152,7 +152,7 @@ oslili ./lib -d
 ### Basic Usage
 
 ```python
-from semantic_copycat_oslili import LicenseCopyrightDetector
+from osslili import LicenseCopyrightDetector
 
 # Create generator with default config
 detector = LicenseCopyrightDetector()
@@ -172,7 +172,7 @@ print(evidence)
 ### Advanced Configuration
 
 ```python
-from semantic_copycat_oslili import LicenseCopyrightDetector, Config
+from osslili import LicenseCopyrightDetector, Config
 
 # Create custom configuration
 config = Config(
@@ -195,7 +195,7 @@ result = detector.process_local_path("/path/to/source")
 ### Processing Multiple Directories
 
 ```python
-from semantic_copycat_oslili import LicenseCopyrightDetector
+from osslili import LicenseCopyrightDetector
 
 detector = LicenseCopyrightDetector()
 
@@ -219,7 +219,7 @@ print(evidence)
 ### Analyzing Specific Files
 
 ```python
-from semantic_copycat_oslili import LicenseCopyrightDetector
+from osslili import LicenseCopyrightDetector
 
 detector = LicenseCopyrightDetector()
 
@@ -238,7 +238,7 @@ for copyright in result.copyrights:
 
 ```python
 import json
-from semantic_copycat_oslili import LicenseCopyrightDetector
+from osslili import LicenseCopyrightDetector
 
 detector = LicenseCopyrightDetector()
 
@@ -462,7 +462,7 @@ oslili /path/to/codebase --config strict-config.yaml -o attribution.json
 import sys
 import json
 from pathlib import Path
-from semantic_copycat_oslili import LicenseCopyrightDetector, Config
+from osslili import LicenseCopyrightDetector, Config
 
 def check_licenses(project_path, allowed_licenses):
     """Check if project has only allowed licenses."""
@@ -607,5 +607,5 @@ This tool is provided under the Apache License 2.0. See LICENSE file for details
 ## Support
 
 For issues, feature requests, or questions:
-- GitHub Issues: https://github.com/oscarvalenzuelab/semantic-copycat-oslili/issues
-- Documentation: https://github.com/oscarvalenzuelab/semantic-copycat-oslili#readme
+- GitHub Issues: https://github.com/SemClone/osslili/issues
+- Documentation: https://github.com/SemClone/osslili#readme

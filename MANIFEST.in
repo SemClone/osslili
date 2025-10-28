@@ -1,7 +1,7 @@
 include README.md
 include LICENSE
 include requirements.txt
-include semantic_copycat_oslili/data/*.json
-include semantic_copycat_oslili/data/*.yaml
-include semantic_copycat_oslili/data/*.txt
-recursive-include semantic_copycat_oslili/data *.json *.yaml *.txt
+include osslili/data/*.json
+include osslili/data/*.yaml
+include osslili/data/*.txt
+recursive-include osslili/data *.json *.yaml *.txt

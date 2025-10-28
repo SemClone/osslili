@@ -1,5 +1,5 @@
 """
-CLI interface for semantic-copycat-oslili.
+CLI interface for osslili.
 """
 
 import sys
