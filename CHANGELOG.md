@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.7] - 2025-10-30
+
+### Changed
+- **Performance Optimization**: Updated default values for better performance
+  - Reduced default max recursion depth from 10 to 4 for faster directory scans
+  - Set explicit thread count default to 4 in CLI (previously inherited from Config)
+  - Aligned CLI and Config model defaults for consistency
+
+### Technical
+- **CLI Defaults**: Added explicit default values in CLI options for better visibility
+- **Configuration**: Synchronized default values between CLI and Config model
+
 ## [1.5.6] - 2025-10-27
 
 ### Changed
