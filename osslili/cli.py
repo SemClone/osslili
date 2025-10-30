@@ -99,7 +99,8 @@ def detect_input_type(input_path: str) -> str:
 @click.option(
     '--threads', '-t',
     type=int,
-    help='Number of processing threads'
+    default=4,
+    help='Number of processing threads (default: 4)'
 )
 @click.option(
     '--config', '-c',
@@ -114,8 +115,8 @@ def detect_input_type(input_path: str) -> str:
 @click.option(
     '--max-depth', '--max-recursion-depth',
     type=int,
-    default=10,
-    help='Maximum directory recursion depth (default: 10, use -1 for unlimited)'
+    default=4,
+    help='Maximum directory recursion depth (default: 4, use -1 for unlimited)'
 )
 @click.option(
     '--max-extraction-depth',
