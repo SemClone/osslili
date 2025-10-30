@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "osslili"
-version = "1.5.6"
+version = "1.5.7"
 description = "Open Source License Identification Library"
 readme = "README.md"
 requires-python = ">=3.8"
