@@ -146,9 +146,9 @@ cython_debug/
 .DS_Store
 
 # Test files (but not documentation)
-test_*.py
-test_*.txt
-test_*.sh
+#test_*.py
+#test_*.txt
+#test_*.sh
 debug_*.py
 !docs/test_*.md
 
