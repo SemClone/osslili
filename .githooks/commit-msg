@@ -1,0 +1,6 @@
+#!/bin/bash
+# Git commit-msg hook to check for problematic words
+
+HOOK_DIR="$(dirname "$0")"
+"$HOOK_DIR/check-problematic-words.sh" message "$1"
+exit $?
