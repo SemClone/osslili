@@ -1,0 +1,6 @@
+#!/bin/bash
+# Git pre-commit hook to check staged files for problematic words
+
+HOOK_DIR="$(dirname "$0")"
+"$HOOK_DIR/check-problematic-words.sh" files
+exit $?
