@@ -1,0 +1,226 @@
+name: License Check
+
+on:
+  pull_request:
+    paths:
+      - '**.py'
+      - '**.js'
+      - '**.go'
+      - '**.rs'
+      - '**.rb'
+      - '**.java'
+      - '**.c'
+      - '**.cpp'
+      - '**.h'
+      - '**.sh'
+
+permissions:
+  contents: read
+  pull-requests: write  # For posting comments
+
+jobs:
+  scan-licenses:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install OSLiLi
+        run: |
+          pip install osslili
+
+      - name: Get changed files
+        id: changed-files
+        run: |
+          # Get base branch
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+
+          # Get list of added/modified files in PR
+          git diff --name-only --diff-filter=AM $BASE_SHA...$HEAD_SHA > changed_files.txt
+
+          # Filter for source code files only
+          grep -E '\.(py|js|go|rs|rb|java|c|cpp|h|sh)$' changed_files.txt > source_files.txt || true
+
+          if [ ! -s source_files.txt ]; then
+            echo "No source files changed"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Found $(wc -l < source_files.txt) changed source files"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run OSLiLi on changed files
+        if: steps.changed-files.outputs.has_changes == 'true'
+        id: oslili-scan
+        run: |
+          # Create temporary directory for analysis
+          mkdir -p /tmp/pr_files
+
+          # Copy changed files to temp directory preserving structure
+          while IFS= read -r file; do
+            if [ -f "$file" ]; then
+              mkdir -p "/tmp/pr_files/$(dirname "$file")"
+              cp "$file" "/tmp/pr_files/$file"
+            fi
+          done < source_files.txt
+
+          # Run OSLiLi
+          echo "Running OSLiLi on changed files..."
+          if [ -d /tmp/pr_files ] && [ "$(ls -A /tmp/pr_files)" ]; then
+            oslili /tmp/pr_files --json > license_report_raw.json 2>/dev/null || echo "{\"licenses\": []}" > license_report_raw.json
+          else
+            echo "{\"licenses\": []}" > license_report_raw.json
+          fi
+
+          # Validate and clean JSON output
+          cat > /tmp/validate_json.py << 'EOF'
+          import json
+          import sys
+          try:
+              with open('license_report_raw.json', 'r') as f:
+                  content = f.read().strip()
+                  if not content:
+                      data = {'licenses': []}
+                  else:
+                      data = json.loads(content)
+              with open('license_report.json', 'w') as f:
+                  json.dump(data, f, indent=2)
+              print('License report generated successfully')
+          except Exception as e:
+              print(f'Warning: Could not parse OSLiLi output: {e}')
+              with open('license_report.json', 'w') as f:
+                  json.dump({'licenses': []}, f)
+          EOF
+          python3 /tmp/validate_json.py
+
+          # Pretty print for logs
+          if [ -f license_report.json ]; then
+            cat license_report.json
+          fi
+
+      - name: Check allowed licenses
+        if: steps.changed-files.outputs.has_changes == 'true'
+        id: check-licenses
+        run: |
+          # Check if allowed licenses file exists
+          if [ ! -f .github/allowed-licenses.txt ]; then
+            echo "No allowed-licenses.txt file, skipping license policy check"
+            echo "check_result=skipped" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check licenses against allowed list
+          python3 << 'EOF'
+          import json
+          import sys
+          import os
+
+          with open('license_report.json') as f:
+              report = json.load(f)
+
+          with open('.github/allowed-licenses.txt') as f:
+              allowed = [line.strip() for line in f
+                        if line.strip() and not line.startswith('#')]
+
+          # Extract found licenses
+          found_licenses = {}
+          if 'licenses' in report and report['licenses']:
+              for lic in report['licenses']:
+                  spdx_id = lic.get('spdx_id', 'Unknown')
+                  file_path = lic.get('file', 'Unknown')
+                  if spdx_id != 'Unknown':
+                      if spdx_id not in found_licenses:
+                          found_licenses[spdx_id] = []
+                      found_licenses[spdx_id].append(file_path)
+
+          # Check for problematic licenses
+          problematic = {}
+          for lic, files in found_licenses.items():
+              if lic not in allowed and lic != 'Unknown':
+                  problematic[lic] = files
+
+          # Generate report
+          report_lines = []
+          report_lines.append("## License Check Report\n")
+
+          if found_licenses:
+              report_lines.append("### Found Licenses\n")
+              for lic, files in sorted(found_licenses.items()):
+                  status = "✅" if lic in allowed else "⚠️"
+                  report_lines.append(f"- {status} **{lic}** ({len(files)} file(s))")
+
+          if problematic:
+              report_lines.append("\n### ⚠️ Non-Allowed Licenses Detected\n")
+              for lic, files in sorted(problematic.items()):
+                  report_lines.append(f"\n**{lic}:**")
+                  for file in files[:5]:  # Show max 5 files
+                      report_lines.append(f"  - {file.replace('/tmp/pr_files/', '')}")
+                  if len(files) > 5:
+                      report_lines.append(f"  - ... and {len(files) - 5} more files")
+
+              # Set outputs for GitHub Actions
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                  f.write("check_result=failed\n")
+                  f.write(f"report<<EOF\n{''.join(report_lines)}\nEOF\n")
+
+              print("❌ License check failed: non-allowed licenses detected")
+              sys.exit(1)
+          else:
+              if found_licenses:
+                  report_lines.append("\n✅ All detected licenses are allowed!")
+              else:
+                  report_lines.append("\nℹ️ No licenses detected in changed files.")
+
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                  f.write("check_result=passed\n")
+                  f.write(f"report<<EOF\n{''.join(report_lines)}\nEOF\n")
+
+              print("✅ License check passed")
+          EOF
+
+      - name: Post PR comment with results
+        if: steps.changed-files.outputs.has_changes == 'true' && (success() || failure())
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const report = `${{ steps.check-licenses.outputs.report }}`;
+
+            if (report) {
+              // Find existing comment
+              const comments = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+              });
+
+              const botComment = comments.data.find(comment =>
+                comment.user.type === 'Bot' &&
+                comment.body.includes('## License Check Report')
+              );
+
+              if (botComment) {
+                // Update existing comment
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: botComment.id,
+                  body: report
+                });
+              } else {
+                // Create new comment
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: report
+                });
+              }
+            }
