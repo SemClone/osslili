@@ -1,0 +1,29 @@
+# Allowed licenses for contributions
+# One SPDX license identifier per line
+# Lines starting with # are comments
+# See https://spdx.org/licenses/ for full list
+
+# Permissive licenses
+MIT
+Apache-2.0
+BSD-3-Clause
+BSD-2-Clause
+ISC
+0BSD
+Unlicense
+
+# Python specific
+Python-2.0
+PSF-2.0
+
+# Compatible weak copyleft
+MPL-2.0
+LGPL-2.1
+LGPL-3.0
+
+# Public domain
+CC0-1.0
+
+# Special cases (review individually)
+# GPL-3.0 - Only if project is also GPL-3.0
+# AGPL-3.0 - Only if project is also AGPL-3.0
