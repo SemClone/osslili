@@ -1,34 +1,17 @@
-# osslili
+# OSS License & Copyright Detector (osslili)
 
-A high-performance tool for identifying licenses and copyright information in local source code, producing detailed evidence of where licenses are detected with support for all 700+ SPDX license identifiers.
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![PyPI version](https://img.shields.io/pypi/v/osslili.svg)](https://pypi.org/project/osslili/)
 
-## What It Does
+A high-performance tool for identifying licenses and copyright information in local source code. Produces detailed evidence of where licenses are detected with support for all 700+ SPDX license identifiers, enabling comprehensive compliance documentation for the SEMCL.ONE ecosystem.
 
-`osslili` analyzes local source code to produce evidence of:
-- **License detection** - Shows which files contain which licenses with confidence scores
-- **SPDX identifiers** - Detects SPDX-License-Identifier tags in ALL readable files
-- **Package metadata** - Extracts licenses from package.json, pyproject.toml, METADATA files
-- **Copyright statements** - Extracts copyright holders and years with intelligent filtering
+## Features
 
-The tool outputs standardized JSON evidence showing exactly where each license was detected, the detection method used, and confidence scores.
-
-### Key Features
-
-- **Evidence-based output**: Shows exact file paths, confidence scores, and detection methods
-- **License hierarchy**: Categorizes licenses as declared vs detected vs referenced
-- **Multiple output formats**: Evidence JSON, KissBOM, CycloneDX SBOM
-- **Archive extraction**: Automatically extracts and scans zip, tar, and other archive formats
-- **Caching support**: Speed up repeated scans with intelligent caching
-- **Parallel processing**: Multi-threaded scanning with configurable thread count
-- **Three-tier detection**: 
-  - Dice-Sørensen similarity matching (97% threshold)
-  - TLSH fuzzy hashing with confirmation
-  - Regex pattern matching
-- **Safe directory traversal**: Depth limiting and symlink loop protection
-- **Smart normalization**: Handles license variations and common aliases
-- **No file limits**: Processes files of any size with intelligent sampling
-- **Enhanced metadata support**: Detects licenses in package.json, METADATA, pyproject.toml
-- **False positive filtering**: Advanced filtering for code patterns and invalid matches
+- **Three-Tier License Detection**: Dice-Sørensen similarity, TLSH fuzzy hashing, and regex pattern matching
+- **Evidence-Based Output**: Exact file paths, confidence scores, and detection methods
+- **700+ SPDX Licenses**: Comprehensive support for all SPDX license identifiers
+- **SEMCL.ONE Integration**: Works seamlessly with purl2notices, ospac, and other ecosystem tools
 
 ### How It Works
 
@@ -62,9 +45,22 @@ The tool uses a sophisticated multi-tier approach for maximum accuracy:
 pip install osslili
 ```
 
-### Required Dependencies
+For development:
+```bash
+git clone https://github.com/SemClone/osslili.git
+cd osslili
+pip install -e .
+```
 
-The package includes all necessary dependencies including `python-tlsh` for fuzzy hash matching, which is essential for accurate license detection and false positive prevention.
+## Quick Start
+
+```bash
+# Scan current directory for licenses
+osslili .
+
+# Generate SBOM with license evidence
+osslili ./my-project -f cyclonedx-json -o sbom.json
+```
 
 ## Usage
 
@@ -188,6 +184,15 @@ The tool outputs JSON evidence showing:
 - **Match type**: How the license was detected (license_text, spdx_identifier, license_reference, text_similarity)
 - **Description**: Human-readable description of what was found
 
+## Integration with SEMCL.ONE
+
+OSS License & Copyright Detector is a core component of the SEMCL.ONE ecosystem:
+
+- Works with **purl2notices** for comprehensive legal notice generation
+- Integrates with **ospac** for policy-based compliance evaluation
+- Supports **ossnotices** for simplified attribution documentation
+- Complements **upmex** for package metadata extraction workflows
+
 ## Configuration
 
 Create a `config.yaml` file:
@@ -205,6 +210,34 @@ custom_aliases:
 
 ## Documentation
 
-- [Full Usage Guide](docs/USAGE.md) - Comprehensive usage examples and configuration
+- [User Guide](docs/USAGE.md) - Comprehensive usage examples and configuration
 - [API Reference](docs/API.md) - Python API documentation and examples
-- [Changelog](CHANGELOG.md) - Version history and changes
+- [SPDX Updates](docs/SPDX.md) - How to update SPDX license data
+- [Performance Benchmarks](docs/BENCHMARK_SCANCODE.md) - Comparison with other tools
+
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on:
+- Code of conduct
+- Development setup
+- Submitting pull requests
+- Reporting issues
+
+## Support
+
+For support and questions:
+- [GitHub Issues](https://github.com/SemClone/osslili/issues) - Bug reports and feature requests
+- [Documentation](https://github.com/SemClone/osslili) - Complete project documentation
+- [SEMCL.ONE Community](https://semcl.one) - Ecosystem support and discussions
+
+## License
+
+Apache License 2.0 - see [LICENSE](LICENSE) file for details.
+
+## Authors
+
+See [AUTHORS.md](AUTHORS.md) for a list of contributors.
+
+---
+
+*Part of the [SEMCL.ONE](https://semcl.one) ecosystem for comprehensive OSS compliance and code analysis.*
