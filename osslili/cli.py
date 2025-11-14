@@ -130,6 +130,36 @@ def detect_input_type(input_path: str) -> str:
     default='detailed',
     help='Evidence detail level: minimal (license summary only), summary (per-method counts), detailed (sample detections), full (all detections)'
 )
+@click.option(
+    '--skip-content-detection',
+    is_flag=True,
+    help='Skip content-based file type detection (faster, less thorough)'
+)
+@click.option(
+    '--license-files-only',
+    is_flag=True,
+    help='Only scan obvious license files, skip source code (fastest)'
+)
+@click.option(
+    '--skip-extensionless',
+    is_flag=True,
+    help='Skip files without extensions unless they match known patterns'
+)
+@click.option(
+    '--max-file-size',
+    type=int,
+    help='Skip files larger than this size in KB'
+)
+@click.option(
+    '--skip-smart-read',
+    is_flag=True,
+    help='Read files sequentially instead of sampling start/end'
+)
+@click.option(
+    '--fast',
+    is_flag=True,
+    help='Enable fast mode preset (combines multiple optimizations)'
+)
 @click.version_option(version=__version__, prog_name='osslili')
 def main(
     input_path: str,
@@ -142,7 +172,13 @@ def main(
     similarity_threshold: Optional[float],
     max_depth: Optional[int],
     max_extraction_depth: Optional[int],
-    evidence_detail: str
+    evidence_detail: str,
+    skip_content_detection: bool,
+    license_files_only: bool,
+    skip_extensionless: bool,
+    max_file_size: Optional[int],
+    skip_smart_read: bool,
+    fast: bool
 ):
     """
     Scan local source code for license and copyright information.
@@ -173,6 +209,21 @@ def main(
         cfg.max_recursion_depth = max_depth
     if max_extraction_depth is not None:
         cfg.max_extraction_depth = max_extraction_depth
+
+    # Performance optimization flags
+    if fast:
+        cfg.fast_mode = True
+        cfg.apply_fast_mode()
+    if skip_content_detection:
+        cfg.skip_content_detection = True
+    if license_files_only:
+        cfg.license_files_only = True
+    if skip_extensionless:
+        cfg.skip_extensionless = True
+    if max_file_size is not None:
+        cfg.max_file_size_kb = max_file_size
+    if skip_smart_read:
+        cfg.skip_smart_read = True
     
     # Setup logging - only show our logs in verbose mode, not library logs
     if cfg.debug:

@@ -249,9 +249,10 @@ class LicenseDetector:
         else:
             # Find potential license files
             files_to_scan = self._find_license_files(path)
-            
-            # Also scan common source files for embedded licenses
-            files_to_scan.extend(self._find_source_files(path))
+
+            # Also scan common source files for embedded licenses (unless license_files_only mode)
+            if not self.config.license_files_only:
+                files_to_scan.extend(self._find_source_files(path))
         
         logger.info(f"Scanning {len(files_to_scan)} files for licenses")
         
@@ -385,10 +386,15 @@ class LicenseDetector:
         License info is usually in the first few KB or at the end.
         """
         try:
+            # Performance optimization: Skip smart reading if flag is set
+            if self.config.skip_smart_read:
+                with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                    return f.read()
+
             with open(file_path, 'rb') as f:
                 # Read first 100KB
                 beginning = f.read(100 * 1024)
-                
+
                 # Seek to end and read last 50KB
                 f.seek(0, 2)  # Seek to end
                 file_size = f.tell()
@@ -397,10 +403,10 @@ class LicenseDetector:
                     ending = f.read()
                 else:
                     ending = b''
-                
+
                 # Combine and decode
                 combined = beginning + b'\n...\n' + ending if ending else beginning
-                
+
                 # Try to decode
                 try:
                     return combined.decode('utf-8', errors='ignore')
@@ -413,6 +419,15 @@ class LicenseDetector:
     def _is_readable_file(self, file_path: Path) -> bool:
         """Check if a file is likely readable text - MODIFIED for better coverage."""
         try:
+            # Performance optimization: Check file size limit first
+            if self.config.max_file_size_kb is not None:
+                try:
+                    file_size_kb = file_path.stat().st_size / 1024
+                    if file_size_kb > self.config.max_file_size_kb:
+                        return False
+                except:
+                    pass
+
             # Skip test reference files (these are test outputs, not source)
             path_str = str(file_path).lower()
             if '/tests/ref/' in path_str or '/test/ref/' in path_str:
@@ -420,6 +435,17 @@ class LicenseDetector:
 
             # Get file extension
             ext = file_path.suffix.lower()
+
+            # Performance optimization: Skip files without extensions if flag is set
+            if self.config.skip_extensionless and not ext:
+                # Still allow known patterns like LICENSE, README, Makefile
+                name_lower = file_path.name.lower()
+                known_text_files = [
+                    'makefile', 'dockerfile', 'readme', 'license',
+                    'copying', 'notice', 'changelog', 'authors'
+                ]
+                if not any(pattern in name_lower for pattern in known_text_files):
+                    return False
 
             # Always include common source code extensions
             source_extensions = {
@@ -454,6 +480,10 @@ class LicenseDetector:
 
                 if any(pattern in name_lower for pattern in known_text_files):
                     return True
+
+                # Performance optimization: Skip content-based detection if flag is set
+                if self.config.skip_content_detection:
+                    return False
 
                 # For other files without extensions, check if they're text
                 # by reading a small portion and checking content
