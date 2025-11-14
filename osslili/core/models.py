@@ -129,3 +129,20 @@ class Config:
         "LGPLv3": "LGPL-3.0",
     })
     cache_dir: Optional[str] = None
+
+    # Performance optimization flags
+    skip_content_detection: bool = False  # Skip content-based file type detection
+    license_files_only: bool = False  # Only scan obvious license files, skip source code
+    skip_extensionless: bool = False  # Skip files without extensions unless known patterns
+    max_file_size_kb: Optional[int] = None  # Skip files larger than this size in KB
+    skip_smart_read: bool = False  # Read files sequentially instead of sampling start/end
+    fast_mode: bool = False  # Enable multiple optimizations for maximum speed
+
+    def apply_fast_mode(self):
+        """Apply fast mode preset - enables multiple optimizations for maximum speed."""
+        if self.fast_mode:
+            self.skip_content_detection = True
+            self.skip_extensionless = True
+            self.skip_smart_read = True
+            if self.max_file_size_kb is None:
+                self.max_file_size_kb = 1024  # Skip files larger than 1MB
