@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.6.9] - 2025-11-14
+## [1.5.9] - 2025-11-14
 
 ### Added
 - **Performance Optimization Flags**: New configurable flags for faster scanning (Issue #49)
