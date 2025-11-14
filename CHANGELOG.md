@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.9] - 2025-11-14
+
+### Added
+- **Performance Optimization Flags**: New configurable flags for faster scanning (Issue #49)
+  - `--skip-content-detection`: Skip content-based file type detection, rely only on extensions
+  - `--license-files-only`: Only scan LICENSE files, skip source code (17x speedup on ffmpeg)
+  - `--skip-extensionless`: Skip files without extensions unless they match known patterns
+  - `--max-file-size <KB>`: Skip files larger than specified size in KB
+  - `--skip-smart-read`: Read files sequentially instead of sampling start/end
+  - `--fast`: Preset that combines multiple optimizations for maximum speed
+
+### Changed
+- **Config Model**: Added 6 performance optimization flags with `apply_fast_mode()` method
+- **CLI**: Added 6 new command-line options for performance tuning
+- **License Detector**: Enhanced file detection logic to respect performance flags
+  - File size checking before processing
+  - Configurable extensionless file handling
+  - Optional content-based detection
+  - Sequential vs smart file reading modes
+
+### Performance
+- **Benchmark Results** (ffmpeg-6.0 codebase, 4 threads):
+  - Normal mode: 69s, 4,822 files, 5,566 licenses
+  - `--fast`: 70s, 4,765 files, 5,549 licenses
+  - `--skip-content-detection`: 71s, 4,770 files, 5,549 licenses
+  - `--license-files-only`: **4s, 12 files, 14 licenses (17x speedup!)**
+- **Use Case**: `--license-files-only` ideal for CI/CD pipelines needing quick declared license checks
+
+### Fixed
+- **Performance Degradation**: Addressed slowdown caused by content-based file detection (Issue #49)
+  - Content detection now opens files only when necessary
+  - Reduced I/O operations during file discovery phase
+  - Eliminated unnecessary file reads for extensionless files
+
+### Technical
+- **Backward Compatibility**: All flags default to False, maintaining current behavior
+- **Testing**: Added comprehensive test suite (10 tests) for performance flags
+- **Documentation**: Updated CLI help text with performance flag descriptions
+
 ## [1.5.7] - 2025-10-30
 
 ### Changed
