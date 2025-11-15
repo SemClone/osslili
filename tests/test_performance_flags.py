@@ -59,11 +59,13 @@ echo "configuring..."
         """Test that performance flags have correct defaults."""
         config = Config()
         assert config.skip_content_detection is False
-        assert config.license_files_only is False
+        assert config.license_files_only is True  # Changed: default is now True (scans LICENSE + metadata + README)
+        assert config.strict_license_files is False  # New flag for strict LICENSE-only mode
         assert config.skip_extensionless is False
         assert config.max_file_size_kb is None
         assert config.skip_smart_read is False
         assert config.fast_mode is False
+        assert config.deep_scan is False  # New flag for deep scanning
 
     def test_fast_mode_preset(self):
         """Test that fast mode applies correct preset."""

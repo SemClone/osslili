@@ -132,11 +132,13 @@ class Config:
 
     # Performance optimization flags
     skip_content_detection: bool = False  # Skip content-based file type detection
-    license_files_only: bool = False  # Only scan obvious license files, skip source code
+    license_files_only: bool = True  # By default, only scan license files, metadata, and README (use --deep for comprehensive scan)
+    strict_license_files: bool = False  # When True, scan ONLY license files (no metadata, no README)
     skip_extensionless: bool = False  # Skip files without extensions unless known patterns
     max_file_size_kb: Optional[int] = None  # Skip files larger than this size in KB
     skip_smart_read: bool = False  # Read files sequentially instead of sampling start/end
     fast_mode: bool = False  # Enable multiple optimizations for maximum speed
+    deep_scan: bool = False  # Enable comprehensive scan of all source files
 
     def apply_fast_mode(self):
         """Apply fast mode preset - enables multiple optimizations for maximum speed."""

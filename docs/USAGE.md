@@ -73,8 +73,11 @@ OSLILI uses a sophisticated multi-tier approach for accurate license detection:
 ### Scan Local Source Code
 
 ```bash
-# Analyze a local directory
+# Fast default scan (LICENSE + metadata + docs) - RECOMMENDED
 oslili /path/to/project -o evidence.json
+
+# Comprehensive deep scan (all source files)
+oslili /path/to/project --deep -o evidence.json
 
 # Analyze current directory
 oslili .
@@ -82,6 +85,90 @@ oslili .
 # Analyze a specific file
 oslili /path/to/LICENSE -o license-info.json
 ```
+
+## Scanning Modes
+
+osslili offers three scanning modes optimized for different use cases:
+
+### 🚀 Default Mode (Recommended)
+
+**Fast and practical** - scans LICENSE files, package metadata, and documentation.
+
+```bash
+# Scans: LICENSE*, README*, *.md, *.txt, package.json, go.mod, etc.
+oslili ./my-project
+```
+
+**What it scans:**
+- **LICENSE files**: LICENSE, COPYING, NOTICE, COPYRIGHT, etc. (28+ patterns with fuzzy matching)
+- **Documentation files**: All .txt, .md, .rst, .text, .markdown, .adoc, .asciidoc files
+- **Package metadata**: package.json, go.mod, Cargo.toml, pom.xml, pyproject.toml, etc. (40+ files)
+- **Coverage**: 12+ package ecosystems
+  - JavaScript/Node.js: package.json, yarn.lock, pnpm-lock.yaml
+  - Python: pyproject.toml, setup.py, Pipfile, requirements.txt
+  - Go: go.mod, go.sum
+  - Java: pom.xml, build.gradle, build.gradle.kts
+  - .NET: *.csproj, *.nuspec, packages.config
+  - Rust: Cargo.toml, Cargo.lock
+  - Ruby: Gemfile, *.gemspec
+  - PHP: composer.json, composer.lock
+  - Swift/CocoaPods: Podfile, *.podspec
+  - Dart/Flutter: pubspec.yaml
+  - Elixir: mix.exs
+  - Scala: build.sbt
+
+**Performance**: ~8 seconds on ffmpeg-6.0 (4,000+ files)
+
+**Use cases:**
+- Daily development workflows
+- CI/CD pipelines
+- Quick license compliance checks
+- Package dependency audits
+
+### 🔬 Deep Mode (Comprehensive)
+
+**Thorough scan** of all source files for embedded licenses in code headers.
+
+```bash
+# Scans ALL files: .py, .js, .java, .c, .go, .rs, etc.
+oslili ./my-project --deep
+```
+
+**Performance**: ~5 minutes on ffmpeg-6.0 (40x slower than default)
+
+**Use cases:**
+- Legal compliance audits
+- Finding embedded license headers in source code
+- Detecting license notices in comments
+- Comprehensive license discovery
+
+### ⚡ Strict Mode (Fastest)
+
+**LICENSE files only** - maximum speed, minimal coverage.
+
+```bash
+# Scans ONLY LICENSE files (no metadata, no README)
+oslili ./my-project --license-files-only
+```
+
+**Performance**: ~7 seconds on ffmpeg-6.0
+
+**Use cases:**
+- When you only care about declared licenses
+- Quick validation of LICENSE file presence
+- Maximum performance requirements
+
+### Performance Comparison
+
+Tested on ffmpeg-6.0 (4,139 files):
+
+| Mode | Files Scanned | Time | Speedup vs Deep |
+|------|---------------|------|-----------------|
+| **Strict** (`--license-files-only`) | 8 | 7s | 48x faster |
+| **Default** *(recommended)* | 31 | 8.5s | **40x faster** |
+| **Deep** (`--deep`) | 4,800+ | 5m 37s | baseline |
+
+---
 
 ## CLI Usage
 
