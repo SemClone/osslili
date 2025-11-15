@@ -55,8 +55,11 @@ pip install -e .
 ## Quick Start
 
 ```bash
-# Scan current directory for licenses
+# Fast default scan (LICENSE files + metadata + docs) - RECOMMENDED
 osslili .
+
+# Comprehensive deep scan (all source files)
+osslili . --deep
 
 # Generate SBOM with license evidence
 osslili ./my-project -f cyclonedx-json -o sbom.json
@@ -64,19 +67,70 @@ osslili ./my-project -f cyclonedx-json -o sbom.json
 
 ## Usage
 
+### Scanning Modes
+
+osslili offers three scanning modes optimized for different use cases:
+
+#### 🚀 **Default Mode** (Recommended)
+Fast and practical - scans LICENSE files, package metadata, and documentation.
+
+```bash
+# Scans: LICENSE*, README*, *.md, *.txt, package.json, go.mod, etc.
+osslili ./my-project
+```
+
+**What it scans:**
+- **LICENSE files**: LICENSE, COPYING, NOTICE, COPYRIGHT, etc. (28+ patterns)
+- **Documentation**: README, CHANGELOG, CONTRIBUTING (.txt, .md, .rst, .adoc)
+- **Package metadata**: package.json, go.mod, Cargo.toml, pom.xml, etc. (40+ files)
+- **Coverage**: 12+ package ecosystems (npm, Python, Go, Java, .NET, Rust, Ruby, PHP, Swift, Dart, Elixir, Scala)
+
+**Performance**: ~8 seconds on ffmpeg-6.0 (4,000+ files)
+**Use case**: Daily development, CI/CD pipelines, quick license checks
+
+#### 🔬 **Deep Mode** (Comprehensive)
+Thorough scan of all source files for embedded licenses.
+
+```bash
+# Scans ALL files: .py, .js, .java, .c, .go, etc.
+osslili ./my-project --deep
+```
+
+**Performance**: ~5 minutes on ffmpeg-6.0 (40x slower than default)
+**Use case**: Legal compliance reviews, finding embedded license headers
+
+#### ⚡ **Strict Mode** (Fastest)
+LICENSE files only - maximum speed.
+
+```bash
+# Scans ONLY LICENSE files (no metadata, no README)
+osslili ./my-project --license-files-only
+```
+
+**Performance**: ~7 seconds on ffmpeg-6.0
+**Use case**: When you only need declared licenses
+
+---
+
 ### CLI Usage
 
 ```bash
-# Scan a directory and see evidence (default format)
+# Default scan - fast and smart (RECOMMENDED)
 osslili /path/to/project
+
+# Deep scan - comprehensive but slower
+osslili /path/to/project --deep
+
+# Strict scan - LICENSE files only
+osslili /path/to/project --license-files-only
 
 # Generate different output formats
 osslili ./my-project -f kissbom -o kissbom.json
 osslili ./my-project -f cyclonedx-json -o sbom.json
 osslili ./my-project -f cyclonedx-xml -o sbom.xml
 
-# Scan with parallel processing (4 threads)
-osslili ./my-project --threads 4
+# Scan with parallel processing (default: 4 threads)
+osslili ./my-project --threads 8
 
 # Scan with limited depth (only 2 levels deep)
 osslili ./my-project --max-depth 2

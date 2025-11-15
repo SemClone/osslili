@@ -250,8 +250,12 @@ class LicenseDetector:
             # Find potential license files
             files_to_scan = self._find_license_files(path)
 
-            # Also scan common source files for embedded licenses (unless license_files_only mode)
-            if not self.config.license_files_only:
+            # In default mode (license_files_only=True, strict_license_files=False),
+            # also scan metadata and README files
+            if self.config.license_files_only and not self.config.strict_license_files:
+                files_to_scan.extend(self._find_metadata_and_readme_files(path))
+            elif not self.config.license_files_only:
+                # Deep scan mode: scan all source files for embedded licenses
                 files_to_scan.extend(self._find_source_files(path))
         
         logger.info(f"Scanning {len(files_to_scan)} files for licenses")
@@ -310,37 +314,101 @@ class LicenseDetector:
     
     def _find_license_files(self, directory: Path) -> List[Path]:
         """Find potential license files in directory."""
-        license_files = []
+        license_files_set = set()  # Use set for O(1) lookup
         scanner = SafeFileScanner(
             max_depth=self.config.max_recursion_depth,
             follow_symlinks=False
         )
-        
-        # Direct pattern matching
-        for pattern in self.license_patterns:
-            for file_path in scanner.scan_directory(directory, '*'):
+
+        # Fuzzy matching base names
+        fuzzy_base_names = ['license', 'licence', 'copying', 'copyright', 'notice']
+
+        # Single pass: check both pattern matching and fuzzy matching
+        for file_path in scanner.scan_directory(directory, '*'):
+            # Check direct pattern matching
+            for pattern in self.license_patterns:
                 if pattern.match(file_path.name):
-                    license_files.append(file_path)
-        
-        # Reset scanner for second pass (to reset visited inodes)
+                    license_files_set.add(file_path)
+                    break  # No need to check other patterns for this file
+
+            # If not already added, check fuzzy match
+            if file_path not in license_files_set:
+                name_lower = file_path.name.lower()
+                for base_name in fuzzy_base_names:
+                    ratio = fuzz.partial_ratio(base_name, name_lower)
+                    if ratio >= 85:  # 85% similarity threshold
+                        license_files_set.add(file_path)
+                        break
+
+        return list(license_files_set)
+
+    def _find_metadata_and_readme_files(self, directory: Path) -> List[Path]:
+        """Find README, package metadata, and other readable documentation files (.txt, .md, .rst, etc.)."""
+        metadata_files_set = set()  # Use set for O(1) lookup and automatic deduplication
         scanner = SafeFileScanner(
             max_depth=self.config.max_recursion_depth,
             follow_symlinks=False
         )
-        
-        # Fuzzy matching for license-like filenames
+
+        # Readable documentation file extensions
+        doc_extensions = {'.txt', '.md', '.rst', '.text', '.markdown', '.adoc', '.asciidoc'}
+
+        # Package metadata files (pre-compute lowercase set for exact matches)
+        # Covers top 15+ package ecosystems
+        metadata_filenames_exact = {
+            # JavaScript/Node.js (npm, yarn, pnpm)
+            'package.json', 'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml',
+            # Python
+            'pyproject.toml', 'setup.py', 'setup.cfg', 'pipfile', 'pipfile.lock', 'requirements.txt',
+            # Go
+            'go.mod', 'go.sum',
+            # Java (Maven, Gradle)
+            'pom.xml', 'build.gradle', 'build.gradle.kts', 'settings.gradle', 'manifest.mf',
+            # .NET/NuGet
+            'packages.config', 'paket.dependencies',
+            # Rust
+            'cargo.toml', 'cargo.lock',
+            # Ruby
+            'gemfile', 'gemfile.lock',
+            # PHP/Composer
+            'composer.json', 'composer.lock',
+            # Swift/CocoaPods
+            'podfile', 'podfile.lock',
+            # Dart/Flutter
+            'pubspec.yaml', 'pubspec.lock',
+            # Elixir
+            'mix.exs', 'mix.lock',
+            # Scala
+            'build.sbt',
+            # Kotlin
+            'build.gradle.kts',
+        }
+
+        # Pattern-based metadata extensions
+        metadata_extensions = {
+            '.gemspec',   # Ruby
+            '.nuspec',    # NuGet
+            '.csproj',    # .NET C#
+            '.fsproj',    # .NET F#
+            '.vbproj',    # .NET VB
+            '.podspec',   # CocoaPods
+        }
+
         for file_path in scanner.scan_directory(directory, '*'):
             name_lower = file_path.name.lower()
-            
-            # Check fuzzy match with common license names
-            for base_name in ['license', 'licence', 'copying', 'copyright', 'notice']:
-                ratio = fuzz.partial_ratio(base_name, name_lower)
-                if ratio >= 85:  # 85% similarity threshold
-                    if file_path not in license_files:
-                        license_files.append(file_path)
-                    break
-        
-        return license_files
+            ext_lower = file_path.suffix.lower()
+
+            # Check for readable documentation files by extension
+            if ext_lower in doc_extensions:
+                metadata_files_set.add(file_path)
+            # Check metadata files by exact name
+            elif name_lower in metadata_filenames_exact:
+                metadata_files_set.add(file_path)
+            # Check pattern-based metadata files by extension
+            elif ext_lower in metadata_extensions:
+                metadata_files_set.add(file_path)
+
+        return list(metadata_files_set)
     
     def _find_source_files(self, directory: Path, limit: int = -1) -> List[Path]:
         """Find all readable files to scan for embedded licenses."""

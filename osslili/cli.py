@@ -138,7 +138,7 @@ def detect_input_type(input_path: str) -> str:
 @click.option(
     '--license-files-only',
     is_flag=True,
-    help='Only scan obvious license files, skip source code (fastest)'
+    help='Strictly scan only LICENSE files (excludes metadata and README). Use --deep for all source files.'
 )
 @click.option(
     '--skip-extensionless',
@@ -160,6 +160,11 @@ def detect_input_type(input_path: str) -> str:
     is_flag=True,
     help='Enable fast mode preset (combines multiple optimizations)'
 )
+@click.option(
+    '--deep',
+    is_flag=True,
+    help='Enable comprehensive scan of all source files (slower, more thorough)'
+)
 @click.version_option(version=__version__, prog_name='osslili')
 def main(
     input_path: str,
@@ -178,15 +183,19 @@ def main(
     skip_extensionless: bool,
     max_file_size: Optional[int],
     skip_smart_read: bool,
-    fast: bool
+    fast: bool,
+    deep: bool
 ):
     """
     Scan local source code for license and copyright information.
-    
+
     INPUT can be:
     - A local directory to scan recursively
     - A local file to analyze
-    
+
+    By default, scans LICENSE files, package metadata (package.json, setup.py, etc.),
+    and README files for fast results. Use --deep for comprehensive source code scanning.
+
     The tool performs:
     - SPDX license identification using regex and fuzzy hashing
     - Copyright information extraction
@@ -214,10 +223,15 @@ def main(
     if fast:
         cfg.fast_mode = True
         cfg.apply_fast_mode()
+    if deep:
+        # Deep scan mode: comprehensive scan of all source files
+        cfg.deep_scan = True
+        cfg.license_files_only = False
+    if license_files_only:
+        # Explicit license_files_only flag: strict mode (only LICENSE files, no metadata/README)
+        cfg.strict_license_files = True
     if skip_content_detection:
         cfg.skip_content_detection = True
-    if license_files_only:
-        cfg.license_files_only = True
     if skip_extensionless:
         cfg.skip_extensionless = True
     if max_file_size is not None:
