@@ -46,19 +46,19 @@ class CopyrightExtractor:
             # Standard copyright format: Copyright (c) YYYY Name
             # More restrictive: stop at common delimiters and code patterns
             re.compile(
-                r'Copyright\s*(?:\(c\)|©)?\s*(\d{4}(?:\s*[-,]\s*\d{4})*)?[\s,]*(?:by\s+)?([A-Za-z][^;\{\}\[\]\(\)<>\n\r]*?)(?:\.|,|\s*$|\s*All\s+rights)',
+                r'Copyright\s*(?:\(c\)|©)?\s*(\d{4}(?:\s*[-,]\s*\d{4})*)?[\s,]*(?:by\s+)?([A-Za-z][^;\{\}\[\]\(\)<>\n\r]*?)(?:\.|,|\s*$|\s*All\s+rights|\s*<)',
                 re.IGNORECASE | re.MULTILINE
             ),
             
             # Alternative format: © YYYY Name
             re.compile(
-                r'©\s*(\d{4}(?:\s*[-,]\s*\d{4})*)?[\s,]*([A-Za-z][^;\{\}\[\]\(\)<>\n\r]*?)(?:\.|,|\s*$|\s*All\s+rights)',
+                r'©\s*(\d{4}(?:\s*[-,]\s*\d{4})*)?[\s,]*([A-Za-z][^;\{\}\[\]\(\)<>\n\r]*?)(?:\.|,|\s*$|\s*All\s+rights|\s*<)',
                 re.IGNORECASE | re.MULTILINE
             ),
             
             # (C) YYYY Name format
             re.compile(
-                r'\(C\)\s*(\d{4}(?:\s*[-,]\s*\d{4})*)?[\s,]*(?:by\s+)?([A-Za-z][^;\{\}\[\]\(\)<>\n\r]*?)(?:\.|,|\s*$|\s*All\s+rights)',
+                r'\(C\)\s*(\d{4}(?:\s*[-,]\s*\d{4})*)?[\s,]*(?:by\s+)?([A-Za-z][^;\{\}\[\]\(\)<>\n\r]*?)(?:\.|,|\s*$|\s*All\s+rights|\s*<)',
                 re.IGNORECASE | re.MULTILINE
             ),
             
