@@ -5,6 +5,21 @@ All notable changes to osslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] - 2025-11-22
+
+### Fixed
+- **Copyright Extraction**: Fixed copyright detection when holder name is followed by email address in angle brackets (Issue #54)
+  - Regex patterns now properly stop before `<` character
+  - Correctly extracts names from formats like: `Copyright (c) 2003 Michael Niedermayer <michaelni@gmx.at>`
+  - Affects all three copyright patterns: `Copyright`, `©`, and `(C)` formats
+  - Impacts thousands of files in major projects (FFmpeg, Linux kernel, etc.)
+
+### Added
+- **Test Coverage**: Added 11 comprehensive test cases for copyright extraction with email addresses
+  - Tests all copyright format variants with emails
+  - Includes FFmpeg-style header examples
+  - Validates email address cleanup in holder names
+
 ## [1.6.0] - 2025-11-14
 
 ### Added
