@@ -71,7 +71,7 @@ osslili ./my-project -f cyclonedx-json -o sbom.json
 
 osslili offers three scanning modes optimized for different use cases:
 
-#### 🚀 **Default Mode** (Recommended)
+####  **Default Mode** (Recommended)
 Fast and practical - scans LICENSE files, package metadata, and documentation.
 
 ```bash
@@ -88,7 +88,7 @@ osslili ./my-project
 **Performance**: ~8 seconds on ffmpeg-6.0 (4,000+ files)
 **Use case**: Daily development, CI/CD pipelines, quick license checks
 
-#### 🔬 **Deep Mode** (Comprehensive)
+#### **Deep Mode** (Comprehensive)
 Thorough scan of all source files for embedded licenses.
 
 ```bash
@@ -99,7 +99,7 @@ osslili ./my-project --deep
 **Performance**: ~5 minutes on ffmpeg-6.0 (40x slower than default)
 **Use case**: Legal compliance reviews, finding embedded license headers
 
-#### ⚡ **Strict Mode** (Fastest)
+#### **Strict Mode** (Fastest)
 LICENSE files only - maximum speed.
 
 ```bash
@@ -238,14 +238,6 @@ The tool outputs JSON evidence showing:
 - **Match type**: How the license was detected (license_text, spdx_identifier, license_reference, text_similarity)
 - **Description**: Human-readable description of what was found
 
-## Integration with SEMCL.ONE
-
-OSS License & Copyright Detector is a core component of the SEMCL.ONE ecosystem:
-
-- Works with **purl2notices** for comprehensive legal notice generation
-- Integrates with **ospac** for policy-based compliance evaluation
-- Supports **ossnotices** for simplified attribution documentation
-- Complements **upmex** for package metadata extraction workflows
 
 ## Configuration
 
@@ -282,7 +274,6 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for deta
 For support and questions:
 - [GitHub Issues](https://github.com/SemClone/osslili/issues) - Bug reports and feature requests
 - [Documentation](https://github.com/SemClone/osslili) - Complete project documentation
-- [SEMCL.ONE Community](https://semcl.one) - Ecosystem support and discussions
 
 ## License
 
