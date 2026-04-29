@@ -3,6 +3,7 @@
   "label": "cla-signed",
   "recheckComment": "recheck",
   "contributors": [
-    "oscarvalenzuelab"
+    "oscarvalenzuelab",
+    "dependabot[bot]"
   ]
 }
