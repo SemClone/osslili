@@ -5,6 +5,24 @@ All notable changes to osslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.4] - 2026-07-21
+
+### Fixed
+- **License Detection**: Recognized canonical ISC license text (Issue #76)
+  - The text normalizer stripped copyright lines after collapsing the text to a single line, so the copyright regex ran to the end of the string and deleted the license wording
+  - Canonical ISC files that open with a copyright line normalized to empty text and never matched
+  - ISC was also filtered out because it was listed among generic single words
+- **SPDX Compliance**: Stopped emitting identifiers that are not valid SPDX ids (Issue #76)
+  - Detected ids are now validated against the SPDX license list before being emitted
+  - Invalid ids like `MIT-or-later` no longer reach SBOM or notice output
+  - Expressions, `WITH` exceptions, `LicenseRef-` ids and `NOASSERTION` still pass through
+
+### Technical Details
+- Copyright lines are now removed per line before whitespace collapse in `SPDXLicenseData._normalize_text`
+- Added `_is_emittable_license_id()` guard at the detection output stage
+- Regenerated `exact_hashes.json` since it was built with the old normalizer
+- Added regression tests for canonical ISC, MIT and BSD-2 texts and the invalid id guard
+
 ## [1.6.3] - 2026-01-31
 
 ### Fixed

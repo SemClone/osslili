@@ -1,24 +1,24 @@
 {
   "AFL-3.0": {
-    "sha256": "d24b7586083f1dbf04200444660f724843c6ad980791ea00bfbd722f6e0f13ce",
-    "md5": "889c6b994bac2814245f3ccfb85b4619",
+    "sha256": "6106104f3088d57087a8abc9ca364959d7ab1e18fb440f053f0e181f63d91bab",
+    "md5": "d0e962d214b568557b4a487b78e71a7b",
     "name": "Academic Free License v3.0",
     "text_length": 10315,
-    "normalized_length": 214
+    "normalized_length": 9995
   },
   "AGPL-3.0-only": {
-    "sha256": "5bfa51f9e6da6d4d2fdba38cb348fed7f29fed8240b3c0c9183ff02eebc63bdd",
-    "md5": "a2584e8f20fcf6ccb814d1a1ead0af99",
+    "sha256": "5ccc2995e5f1043b2e2b6add9b889bfa5334aeab67a5e9fc831a4e5dc31308c6",
+    "md5": "10468073f6e349e86a08d4f43619fa16",
     "name": "GNU Affero General Public License v3.0 only",
     "text_length": 34020,
-    "normalized_length": 60
+    "normalized_length": 32823
   },
   "AGPL-3.0-or-later": {
-    "sha256": "5bfa51f9e6da6d4d2fdba38cb348fed7f29fed8240b3c0c9183ff02eebc63bdd",
-    "md5": "a2584e8f20fcf6ccb814d1a1ead0af99",
+    "sha256": "5ccc2995e5f1043b2e2b6add9b889bfa5334aeab67a5e9fc831a4e5dc31308c6",
+    "md5": "10468073f6e349e86a08d4f43619fa16",
     "name": "GNU Affero General Public License v3.0 or later",
     "text_length": 34020,
-    "normalized_length": 60
+    "normalized_length": 32823
   },
   "Apache-2.0": {
     "sha256": "865f0bfc806e527a8234b62cce223aa6e838a1fd084ab7fc907f8e2f329e2c2e",
@@ -28,11 +28,11 @@
     "normalized_length": 9822
   },
   "Artistic-2.0": {
-    "sha256": "0a72cb63a874a5ebe5244de52cc05ef1cc4b085140ba60495fcfca6d00f11088",
-    "md5": "f5751691e63f62f899cd3e4c23f9ddab",
+    "sha256": "069792abbe42fb6cfdf32623ff831d1f213f478f7e005b1729804e73dfeda065",
+    "md5": "53972f87abd009fb819385d9fba9975b",
     "name": "Artistic License 2.0",
     "text_length": 8764,
-    "normalized_length": 24
+    "normalized_length": 8361
   },
   "BSD-2-Clause": {
     "sha256": "1b1aec50a528f881fc306a7c0c37c5bb3ca94e6313d49f656f80a7b64c5ad02e",
@@ -56,46 +56,46 @@
     "normalized_length": 1298
   },
   "CC-BY-4.0": {
-    "sha256": "16c5d79bc52393a407c12e7a3be53254174d093d6716e5a23d19fb6f18c20f50",
-    "md5": "c9ce7f554b7b0da99a901b2a47676858",
+    "sha256": "9bd87e01480d382ac0bc3419d8bb3d55a9eba26d9225d68c84ed4dd80b52c586",
+    "md5": "4e06a085a2a13f5b0da44cae195f3942",
     "name": "Creative Commons Attribution 4.0 International",
     "text_length": 16983,
-    "normalized_length": 838
+    "normalized_length": 15992
   },
   "CC-BY-NC-4.0": {
-    "sha256": "a538a6839b619f5f90f6cc77b0b807a9e94cb9939a4c2078a7ce4ef1b04a5db3",
-    "md5": "7470e30de9717b2b6d4459f9a90cd1e1",
+    "sha256": "f1472b1a398aad845f563f6f78e4e3ecd49da248007c46864b03eec968118314",
+    "md5": "a7b151545ebd7ab46532761b8cb555d9",
     "name": "Creative Commons Attribution Non Commercial 4.0 International",
     "text_length": 17609,
-    "normalized_length": 852
+    "normalized_length": 16603
   },
   "CC-BY-NC-SA-4.0": {
-    "sha256": "33bd090ca45c3da24e4a2c4cca5aa6497b17ba89a693b1187a6b2aeaa5bfcd3e",
-    "md5": "45460395d7c1804f29d5e192f465d057",
+    "sha256": "edaa5aa3081887b916ab61eba7e84473cd039469b8e043f431c2ca31b90be8f4",
+    "md5": "623bd77b5b823c2b2598aa9efe89ed16",
     "name": "Creative Commons Attribution Non Commercial Share Alike 4.0 International",
     "text_length": 18972,
-    "normalized_length": 863
+    "normalized_length": 17878
   },
   "CC-BY-SA-4.0": {
-    "sha256": "ff79a7b9501943fa72d13b9985f5c2a0e77885f641d8f0eafe7a65c82e5170b7",
-    "md5": "1bbca84b03a1298d27397c7a7784877c",
+    "sha256": "673666539851f0b2831f46495cd544b55f56f9874a33058250ef316e4c85397e",
+    "md5": "9333b42fbedbcc0cab2e0a3a80afc056",
     "name": "Creative Commons Attribution Share Alike 4.0 International",
     "text_length": 18329,
-    "normalized_length": 849
+    "normalized_length": 17247
   },
   "CC0-1.0": {
-    "sha256": "836e0aba2642dbd15279e2a3d8800c97251b6d49f21c687073bcdd8bd12a627f",
-    "md5": "7b24b07eb558f871f3b99df4e396c773",
+    "sha256": "2a5e38ad31ebe369e70533cc7043a792d9d7a255d930feb0f26d5be91f9f69ff",
+    "md5": "a8eef3034af15f26f12a8de2fc476beb",
     "name": "Creative Commons Zero v1.0 Universal",
     "text_length": 7048,
-    "normalized_length": 613
+    "normalized_length": 6692
   },
   "CDDL-1.0": {
-    "sha256": "64b3d1e7293139a16db40de264c91b90e240854aa37333c5fb4421c0430fb0d8",
-    "md5": "03b733410f9e2f1379c821d330c401a6",
+    "sha256": "5a2be495bc76ef6020d44db8b4e1a4f1a6a668116cdd3b46eb664b1e770038c3",
+    "md5": "14e354160ba84a60c5f2c73e49cb87bb",
     "name": "Common Development and Distribution License 1.0",
     "text_length": 16419,
-    "normalized_length": 6500
+    "normalized_length": 15837
   },
   "CPL-1.0": {
     "sha256": "cbb0bcbe8996dffdfc4f8051a0387ec396ec816ba37b71d60937fd9f1904cbed",
@@ -133,67 +133,67 @@
     "normalized_length": 13195
   },
   "GPL-2.0-only": {
-    "sha256": "800704d54279141c14d2b5236cc50e7ea885fc8220e3bdaa410f2b54971d7522",
-    "md5": "fd4b084cf055384ebea0b97bf8698773",
+    "sha256": "7032a90ec8fe41363a672a24418ccc7dafc437cffc4a28dc42620ffbe143f16d",
+    "md5": "edd6ba3b274c93bfce432bbfcab2b38a",
     "name": "GNU General Public License v2.0 only",
     "text_length": 17337,
-    "normalized_length": 46
+    "normalized_length": 16793
   },
   "GPL-2.0-or-later": {
-    "sha256": "800704d54279141c14d2b5236cc50e7ea885fc8220e3bdaa410f2b54971d7522",
-    "md5": "fd4b084cf055384ebea0b97bf8698773",
+    "sha256": "7032a90ec8fe41363a672a24418ccc7dafc437cffc4a28dc42620ffbe143f16d",
+    "md5": "edd6ba3b274c93bfce432bbfcab2b38a",
     "name": "GNU General Public License v2.0 or later",
     "text_length": 17337,
-    "normalized_length": 46
+    "normalized_length": 16793
   },
   "GPL-3.0-only": {
-    "sha256": "10c3854c70c10808f2f455ff7ae311088ab9dd94c2c06693fb750f4c9e482943",
-    "md5": "25fc66bc78650e01b426a6bc8c0d7545",
+    "sha256": "80abd56d66b7dc8ddb33d7715d55066c649265066e313dc4d040214c64f7b24a",
+    "md5": "dccc03cf6bafd9c51cb250c291cc3962",
     "name": "GNU General Public License v3.0 only",
     "text_length": 34509,
-    "normalized_length": 49
+    "normalized_length": 33303
   },
   "GPL-3.0-or-later": {
-    "sha256": "10c3854c70c10808f2f455ff7ae311088ab9dd94c2c06693fb750f4c9e482943",
-    "md5": "25fc66bc78650e01b426a6bc8c0d7545",
+    "sha256": "80abd56d66b7dc8ddb33d7715d55066c649265066e313dc4d040214c64f7b24a",
+    "md5": "dccc03cf6bafd9c51cb250c291cc3962",
     "name": "GNU General Public License v3.0 or later",
     "text_length": 34509,
-    "normalized_length": 49
+    "normalized_length": 33303
   },
   "ISC": {
-    "sha256": "495def4cde05dd7818dcdf4c2a1b6ca483fba3011598f594c9e20faa2160690a",
-    "md5": "e9d73d880f680159dff276305022539a",
+    "sha256": "3d522e40b21fe47f1c0b4ba98d2813c76a08e24b8869559e32371e837ae9fa78",
+    "md5": "3ec1bfd7fe1689a668c1506c0a8c5715",
     "name": "ISC License",
     "text_length": 823,
-    "normalized_length": 11
+    "normalized_length": 677
   },
   "LGPL-2.1-only": {
-    "sha256": "4de811fed3402b35cc931316356c984d20ec54d660630f4064c708984b91f51a",
-    "md5": "49adf921daa23973c0b7eff8d2a4fccd",
+    "sha256": "e86c6753743621ffae728dc831bb4649af2d223956ceafec4b3aed31421293c5",
+    "md5": "7faacad72fd8a2e960ec380f3b50d19c",
     "name": "GNU Lesser General Public License v2.1 only",
     "text_length": 26001,
-    "normalized_length": 59
+    "normalized_length": 25247
   },
   "LGPL-2.1-or-later": {
-    "sha256": "4de811fed3402b35cc931316356c984d20ec54d660630f4064c708984b91f51a",
-    "md5": "49adf921daa23973c0b7eff8d2a4fccd",
+    "sha256": "e86c6753743621ffae728dc831bb4649af2d223956ceafec4b3aed31421293c5",
+    "md5": "7faacad72fd8a2e960ec380f3b50d19c",
     "name": "GNU Lesser General Public License v2.1 or later",
     "text_length": 26001,
-    "normalized_length": 59
+    "normalized_length": 25247
   },
   "LGPL-3.0-only": {
-    "sha256": "b1dddaf7ef2e30067896bb2f11cf3c9defcf11564304f448a9257f49502a9e85",
-    "md5": "4a45b695648627b95fd1b62d7e4ec400",
+    "sha256": "f4685061a0d4e8d8028cd7db168ec7ab68e770778752069df7819c72faa14428",
+    "md5": "413ff7f131a3e78a9f2512d00ac61742",
     "name": "GNU Lesser General Public License v3.0 only",
     "text_length": 41933,
-    "normalized_length": 56
+    "normalized_length": 40408
   },
   "LGPL-3.0-or-later": {
-    "sha256": "b1dddaf7ef2e30067896bb2f11cf3c9defcf11564304f448a9257f49502a9e85",
-    "md5": "4a45b695648627b95fd1b62d7e4ec400",
+    "sha256": "f4685061a0d4e8d8028cd7db168ec7ab68e770778752069df7819c72faa14428",
+    "md5": "413ff7f131a3e78a9f2512d00ac61742",
     "name": "GNU Lesser General Public License v3.0 or later",
     "text_length": 41933,
-    "normalized_length": 56
+    "normalized_length": 40408
   },
   "MIT": {
     "sha256": "62a715c94922ee92d707e8dbca1640e25618aad818eefa0fcbc2d37d474a0806",
@@ -238,32 +238,32 @@
     "normalized_length": 1611
   },
   "OpenSSL": {
-    "sha256": "2f4c5c812e7fb4382f43309ccd7a0ec1bd5d15682d0eb953c65cd386fb1fc360",
-    "md5": "e247845e7e0c32b1e1276d11efc6504c",
+    "sha256": "88a607f5447586b4aa85e93e859347561b81002ad01e8b435bd9551fd3528957",
+    "md5": "e03d3824e30d320eb327d421aec43149",
     "name": "OpenSSL License",
     "text_length": 5309,
-    "normalized_length": 15
+    "normalized_length": 4805
   },
   "PHP-3.01": {
-    "sha256": "6deb5f7ba369f906ba9737c846e0fc7386a81b1ff878662979d57536e6b05733",
-    "md5": "7772cbe8e4aeab9df28f0e68a8493fe0",
+    "sha256": "fb81c250d5df64d88748bc70c24eb8a4eeaae44bb186eea32643c5d4c5af9615",
+    "md5": "c37876c23c66486d4fb3f7133c2f9144",
     "name": "PHP License v3.01",
     "text_length": 2855,
-    "normalized_length": 28
+    "normalized_length": 2586
   },
   "PostgreSQL": {
-    "sha256": "b3f0defb5991d6f68c354a4387c23253c0d4778370292726f7bf28cde1212ff6",
-    "md5": "acaaa570efde94c200f0ef8d4a9a5587",
+    "sha256": "1a42b2e1b17a586db16615a9dfef6636039b4d6b6a3effb32635a98458257b51",
+    "md5": "9da588b0c4a087ba32bc3b439dae3afb",
     "name": "PostgreSQL License",
     "text_length": 1195,
-    "normalized_length": 92
+    "normalized_length": 1153
   },
   "PSF-2.0": {
-    "sha256": "8ff22858d07860b124ded5f96ece10f2fad8fa2f2790afef107f49914c659710",
-    "md5": "ce433ceb4f392f193cab5fe8e2d77c04",
+    "sha256": "196cf4ffc8636c1585739d2b14bb1a77570ef611b79cbaa31bccc2a34349bc90",
+    "md5": "dd6a50285bc7e6d3905062c5b43d823d",
     "name": "Python Software Foundation License 2.0",
     "text_length": 2427,
-    "normalized_length": 626
+    "normalized_length": 2327
   },
   "Ruby": {
     "sha256": "682b20d24fc038dcaf0821c87635217fc65eaa355b01c7e562b1ac79c5ab5fea",
@@ -287,25 +287,25 @@
     "normalized_length": 4275
   },
   "W3C": {
-    "sha256": "c96b0ab113f89189404c6689a6f745d90743346781dbba68321df535d4439597",
-    "md5": "92031bffca35768709c225e23d51e54e",
+    "sha256": "f371ea12d4027c915e2c7fb191e8e757fe4fe576f094c1f0fe939f72f46ac1bb",
+    "md5": "7cc05b37897116424b03105aaeb218df",
     "name": "W3C Software Notice and License (2002-12-31)",
     "text_length": 2701,
-    "normalized_length": 141
+    "normalized_length": 2545
   },
   "WTFPL": {
-    "sha256": "63de4514259aae6b11b2d017962c984e61bfe7a7f3d5a30e32269040b7e740b7",
-    "md5": "6cba72d5c437a00b2c7f42a13de12d00",
+    "sha256": "a9f26b707eeeb4f283af763733744ef1082c9b86fd7e5e8c65bcd4dde8927be0",
+    "md5": "e7a758dfac23ad697444b91235891be4",
     "name": "Do What The F*ck You Want To Public License",
     "text_length": 432,
-    "normalized_length": 67
+    "normalized_length": 370
   },
   "X11": {
-    "sha256": "701e4060947af66239ca5bf0c7f05c4868a66be272826483cf9311b213f0438d",
-    "md5": "6afd51d1efd97c09582866f8b4ff2970",
+    "sha256": "bb8f1f1f40cab4df42e61a903e17af1dec2252f77b0b7c3631b33f51a38390b4",
+    "md5": "f1a11638df40f89b52a94895f5a6c4be",
     "name": "X11 License",
     "text_length": 1338,
-    "normalized_length": 11
+    "normalized_length": 1262
   },
   "Zlib": {
     "sha256": "10b5050570f690180e31ddf8532be780ee7bac869d01b6c46710af9659829402",
