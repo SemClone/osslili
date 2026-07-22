@@ -105,6 +105,12 @@ class LicenseDetector:
         if not license_id or not isinstance(license_id, str):
             return False
 
+        # Authoritative shortcut: any real SPDX identifier is valid, even short
+        # ones like "ISC" that the heuristics below would otherwise reject as
+        # generic single words. A trailing "+" ("or later" form) is tolerated.
+        if self._is_valid_spdx_id(license_id) or self._is_valid_spdx_id(license_id.rstrip('+')):
+            return True
+
         license_lower = license_id.lower().strip()
 
         # Common false positive words
@@ -146,7 +152,7 @@ class LicenseDetector:
         # Additional validation: single word generic terms should be rejected
         generic_single_words = ['python', 'ruby', 'php', 'perl', 'java', 'javascript',
                                'node', 'go', 'rust', 'swift', 'kotlin', 'scala',
-                               'domain', 'free', 'open', 'source', 'clear', 'isc']
+                               'domain', 'free', 'open', 'source', 'clear']
 
         # Reject single generic words unless they're clearly license identifiers
         if license_lower in generic_single_words:
@@ -277,6 +283,13 @@ class LicenseDetector:
                     try:
                         file_licenses = future.result(timeout=30)  # 30 second timeout per file
                         for license in file_licenses:
+                            # Never emit identifiers outside the SPDX list.
+                            if not self._is_emittable_license_id(license.spdx_id):
+                                logger.debug(
+                                    f"Dropping non-SPDX license id '{license.spdx_id}' "
+                                    f"from {license.source_file}"
+                                )
+                                continue
                             # Deduplicate by license ID, confidence, and source file
                             key = (license.spdx_id, round(license.confidence, 2), license.source_file)
                             if key not in processed_licenses:
@@ -291,6 +304,13 @@ class LicenseDetector:
                 try:
                     file_licenses = self._detect_licenses_in_file(file_path, single_file_mode)
                     for license in file_licenses:
+                        # Never emit identifiers outside the SPDX list.
+                        if not self._is_emittable_license_id(license.spdx_id):
+                            logger.debug(
+                                f"Dropping non-SPDX license id '{license.spdx_id}' "
+                                f"from {license.source_file}"
+                            )
+                            continue
                         # Deduplicate by license ID, confidence, and source file
                         key = (license.spdx_id, round(license.confidence, 2), license.source_file)
                         if key not in processed_licenses:
@@ -1703,7 +1723,48 @@ class LicenseDetector:
         if hasattr(self.spdx_data, 'licenses') and self.spdx_data.licenses:
             return license_id in self.spdx_data.licenses
         return False
-    
+
+    def _is_emittable_license_id(self, license_id: str) -> bool:
+        """
+        Whether a detected identifier may be emitted in results.
+
+        A detection must resolve to a real SPDX license id, an SPDX license
+        expression, an SPDX exception, or an explicit marker. Strings that
+        merely *look* license-like but are not valid SPDX identifiers (e.g.
+        "MIT-or-later", which is not a real id) are rejected so they never
+        reach an SBOM or notice file.
+        """
+        if not license_id or not isinstance(license_id, str):
+            return False
+
+        lid = license_id.strip()
+        if not lid:
+            return False
+
+        # Explicit non-SPDX markers we intentionally allow through.
+        if lid == 'NOASSERTION':
+            return True
+        if lid.startswith('LicenseRef-'):
+            return True
+
+        # SPDX license exceptions are tracked separately from the license list.
+        if 'exception' in lid.lower():
+            return True
+
+        # SPDX expressions (compound) — every operand must itself be emittable.
+        if re.search(r'\s+(?:AND|OR|WITH)\s+', lid, re.IGNORECASE):
+            operands = [
+                op.strip()
+                for op in re.split(r'\s+(?:AND|OR|WITH)\s+', lid, flags=re.IGNORECASE)
+                if op.strip()
+            ]
+            return bool(operands) and all(self._is_emittable_license_id(op) for op in operands)
+
+        # Bare identifier: must exist in the SPDX license list. A trailing "+"
+        # (deprecated "or later" form, e.g. "GPL-2.0+") is tolerated.
+        return self._is_valid_spdx_id(lid.rstrip('+'))
+
+
     def _extract_version(self, text: str) -> Optional[str]:
         """Extract version number from license text."""
         # Match patterns like 2.0, 3, 3.0, etc.

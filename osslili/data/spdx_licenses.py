@@ -264,36 +264,47 @@ class SPDXLicenseData:
         """
         if not text:
             return ""
-        
-        # Remove extra whitespace first
+
+        # Remove copyright holder lines first, while line boundaries still
+        # exist. These lines vary per package (holder name, year) and must be
+        # ignored when comparing texts. Stripping them here — before the
+        # whitespace collapse below — is essential: doing it afterwards on the
+        # single-lined string let a copyright statement's ".*" run to the end
+        # of the text and swallow the operative license wording (e.g. canonical
+        # ISC files, which open with a "Copyright (c) YYYY ..." line, collapsed
+        # to just their title and stopped matching entirely).
+        kept_lines = [
+            line for line in text.splitlines()
+            if not re.match(r'\s*copyright\b.*\d{4}', line, re.IGNORECASE)
+        ]
+        text = '\n'.join(kept_lines)
+
+        # Remove extra whitespace
         text = ' '.join(text.split())
-        
+
         # Convert to lowercase
         normalized = text.lower()
-        
+
         # Remove URLs
         normalized = re.sub(r'https?://[^\s]+', '', normalized)
-        
+
         # Remove email addresses
         normalized = re.sub(r'\S+@\S+', '', normalized)
-        
+
         # Remove common variable placeholders
         normalized = re.sub(r'\[year\]|\[yyyy\]|\[name of copyright owner\]|\[fullname\]', '', normalized)
         normalized = re.sub(r'<year>|<name of author>|<organization>', '', normalized)
         normalized = re.sub(r'\{year\}|\{fullname\}|\{email\}', '', normalized)
-        
+
         # Remove punctuation except for essential ones
         normalized = re.sub(r'[^\w\s\-]', ' ', normalized)
-        
+
         # Normalize whitespace
         normalized = re.sub(r'\s+', ' ', normalized)
-        
-        # Remove common copyright lines that vary
-        normalized = re.sub(r'copyright.*?\d{4}.*?(?:\n|$)', '', normalized, flags=re.IGNORECASE)
-        
+
         # Remove leading/trailing whitespace
         normalized = normalized.strip()
-        
+
         return normalized
     
     def get_all_license_ids(self) -> List[str]:
