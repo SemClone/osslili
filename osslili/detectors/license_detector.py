@@ -22,6 +22,12 @@ from ..utils.regex_matcher import RegexPatternMatcher
 
 logger = logging.getLogger(__name__)
 
+# SPDX deprecated the bare GNU-family short identifiers (e.g. "GPL-2.0") in
+# favour of an explicit -only / -or-later disjunction, because the bare id is
+# ambiguous about whether later license versions are permitted. This matches a
+# bare GNU-family id so it can be mapped to its modern replacement.
+_DEPRECATED_GNU_RE = re.compile(r'^(?:A?GPL|LGPL|GFDL)-\d+(?:\.\d+)?$')
+
 
 class LicenseDetector:
     """Detect licenses in source code using multiple detection methods."""
@@ -283,6 +289,9 @@ class LicenseDetector:
                     try:
                         file_licenses = future.result(timeout=30)  # 30 second timeout per file
                         for license in file_licenses:
+                            # Emit modern SPDX ids; the bare GNU-family forms
+                            # osslili's detectors produce are deprecated.
+                            license.spdx_id = self._to_modern_spdx_id(license.spdx_id)
                             # Never emit identifiers outside the SPDX list.
                             if not self._is_emittable_license_id(license.spdx_id):
                                 logger.debug(
@@ -304,6 +313,9 @@ class LicenseDetector:
                 try:
                     file_licenses = self._detect_licenses_in_file(file_path, single_file_mode)
                     for license in file_licenses:
+                        # Emit modern SPDX ids; the bare GNU-family forms
+                        # osslili's detectors produce are deprecated.
+                        license.spdx_id = self._to_modern_spdx_id(license.spdx_id)
                         # Never emit identifiers outside the SPDX list.
                         if not self._is_emittable_license_id(license.spdx_id):
                             logger.debug(
@@ -1723,6 +1735,35 @@ class LicenseDetector:
         if hasattr(self.spdx_data, 'licenses') and self.spdx_data.licenses:
             return license_id in self.spdx_data.licenses
         return False
+
+    def _to_modern_spdx_id(self, license_id: str) -> str:
+        """Map a deprecated bare GNU-family id to its modern SPDX replacement.
+
+        ``GPL-2.0`` -> ``GPL-2.0-only`` and the deprecated "or later" form
+        ``GPL-2.0+`` -> ``GPL-2.0-or-later``, matching SPDX's documented
+        replacements. Ids that are already modern, are not GNU-family, or whose
+        computed replacement is not itself a valid SPDX id are returned
+        unchanged, so an unexpected input can never produce a bogus id.
+        """
+        if not license_id or not isinstance(license_id, str):
+            return license_id
+        lid = license_id.strip()
+
+        # Deprecated "or later" form: GPL-2.0+ -> GPL-2.0-or-later.
+        if lid.endswith('+'):
+            base = lid[:-1]
+            if _DEPRECATED_GNU_RE.match(base):
+                candidate = base + '-or-later'
+                if self._is_valid_spdx_id(candidate):
+                    return candidate
+            return lid
+
+        # Bare deprecated form: GPL-2.0 -> GPL-2.0-only.
+        if _DEPRECATED_GNU_RE.match(lid):
+            candidate = lid + '-only'
+            if self._is_valid_spdx_id(candidate):
+                return candidate
+        return lid
 
     def _is_emittable_license_id(self, license_id: str) -> bool:
         """

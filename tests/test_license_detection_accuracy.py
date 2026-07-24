@@ -176,3 +176,47 @@ class TestEmittableLicenseIdGuard:
     ])
     def test_rejects_invalid_identifiers(self, detector, license_id):
         assert not detector._is_emittable_license_id(license_id)
+
+
+class TestDeprecatedGnuIdNormalization:
+    """Deprecated bare GNU-family ids must be emitted in modern SPDX form.
+
+    SPDX deprecated the bare ids (e.g. ``GPL-2.0``) in favour of the explicit
+    ``-only`` / ``-or-later`` disjunction. The detector's tag and text paths
+    still surface the bare forms internally, so results are normalized before
+    emission.
+    """
+
+    @pytest.mark.parametrize("deprecated,expected", [
+        ("GPL-2.0", "GPL-2.0-only"),
+        ("GPL-3.0", "GPL-3.0-only"),
+        ("LGPL-2.1", "LGPL-2.1-only"),
+        ("LGPL-3.0", "LGPL-3.0-only"),
+        ("AGPL-3.0", "AGPL-3.0-only"),
+        ("GPL-2.0+", "GPL-2.0-or-later"),
+        ("GPL-3.0+", "GPL-3.0-or-later"),
+    ])
+    def test_maps_deprecated_to_modern(self, detector, deprecated, expected):
+        assert detector._to_modern_spdx_id(deprecated) == expected
+
+    @pytest.mark.parametrize("license_id", [
+        "GPL-2.0-only",
+        "GPL-3.0-or-later",
+        "MIT",
+        "Apache-2.0",
+        "BSD-3-Clause",
+        "MIT OR GPL-2.0-only",
+    ])
+    def test_modern_and_non_gnu_ids_pass_through(self, detector, license_id):
+        assert detector._to_modern_spdx_id(license_id) == license_id
+
+    @pytest.mark.parametrize("filename,text,expected", [
+        ("LICENSE", "GNU General Public License\nVersion 2, June 1991", "GPL-2.0-only"),
+        ("LICENSE", "GNU General Public License\nVersion 3, 29 June 2007", "GPL-3.0-only"),
+        ("LICENSE", "GNU Lesser General Public License\nVersion 3, 29 June 2007", "LGPL-3.0-only"),
+        ("main.c", "/* SPDX-License-Identifier: GPL-2.0 */\nint main(){}\n", "GPL-2.0-only"),
+    ])
+    def test_detection_emits_modern_ids(self, detector, tmp_path, filename, text, expected):
+        ids = _detect_ids(detector, tmp_path, filename, text)
+        assert expected in ids, f"expected {expected} in {ids}"
+        assert "GPL-2.0" not in ids and "GPL-3.0" not in ids and "LGPL-3.0" not in ids
