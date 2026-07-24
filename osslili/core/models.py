@@ -23,6 +23,7 @@ class LicenseCategory(Enum):
     DECLARED = "declared"  # Explicitly declared in LICENSE files, package.json, etc.
     DETECTED = "detected"  # Inferred from source code content
     REFERENCED = "referenced"  # Mentioned but not primary
+    THIRD_PARTY = "third-party"  # Bundled third-party notice/license files (deps, not the project itself)
 
 
 @dataclass
@@ -80,11 +81,32 @@ class DetectionResult:
     package_name: Optional[str] = None
     package_version: Optional[str] = None
     
+    def get_own_licenses(self) -> List[DetectedLicense]:
+        """Licenses representing the project itself.
+
+        Excludes bundled third-party notice files, which carry dependency
+        licenses rather than the project's own license (issue #78).
+        """
+        return [l for l in self.licenses
+                if l.category != LicenseCategory.THIRD_PARTY.value]
+
+    def get_third_party_licenses(self) -> List[DetectedLicense]:
+        """Licenses detected in bundled third-party notice files (issue #78)."""
+        return [l for l in self.licenses
+                if l.category == LicenseCategory.THIRD_PARTY.value]
+
     def get_primary_license(self) -> Optional[DetectedLicense]:
-        """Get the license with highest confidence."""
-        if not self.licenses:
+        """Get the highest-confidence license representing the project itself.
+
+        Bundled third-party dependency licenses are never selected as the
+        project's primary license (issue #78). If only third-party notice
+        licenses were detected, there is no project-owned primary license and
+        this returns None (they remain available via get_third_party_licenses).
+        """
+        own_licenses = self.get_own_licenses()
+        if not own_licenses:
             return None
-        return max(self.licenses, key=lambda x: x.confidence)
+        return max(own_licenses, key=lambda x: x.confidence)
     
     def to_dict(self) -> Dict[str, Any]:
         return {

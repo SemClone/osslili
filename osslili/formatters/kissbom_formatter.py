@@ -49,11 +49,20 @@ class KissBOMFormatter:
                 package["name"] = result.package_name
             if result.package_version:
                 package["version"] = result.package_version
-                
-            # Add all detected licenses if multiple
-            if len(result.licenses) > 1:
-                package["all_licenses"] = list(set(l.spdx_id for l in result.licenses))
-            
+
+            # Add all of the project's own detected licenses if multiple.
+            # Bundled third-party notice licenses are reported separately so
+            # they are not conflated with the project's own license (issue #78).
+            own_licenses = result.get_own_licenses()
+            if len(own_licenses) > 1:
+                package["all_licenses"] = sorted(set(l.spdx_id for l in own_licenses))
+
+            third_party_ids = sorted(set(
+                l.spdx_id for l in result.get_third_party_licenses()
+            ))
+            if third_party_ids:
+                package["third_party_licenses"] = third_party_ids
+
             packages.append(package)
         
         kissbom = {
