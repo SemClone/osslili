@@ -5,6 +5,25 @@ All notable changes to osslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2026-07-24
+
+### Added
+- **Third-party license category** (Issue #78): bundled third-party notice/license files (`THIRD_PARTY_NOTICES`, `3rdpartylicenses`, etc.) are now categorized as `third-party` rather than counted as the project's own license, so consumers determining a project's license in isolation can filter them out while artifact scans still surface them
+  - New `LicenseCategory.THIRD_PARTY` and `DetectionResult.get_own_licenses()` / `get_third_party_licenses()` helpers
+  - A third-party notice file is identified by a third-party marker combined with a notice/license token, avoiding misclassification of ordinary source files (e.g. `third_party_helpers.py`)
+  - Evidence output gains a `third_party_licenses` summary bucket, preserved across all detail levels
+
+### Changed
+- **`get_primary_license()`** never selects a bundled third-party license; it returns `None` when only third-party notices were detected (they remain available via `get_third_party_licenses()`)
+- **KissBOM**: `license` / `all_licenses` reflect the project's own licenses; third-party licenses are reported in a separate `third_party_licenses` field
+- **CycloneDX**: component `licenses` use the project's own licenses; third-party licenses are emitted as `properties` (`osslili:third-party-license`), with `<copyright>` ordered before `<properties>` per the 1.4 XML schema
+
+### Removed
+- Redundant `THIRD_PARTY_NOTICES*` entry from `license_filename_patterns` (Issue #80); it was already covered by the existing `*THIRD_PARTY*` pattern and filename matching is set membership, not ordered priority
+
+### CI
+- Removed a redundant, broken publish workflow (#85)
+
 ## [1.6.5] - 2026-07-24
 
 ### Fixed
