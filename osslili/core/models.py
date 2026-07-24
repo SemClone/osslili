@@ -112,7 +112,7 @@ class Config:
         "LICENSE*", "LICENCE*", "COPYING*", "NOTICE*",
         "MIT-LICENSE*", "APACHE-LICENSE*", "BSD-LICENSE*",
         "UNLICENSE*", "COPYRIGHT*", "3rdpartylicenses.txt",
-        "THIRD_PARTY_NOTICES*", "*GPL*", "*COPYLEFT*", 
+        "*GPL*", "*COPYLEFT*",
         "*EULA*", "*COMMERCIAL*", "*AGREEMENT*", "*BUNDLE*",
         "*THIRD-PARTY*", "*THIRD_PARTY*", "LEGAL*"
     ])
