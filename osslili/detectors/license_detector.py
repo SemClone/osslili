@@ -70,7 +70,12 @@ class LicenseDetector:
         """
         file_name = file_path.name.lower()
         file_str = str(file_path).lower()
-        
+
+        # Bundled third-party notices are dependency licenses, not the project's
+        # own license. Tag them separately so they can be filtered out (issue #78).
+        if self._is_third_party_notice_file(file_path):
+            return LicenseCategory.THIRD_PARTY.value, "third_party_notice"
+
         # Primary declared licenses - found in LICENSE files or package metadata
         if self._is_license_file(file_path):
             return LicenseCategory.DECLARED.value, "license_file"
@@ -331,9 +336,17 @@ class LicenseDetector:
                 except Exception as e:
                     logger.warning(f"Error processing {file_path}: {e}")
         
+        # Re-tag bundled third-party notices (issue #78). Several construction
+        # paths hard-code the DECLARED category; normalize here at the single
+        # exit point so any license sourced from a third-party notice file is
+        # reported under the THIRD_PARTY category regardless of how it was built.
+        for license in licenses:
+            if license.source_file and self._is_third_party_notice_file(Path(license.source_file)):
+                license.category = LicenseCategory.THIRD_PARTY.value
+
         # Sort by confidence
         licenses.sort(key=lambda x: x.confidence, reverse=True)
-        
+
         return licenses
     
     def _detect_licenses_in_file_safe(self, file_path: Path, single_file_mode: bool = False) -> List[DetectedLicense]:
@@ -745,6 +758,28 @@ class LicenseDetector:
 
         return filtered_licenses
     
+    # A bundled *third-party* notice/license file (licenses of dependencies
+    # shipped alongside the project) is identified by a "third party" marker
+    # combined with a notice/license token. Requiring both avoids misclassifying
+    # ordinary source files such as ``third_party_helpers.py`` as license files.
+    # These files are still detected and reported, but tagged with the
+    # THIRD_PARTY category so consumers determining the project's own license in
+    # isolation (e.g. ORT) can filter them out. See issue #78.
+    _THIRD_PARTY_MARKERS = (
+        'third-party', 'third_party', 'thirdparty',
+        '3rdparty', '3rd-party', '3rd_party',
+    )
+    _THIRD_PARTY_NOTICE_TOKENS = (
+        'notice', 'license', 'licence', 'legal', 'attribution',
+    )
+
+    def _is_third_party_notice_file(self, file_path: Path) -> bool:
+        """Check if a file is a bundled third-party notice/license file."""
+        name_lower = file_path.name.lower()
+        has_marker = any(m in name_lower for m in self._THIRD_PARTY_MARKERS)
+        has_token = any(t in name_lower for t in self._THIRD_PARTY_NOTICE_TOKENS)
+        return has_marker and has_token
+
     def _is_license_file(self, file_path: Path) -> bool:
         """Check if file is likely a license file."""
         name_lower = file_path.name.lower()
@@ -2093,9 +2128,12 @@ class LicenseDetector:
         Returns:
             Adjusted confidence score
         """
-        if category == "declared":
+        # Bundled third-party notice files are still license files, just
+        # categorized separately (issue #78); they keep the same high
+        # confidence treatment as declared license files.
+        if category in ("declared", "third-party"):
             # License files and documentation should have high confidence
-            if match_type == "license_file":
+            if match_type in ("license_file", "third_party_notice"):
                 return 1.0  # Full confidence for exact license file matches
             elif match_type == "documentation":
                 return min(0.95, raw_score + 0.2)  # High confidence for docs

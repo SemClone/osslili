@@ -34,6 +34,7 @@ class EvidenceFormatter:
                 "declared_licenses": {},
                 "detected_licenses": {},
                 "referenced_licenses": {},
+                "third_party_licenses": {},
                 "all_licenses": {},
                 "copyright_holders": [],
                 "copyrights_found": 0
@@ -124,6 +125,10 @@ class EvidenceFormatter:
                         if spdx_id not in evidence["summary"]["referenced_licenses"]:
                             evidence["summary"]["referenced_licenses"][spdx_id] = 0
                         evidence["summary"]["referenced_licenses"][spdx_id] += 1
+                    elif category == "third-party":
+                        if spdx_id not in evidence["summary"]["third_party_licenses"]:
+                            evidence["summary"]["third_party_licenses"][spdx_id] = 0
+                        evidence["summary"]["third_party_licenses"][spdx_id] += 1
 
                     # Add to overall count
                     if spdx_id not in evidence["summary"]["all_licenses"]:
@@ -230,6 +235,10 @@ class EvidenceFormatter:
                             if spdx_id not in evidence["summary"]["referenced_licenses"]:
                                 evidence["summary"]["referenced_licenses"][spdx_id] = 0
                             evidence["summary"]["referenced_licenses"][spdx_id] += 1
+                        elif category == "third-party":
+                            if spdx_id not in evidence["summary"]["third_party_licenses"]:
+                                evidence["summary"]["third_party_licenses"][spdx_id] = 0
+                            evidence["summary"]["third_party_licenses"][spdx_id] += 1
 
                         # Add to overall count
                         if spdx_id not in evidence["summary"]["all_licenses"]:
@@ -293,6 +302,7 @@ class EvidenceFormatter:
                     "total_files_scanned": evidence["summary"]["total_files_scanned"],
                     "files_with_licenses": len(set(e["file"] for r in evidence["scan_results"] for e in r["license_evidence"])),
                     "license_breakdown": evidence["summary"]["all_licenses"],
+                    "third_party_licenses": evidence["summary"]["third_party_licenses"],
                     "total_license_detections": sum(len(r["license_evidence"]) for r in evidence["scan_results"]),
                     "copyrights_found": evidence["summary"]["copyrights_found"],
                     "unique_copyright_holders": len(evidence["summary"]["copyright_holders"])
@@ -313,6 +323,7 @@ class EvidenceFormatter:
                     "total_files_scanned": evidence["summary"]["total_files_scanned"],
                     "files_with_licenses": len(set(e["file"] for r in evidence["scan_results"] for e in r["license_evidence"])),
                     "license_breakdown": evidence["summary"]["all_licenses"],
+                    "third_party_licenses": evidence["summary"]["third_party_licenses"],
                     "total_license_detections": sum(len(r["license_evidence"]) for r in evidence["scan_results"]),
                     "detection_methods": method_counts,
                     "copyrights_found": evidence["summary"]["copyrights_found"],

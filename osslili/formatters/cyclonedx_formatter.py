@@ -46,19 +46,32 @@ class CycloneDXFormatter:
                 "version": result.package_version or "unknown"
             }
             
-            # Add licenses
+            # Add the project's own licenses. Bundled third-party notice
+            # licenses are not listed as the component's license; they are
+            # emitted as properties so they remain visible but filterable
+            # (issue #78).
             licenses = []
-            for license_info in result.licenses:
+            for license_info in result.get_own_licenses():
                 if license_info.spdx_id and license_info.spdx_id != "NO-ASSERTION":
                     licenses.append({
                         "license": {
                             "id": license_info.spdx_id
                         }
                     })
-            
+
             if licenses:
                 component["licenses"] = licenses
-            
+
+            third_party_ids = sorted(set(
+                l.spdx_id for l in result.get_third_party_licenses()
+                if l.spdx_id and l.spdx_id != "NO-ASSERTION"
+            ))
+            if third_party_ids:
+                component["properties"] = [
+                    {"name": "osslili:third-party-license", "value": spdx_id}
+                    for spdx_id in third_party_ids
+                ]
+
             # Add copyright
             if result.copyrights:
                 copyright_text = "\n".join(c.statement for c in result.copyrights)
@@ -135,19 +148,35 @@ class CycloneDXFormatter:
             version = ET.SubElement(component, "version")
             version.text = result.package_version or "unknown"
             
-            # Add licenses
-            if result.licenses:
+            # Add the project's own licenses (issue #78: bundled third-party
+            # notice licenses are emitted as properties, not component licenses).
+            own_licenses = result.get_own_licenses()
+            if own_licenses:
                 licenses_elem = ET.SubElement(component, "licenses")
-                for license_info in result.licenses:
+                for license_info in own_licenses:
                     if license_info.spdx_id and license_info.spdx_id != "NO-ASSERTION":
                         license_elem = ET.SubElement(licenses_elem, "license")
                         id_elem = ET.SubElement(license_elem, "id")
                         id_elem.text = license_info.spdx_id
-            
-            # Add copyright
+
+            # Add copyright (must precede <properties> in the CycloneDX 1.4
+            # XML component sequence).
             if result.copyrights:
                 copyright_elem = ET.SubElement(component, "copyright")
                 copyright_elem.text = "\n".join(c.statement for c in result.copyrights)
+
+            third_party_ids = sorted(set(
+                l.spdx_id for l in result.get_third_party_licenses()
+                if l.spdx_id and l.spdx_id != "NO-ASSERTION"
+            ))
+            if third_party_ids:
+                properties_elem = ET.SubElement(component, "properties")
+                for spdx_id in third_party_ids:
+                    prop_elem = ET.SubElement(
+                        properties_elem, "property",
+                        {"name": "osslili:third-party-license"}
+                    )
+                    prop_elem.text = spdx_id
         
         # Convert to string
         return ET.tostring(root, encoding="unicode", method="xml")
