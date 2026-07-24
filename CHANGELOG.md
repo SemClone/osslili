@@ -5,6 +5,18 @@ All notable changes to osslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.5] - 2026-07-24
+
+### Fixed
+- **SPDX Compliance**: Emit modern SPDX ids for deprecated GNU-family licenses (Issue #82)
+  - The tag and text detectors surfaced deprecated bare ids (`GPL-2.0`, `GPL-3.0`, `LGPL-3.0`, `AGPL-3.0`), which SPDX replaced with the explicit `-only` / `-or-later` disjunction
+  - Detected ids are now normalized to their modern replacement at the emission boundary — `GPL-2.0` → `GPL-2.0-only`, and the deprecated `+` form `GPL-2.0+` → `GPL-2.0-or-later`
+  - Normalization only applies when the computed replacement is itself a valid SPDX id, so unexpected inputs can never produce a bogus id; modern and non-GNU ids pass through unchanged
+
+### Technical Details
+- Added `_to_modern_spdx_id()` applied before the SPDX-list guard and dedup in both the parallel and sequential collection paths
+- Added `TestDeprecatedGnuIdNormalization` regression coverage (unit mapping + end-to-end detection)
+
 ## [1.6.4] - 2026-07-21
 
 ### Fixed
