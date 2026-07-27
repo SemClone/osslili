@@ -130,12 +130,13 @@ class CopyrightExtractor:
         # Sort by confidence
         copyrights.sort(key=lambda x: x.confidence, reverse=True)
         
-        # Also check package metadata
-        metadata_copyrights = self._extract_from_metadata(path)
-        for mc in metadata_copyrights:
-            if mc.statement not in processed_statements:
-                processed_statements.add(mc.statement)
-                copyrights.append(mc)
+        # Also check package metadata, unless metadata is disregarded (issue #79)
+        if self.config.scan_targets().package_metadata:
+            metadata_copyrights = self._extract_from_metadata(path)
+            for mc in metadata_copyrights:
+                if mc.statement not in processed_statements:
+                    processed_statements.add(mc.statement)
+                    copyrights.append(mc)
         
         return copyrights
     

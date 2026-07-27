@@ -79,6 +79,9 @@ oslili /path/to/project -o evidence.json
 # Comprehensive deep scan (all source files)
 oslili /path/to/project --deep -o evidence.json
 
+# All files, cheap detection, package metadata disregarded
+oslili /path/to/project --scan-mode lightweight -o evidence.json
+
 # Analyze current directory
 oslili .
 
@@ -88,7 +91,13 @@ oslili /path/to/LICENSE -o license-info.json
 
 ## Scanning Modes
 
-osslili offers three scanning modes optimized for different use cases:
+osslili offers four scanning modes optimized for different use cases. Each mode is a
+preset over the individual [scan targets](#scan-targets), which can be turned on or off
+on top of the selected mode.
+
+```bash
+oslili ./my-project --scan-mode default|deep|license-files|lightweight
+```
 
 ### 🚀 Default Mode (Recommended)
 
@@ -149,6 +158,9 @@ oslili ./my-project --deep
 ```bash
 # Scans ONLY LICENSE files (no metadata, no README)
 oslili ./my-project --license-files-only
+
+# Same thing, as a mode
+oslili ./my-project --scan-mode license-files
 ```
 
 **Performance**: ~7 seconds on ffmpeg-6.0
@@ -157,6 +169,51 @@ oslili ./my-project --license-files-only
 - When you only care about declared licenses
 - Quick validation of LICENSE file presence
 - Maximum performance requirements
+
+### 🪶 Lightweight Mode (All files, no metadata)
+
+**All files, cheap detection, package metadata disregarded.** Like deep mode, it reads
+every file, but it detects only SPDX tags, license keywords and references instead of
+comparing each file against all 700+ SPDX license texts, and it ignores package
+manifests entirely.
+
+```bash
+oslili ./my-project --scan-mode lightweight
+```
+
+**Use cases:**
+- Running osslili as a scanner in a pipeline whose analyzer already reads declared
+  licenses from package metadata (for example [ORT](https://github.com/oss-review-toolkit/ort),
+  which strictly separates declared from detected licenses)
+- Scanning large trees where the full text comparison is too slow
+
+Detection depth and metadata are independent switches, so the pieces can be mixed:
+
+```bash
+# Deep mode, but disregard package metadata
+oslili ./my-project --deep --no-package-metadata
+
+# Lightweight mode, but keep the full text comparison
+oslili ./my-project --scan-mode lightweight --text-similarity
+```
+
+### Scan Targets
+
+Modes are presets over these targets. Pass a target flag to override the mode:
+
+| Flag | Files | Default |
+|------|-------|---------|
+| `--license-files` / `--no-license-files` | LICENSE, COPYING, ... (the project's own) | enabled |
+| `--notice-files` / `--no-notice-files` | bundled third-party notices (`THIRD_PARTY_NOTICES`, ...) | enabled |
+| `--package-metadata` / `--no-package-metadata` | package.json, pom.xml, requirements.txt, ... | enabled, off in lightweight mode |
+| `--documentation` / `--no-documentation` | README and other readable documentation | enabled, off in license-files mode |
+| `--source-files` / `--no-source-files` | every other readable file | deep and lightweight modes only |
+| `--text-similarity` / `--no-text-similarity` | compare contents against full SPDX license texts | enabled, off in lightweight mode |
+
+A manifest that shares a documentation extension (`requirements.txt`) counts as package
+metadata, and `--no-package-metadata` also suppresses licenses and copyright holders that
+would have been read out of a manifest - including when a single manifest file is scanned
+directly.
 
 ### Performance Comparison
 
@@ -167,6 +224,9 @@ Tested on ffmpeg-6.0 (4,139 files):
 | **Strict** (`--license-files-only`) | 8 | 7s | 48x faster |
 | **Default** *(recommended)* | 31 | 8.5s | **40x faster** |
 | **Deep** (`--deep`) | 4,800+ | 5m 37s | baseline |
+
+Lightweight mode reads the same files as deep mode; skipping the full text comparison is
+what makes it fast (~150x faster than deep mode on osslili's own package directory).
 
 ---
 
@@ -192,6 +252,18 @@ oslili [OPTIONS] PATH
   - `kissbom`: Simple JSON format with packages and licenses
   - `cyclonedx-json`: CycloneDX SBOM in JSON format
   - `cyclonedx-xml`: CycloneDX SBOM in XML format
+
+#### Scanning Options
+
+- `--scan-mode`, `--mode`: Scanning mode preset: `default`, `deep`, `license-files`, `lightweight`
+- `--deep`: Alias for `--scan-mode deep`
+- `--license-files-only`: Alias for `--scan-mode license-files`
+- `--license-files` / `--no-license-files`: Scan the project's own LICENSE files
+- `--notice-files` / `--no-notice-files`: Scan bundled third-party notice files
+- `--package-metadata` / `--no-package-metadata`: Scan package metadata (package.json, pom.xml, ...)
+- `--documentation` / `--no-documentation`: Scan README and other readable documentation
+- `--source-files` / `--no-source-files`: Scan all other readable files
+- `--text-similarity` / `--no-text-similarity`: Compare file contents against full SPDX license texts
 
 #### Configuration Options
 
@@ -364,6 +436,14 @@ max_extraction_depth: 3     # Maximum archive extraction depth
 
 # Performance settings
 thread_count: 4              # Number of parallel threads
+
+# Scan targets (omit to follow the scanning mode)
+scan_license_files: true
+scan_notice_files: true
+scan_package_metadata: false  # e.g. declared licenses come from an analyzer
+scan_documentation: true
+scan_source_files: true
+text_similarity_matching: true  # compare contents against full SPDX texts
 
 # Output settings
 verbose: false

@@ -266,6 +266,31 @@ detector = LicenseCopyrightDetector(config)
 result = detector.process_local_path("/path/to/source")
 ```
 
+### Selecting Scan Targets
+
+```python
+from osslili import LicenseCopyrightDetector, Config
+
+config = Config()
+
+# Scanning modes are presets over the individual scan targets
+config.apply_scan_mode("lightweight")  # all files, cheap detection, no metadata
+print(config.scan_targets())
+# ScanTargets(license_files=True, notice_files=True, package_metadata=False,
+#             documentation=True, source_files=True)
+
+# Any target can be overridden on top of the mode
+config.apply_scan_mode("deep")
+config.scan_package_metadata = False   # deep scan, declared metadata disregarded
+config.text_similarity_matching = False  # skip the full SPDX text comparison
+
+detector = LicenseCopyrightDetector(config)
+result = detector.process_local_path("/path/to/source")
+```
+
+Available modes are in `osslili.SCAN_MODES`: `default`, `deep`, `license-files` and
+`lightweight`. Leaving a `scan_*` target as `None` follows the selected mode.
+
 ### Processing Multiple Directories
 
 ```python

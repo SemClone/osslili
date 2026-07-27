@@ -69,7 +69,14 @@ osslili ./my-project -f cyclonedx-json -o sbom.json
 
 ### Scanning Modes
 
-osslili offers three scanning modes optimized for different use cases:
+osslili offers four scanning modes optimized for different use cases. Each is a preset
+over the individual scan targets (`--license-files`, `--notice-files`,
+`--package-metadata`, `--documentation`, `--source-files`) and the detection depth
+(`--text-similarity`), so any preset can be adjusted per target:
+
+```bash
+osslili ./my-project --scan-mode default|deep|license-files|lightweight
+```
 
 ####  **Default Mode** (Recommended)
 Fast and practical - scans LICENSE files, package metadata, and documentation.
@@ -110,6 +117,29 @@ osslili ./my-project --license-files-only
 **Performance**: ~7 seconds on ffmpeg-6.0
 **Use case**: When you only need declared licenses
 
+#### **Lightweight Mode** (All files, no package metadata)
+Reads every file like deep mode, but detects only SPDX tags, license keywords and
+references instead of comparing each file against all 700+ SPDX license texts, and
+disregards package manifests entirely.
+
+```bash
+osslili ./my-project --scan-mode lightweight
+```
+
+**Use case**: Running osslili as a scanner in a pipeline whose analyzer already reads
+declared licenses from package metadata - ORT, for instance, strictly separates declared
+(metadata) from detected (source) licenses.
+
+Metadata and detection depth are independent switches, so the parts can be mixed:
+
+```bash
+# Deep scan, but disregard package metadata
+osslili ./my-project --deep --no-package-metadata
+
+# Lightweight scan, but keep the full text comparison
+osslili ./my-project --scan-mode lightweight --text-similarity
+```
+
 ---
 
 ### CLI Usage
@@ -123,6 +153,12 @@ osslili /path/to/project --deep
 
 # Strict scan - LICENSE files only
 osslili /path/to/project --license-files-only
+
+# Lightweight scan - all files, cheap detection, no package metadata
+osslili /path/to/project --scan-mode lightweight
+
+# Any mode, with package metadata disregarded
+osslili /path/to/project --deep --no-package-metadata
 
 # Generate different output formats
 osslili ./my-project -f kissbom -o kissbom.json
