@@ -160,17 +160,18 @@ class CopyrightExtractor:
         # a settled order, so equal confidences keep the order above.
         copyrights.sort(key=lambda x: x.confidence, reverse=True)
 
-        # Also check package metadata. These files said it too: a name in
-        # both package.json and setup.py is in two of them, and counting the
-        # statement before they were read left it at one.
-        metadata_copyrights = self._extract_from_metadata(path)
-        for mc in metadata_copyrights:
-            said_in.setdefault(mc.statement, set()).add(
-                _the_file_itself(mc.source_file)
-            )
-            if mc.statement not in processed_statements:
-                processed_statements.add(mc.statement)
-                copyrights.append(mc)
+        # Also check package metadata, unless it is disregarded (issue #79).
+        # These files said it too: a name in both package.json and setup.py
+        # is in two of them, and counting the statement before they were read
+        # left it at one.
+        if self.config.scan_targets().package_metadata:
+            for mc in self._extract_from_metadata(path):
+                said_in.setdefault(mc.statement, set()).add(
+                    _the_file_itself(mc.source_file)
+                )
+                if mc.statement not in processed_statements:
+                    processed_statements.add(mc.statement)
+                    copyrights.append(mc)
 
         # A consumer that can see a statement is in forty files and another
         # in one can tell the package's own copyright from a vendored file's,

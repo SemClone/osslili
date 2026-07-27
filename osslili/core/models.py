@@ -2,9 +2,13 @@
 Data models for the semantic-copycat-oslili package.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import List, Optional, Dict, Any
 from enum import Enum
+
+
+# Scanning modes are presets over the individual scan targets (issue #79).
+SCAN_MODES = ("default", "deep", "license-files", "lightweight")
 
 
 class DetectionMethod(Enum):
@@ -134,6 +138,21 @@ class DetectionResult:
         }
 
 
+@dataclass(frozen=True)
+class ScanTargets:
+    """Which categories of files a scan reads (issue #79).
+
+    Resolved from the scanning mode plus any explicit per-category override, so
+    a consumer that already has declared licenses from package metadata (ORT's
+    analyzer, for instance) can scan every file while disregarding metadata.
+    """
+    license_files: bool = True      # LICENSE, COPYING, ... (the project's own)
+    notice_files: bool = True       # bundled third-party notices (issue #78)
+    package_metadata: bool = True   # package.json, pom.xml, requirements.txt, ...
+    documentation: bool = True      # README and other readable documentation
+    source_files: bool = False      # every other readable file (content scan)
+
+
 @dataclass
 class Config:
     """Configuration for the license and copyright detector."""
@@ -177,6 +196,69 @@ class Config:
     skip_smart_read: bool = False  # Read files sequentially instead of sampling start/end
     fast_mode: bool = False  # Enable multiple optimizations for maximum speed
     deep_scan: bool = False  # Enable comprehensive scan of all source files
+
+    # Fine-grained scan targets (issue #79). None means "whatever the scanning
+    # mode selects"; setting one to True/False overrides the mode's preset.
+    scan_license_files: Optional[bool] = None
+    scan_notice_files: Optional[bool] = None
+    scan_package_metadata: Optional[bool] = None
+    scan_documentation: Optional[bool] = None
+    scan_source_files: Optional[bool] = None
+
+    # Full license text comparison (exact hash, Dice-Sørensen, TLSH). Disabling
+    # it leaves the cheap detectors (SPDX tags, keywords, references) in place,
+    # which is what a lightweight all-files scan wants.
+    text_similarity_matching: bool = True
+
+    def apply_scan_mode(self, mode: str):
+        """Apply a scanning mode preset (one of SCAN_MODES).
+
+        Presets only set what the mode itself defines, so explicit scan target
+        overrides applied afterwards still win.
+        """
+        if mode not in SCAN_MODES:
+            raise ValueError(
+                f"Unknown scan mode: {mode!r} (expected one of {', '.join(SCAN_MODES)})"
+            )
+
+        if mode == "default":
+            self.license_files_only = True
+            self.strict_license_files = False
+            self.deep_scan = False
+        elif mode == "deep":
+            self.license_files_only = False
+            self.strict_license_files = False
+            self.deep_scan = True
+        elif mode == "license-files":
+            self.license_files_only = True
+            self.strict_license_files = True
+            self.deep_scan = False
+        elif mode == "lightweight":
+            # All files, cheap detection only, package metadata disregarded:
+            # for scanners whose declared licenses come from elsewhere.
+            self.license_files_only = False
+            self.strict_license_files = False
+            self.deep_scan = True
+            self.scan_package_metadata = False
+            self.text_similarity_matching = False
+
+    def scan_targets(self) -> ScanTargets:
+        """Resolve the scan targets this configuration selects."""
+        if self.strict_license_files:
+            base = ScanTargets(package_metadata=False, documentation=False)
+        elif self.deep_scan or not self.license_files_only:
+            base = ScanTargets(source_files=True)
+        else:
+            base = ScanTargets()
+
+        overrides = {
+            'license_files': self.scan_license_files,
+            'notice_files': self.scan_notice_files,
+            'package_metadata': self.scan_package_metadata,
+            'documentation': self.scan_documentation,
+            'source_files': self.scan_source_files,
+        }
+        return replace(base, **{k: v for k, v in overrides.items() if v is not None})
 
     def apply_fast_mode(self):
         """Apply fast mode preset - enables multiple optimizations for maximum speed."""

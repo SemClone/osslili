@@ -18,7 +18,7 @@ from license_expression import LicenseSymbol, Licensing
 
 from fuzzywuzzy import fuzz
 
-from ..core.models import DetectedLicense, DetectionMethod, LicenseCategory
+from ..core.models import DetectedLicense, DetectionMethod, LicenseCategory, ScanTargets
 from ..core.input_processor import InputProcessor
 from ..data.spdx_licenses import SPDXLicenseData
 from .tlsh_detector import TLSHDetector
@@ -863,17 +863,8 @@ class LicenseDetector:
         if single_file_mode:
             files_to_scan = [path]
         else:
-            # Find potential license files
-            files_to_scan = self._find_license_files(path)
+            files_to_scan = self._find_files_to_scan(path, self.config.scan_targets())
 
-            # In default mode (license_files_only=True, strict_license_files=False),
-            # also scan metadata and README files
-            if self.config.license_files_only and not self.config.strict_license_files:
-                files_to_scan.extend(self._find_metadata_and_readme_files(path))
-            elif not self.config.license_files_only:
-                # Deep scan mode: scan all source files for embedded licenses
-                files_to_scan.extend(self._find_source_files(path))
-        
         logger.info(f"Scanning {len(files_to_scan)} files for licenses")
         
         # What each file yielded, kept against the file rather than merged
@@ -967,6 +958,68 @@ class LicenseDetector:
             logger.debug(f"Error in file {file_path}: {e}")
             return []
     
+    def _find_files_to_scan(self, directory: Path, targets: ScanTargets) -> List[Path]:
+        """Collect the files to scan for the enabled scan targets (issue #79)."""
+        files: Set[Path] = set()
+
+        if targets.license_files or targets.notice_files:
+            for file_path in self._find_license_files(directory):
+                if self._is_third_party_notice_file(file_path):
+                    if targets.notice_files:
+                        files.add(file_path)
+                elif targets.license_files:
+                    files.add(file_path)
+
+        if targets.source_files:
+            # A content scan enumerates every readable file, which sweeps up the
+            # other categories too, so disabled ones are filtered back out.
+            files.update(
+                file_path for file_path in self._find_source_files(directory)
+                if self._is_enabled_scan_target(file_path, targets)
+            )
+        elif targets.package_metadata or targets.documentation:
+            # Documentation extensions also cover notice files such as
+            # THIRD_PARTY_NOTICES.txt, so filter by category here too.
+            files.update(
+                file_path for file_path in self._find_metadata_and_documentation_files(
+                    directory,
+                    include_metadata=targets.package_metadata,
+                    include_documentation=targets.documentation,
+                )
+                if self._is_enabled_scan_target(file_path, targets)
+            )
+
+        # Sorted so that a scan reads files - and therefore reports evidence -
+        # in a stable order regardless of how the categories were collected.
+        return sorted(files)
+
+    def _is_enabled_scan_target(self, file_path: Path, targets: ScanTargets) -> bool:
+        """Whether a file's scan target category is enabled.
+
+        Categories are mutually exclusive and checked in precedence order: a
+        bundled third-party notice is a notice file rather than a license file,
+        and package metadata wins over the documentation extensions it shares
+        (``requirements.txt``).
+        """
+        if self._is_third_party_notice_file(file_path):
+            return targets.notice_files
+        if self._is_license_file(file_path):
+            return targets.license_files
+        if self._is_package_metadata_file(file_path):
+            return targets.package_metadata
+        if self._is_documentation_file(file_path):
+            return targets.documentation
+        return targets.source_files
+
+    def _is_package_metadata_file(self, file_path: Path) -> bool:
+        """Check if a file is a package manifest / lock file."""
+        return (file_path.name.lower() in self._PACKAGE_METADATA_FILENAMES
+                or file_path.suffix.lower() in self._PACKAGE_METADATA_EXTENSIONS)
+
+    def _is_documentation_file(self, file_path: Path) -> bool:
+        """Check if a file is readable documentation (README, *.md, *.rst, ...)."""
+        return file_path.suffix.lower() in self._DOCUMENTATION_EXTENSIONS
+
     def _find_license_files(self, directory: Path) -> List[Path]:
         """Find potential license files in directory."""
         license_files_set = set()  # Use set for O(1) lookup
@@ -997,73 +1050,79 @@ class LicenseDetector:
         # directory chose the files in a different order.
         return sorted(license_files_set)
 
-    def _find_metadata_and_readme_files(self, directory: Path) -> List[Path]:
-        """Find README, package metadata, and other readable documentation files (.txt, .md, .rst, etc.)."""
-        metadata_files_set = set()  # Use set for O(1) lookup and automatic deduplication
+    # Readable documentation file extensions
+    _DOCUMENTATION_EXTENSIONS = {
+        '.txt', '.md', '.rst', '.text', '.markdown', '.adoc', '.asciidoc'
+    }
+
+    # Package metadata files (lowercase for exact name matches)
+    # Covers top 15+ package ecosystems
+    _PACKAGE_METADATA_FILENAMES = {
+        # JavaScript/Node.js (npm, yarn, pnpm)
+        'package.json', 'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml',
+        # Python
+        'pyproject.toml', 'setup.py', 'setup.cfg', 'pipfile', 'pipfile.lock', 'requirements.txt',
+        # Go
+        'go.mod', 'go.sum',
+        # Java (Maven, Gradle)
+        'pom.xml', 'build.gradle', 'build.gradle.kts', 'settings.gradle', 'manifest.mf',
+        # .NET/NuGet
+        'packages.config', 'paket.dependencies',
+        # Rust
+        'cargo.toml', 'cargo.lock',
+        # Ruby
+        'gemfile', 'gemfile.lock',
+        # PHP/Composer
+        'composer.json', 'composer.lock',
+        # Swift/CocoaPods
+        'podfile', 'podfile.lock',
+        # Dart/Flutter
+        'pubspec.yaml', 'pubspec.lock',
+        # Elixir
+        'mix.exs', 'mix.lock',
+        # Scala
+        'build.sbt',
+        # Kotlin
+        'build.gradle.kts',
+    }
+
+    # Pattern-based metadata extensions
+    _PACKAGE_METADATA_EXTENSIONS = {
+        '.gemspec',   # Ruby
+        '.nuspec',    # NuGet
+        '.csproj',    # .NET C#
+        '.fsproj',    # .NET F#
+        '.vbproj',    # .NET VB
+        '.podspec',   # CocoaPods
+    }
+
+    def _find_metadata_and_documentation_files(self, directory: Path,
+                                               include_metadata: bool = True,
+                                               include_documentation: bool = True) -> List[Path]:
+        """Find package metadata and readable documentation files.
+
+        Both categories share a single directory walk because the default scan
+        wants both. Metadata is classified first, so a manifest that happens to
+        use a documentation extension (``requirements.txt``) follows the
+        metadata setting rather than the documentation one.
+        """
+        found: Set[Path] = set()
         scanner = SafeFileScanner(
             max_depth=self.config.max_recursion_depth,
             follow_symlinks=False
         )
 
-        # Readable documentation file extensions
-        doc_extensions = {'.txt', '.md', '.rst', '.text', '.markdown', '.adoc', '.asciidoc'}
-
-        # Package metadata files (pre-compute lowercase set for exact matches)
-        # Covers top 15+ package ecosystems
-        metadata_filenames_exact = {
-            # JavaScript/Node.js (npm, yarn, pnpm)
-            'package.json', 'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml',
-            # Python
-            'pyproject.toml', 'setup.py', 'setup.cfg', 'pipfile', 'pipfile.lock', 'requirements.txt',
-            # Go
-            'go.mod', 'go.sum',
-            # Java (Maven, Gradle)
-            'pom.xml', 'build.gradle', 'build.gradle.kts', 'settings.gradle', 'manifest.mf',
-            # .NET/NuGet
-            'packages.config', 'paket.dependencies',
-            # Rust
-            'cargo.toml', 'cargo.lock',
-            # Ruby
-            'gemfile', 'gemfile.lock',
-            # PHP/Composer
-            'composer.json', 'composer.lock',
-            # Swift/CocoaPods
-            'podfile', 'podfile.lock',
-            # Dart/Flutter
-            'pubspec.yaml', 'pubspec.lock',
-            # Elixir
-            'mix.exs', 'mix.lock',
-            # Scala
-            'build.sbt',
-            # Kotlin
-            'build.gradle.kts',
-        }
-
-        # Pattern-based metadata extensions
-        metadata_extensions = {
-            '.gemspec',   # Ruby
-            '.nuspec',    # NuGet
-            '.csproj',    # .NET C#
-            '.fsproj',    # .NET F#
-            '.vbproj',    # .NET VB
-            '.podspec',   # CocoaPods
-        }
-
         for file_path in scanner.scan_directory(directory, '*'):
-            name_lower = file_path.name.lower()
-            ext_lower = file_path.suffix.lower()
+            if self._is_package_metadata_file(file_path):
+                if include_metadata:
+                    found.add(file_path)
+            elif include_documentation and self._is_documentation_file(file_path):
+                found.add(file_path)
 
-            # Check for readable documentation files by extension
-            if ext_lower in doc_extensions:
-                metadata_files_set.add(file_path)
-            # Check metadata files by exact name
-            elif name_lower in metadata_filenames_exact:
-                metadata_files_set.add(file_path)
-            # Check pattern-based metadata files by extension
-            elif ext_lower in metadata_extensions:
-                metadata_files_set.add(file_path)
-
-        return sorted(metadata_files_set)
+        # Sorted, because a set is iterated in whatever order it likes and
+        # that order differs between processes, so two scans of one directory
+        # chose the files in a different order (issue #122).
+        return sorted(found)
     
     def _find_source_files(self, directory: Path, limit: int = -1) -> List[Path]:
         """Find all readable files to scan for embedded licenses."""
@@ -1308,7 +1367,17 @@ class LicenseDetector:
     def _detect_licenses_in_file(self, file_path: Path, single_file_mode: bool = False) -> List[DetectedLicense]:
         """Detect licenses in a single file."""
         licenses = []
-        
+
+        targets = self.config.scan_targets()
+
+        # A manifest declares its license in a syntax the generic tag detector
+        # also recognizes, so a file that is package metadata is skipped whole
+        # when metadata is disregarded - including a scan pointed straight at it
+        # (issue #79).
+        if not targets.package_metadata and self._is_package_metadata_file(file_path):
+            logger.debug(f"Skipping package metadata file: {file_path}")
+            return licenses
+
         # Read file content - for large files, read in chunks
         file_size = file_path.stat().st_size if file_path.exists() else 0
         
@@ -1322,9 +1391,12 @@ class LicenseDetector:
         if not content:
             return licenses
         
-        # Method 0: Extract from package metadata files first (highest priority)
-        metadata_licenses = self._extract_package_metadata(content, file_path)
-        licenses.extend(metadata_licenses)
+        # Method 0: Extract from package metadata files first (highest priority).
+        # Skipped when metadata is disregarded, so a scan cannot report declared
+        # licenses from a manifest it was told to ignore (issue #79).
+        if targets.package_metadata:
+            metadata_licenses = self._extract_package_metadata(content, file_path)
+            licenses.extend(metadata_licenses)
 
         # Method 1: Detect SPDX tags
         tag_licenses = self._detect_spdx_tags(content, file_path)
@@ -2800,31 +2872,37 @@ class LicenseDetector:
         Returns:
             Detected license or None
         """
-        # Tier 0: Exact hash matching (SHA-256 and MD5)
-        detected = self._tier0_exact_hash(text, file_path)
-        if detected:
-            return detected
+        # Tiers 0 to 2 compare the text against every SPDX licence text,
+        # which is the expensive part of a content scan. A lightweight scan
+        # skips them and relies on tags, keywords and references instead
+        # (issue #79).
+        if self.config.text_similarity_matching:
+            # Tier 0: Exact hash matching (SHA-256 and MD5)
+            detected = self._tier0_exact_hash(text, file_path)
+            if detected:
+                return detected
         
-        # Tier 1: Dice-Sørensen similarity. The tier applies its own acceptance
-        # rule — a strong score outright, a weaker one only if TLSH corroborates
-        # it — so anything it returns is accepted here. Re-gating on
-        # similarity_threshold discarded every corroborated match below it,
-        # which made the corroboration step dead code and silently lost
-        # licenses whose text is bundled (protobuf scored 0.957 against
-        # BSD-3-Clause and was reported as having no license at all).
-        detected = self._tier1_dice_sorensen(text, file_path)
-        if detected:
-            return detected
+            # Tier 1: Dice-Sørensen similarity. The tier applies its own acceptance
+            # rule — a strong score outright, a weaker one only if TLSH corroborates
+            # it — so anything it returns is accepted here. Re-gating on
+            # similarity_threshold discarded every corroborated match below it,
+            # which made the corroboration step dead code and silently lost
+            # licenses whose text is bundled (protobuf scored 0.957 against
+            # BSD-3-Clause and was reported as having no license at all).
+            detected = self._tier1_dice_sorensen(text, file_path)
+            if detected:
+                return detected
         
-        # Tier 2: TLSH fuzzy hashing. The detector applies its own bar — a
-        # proposed near neighbour is only returned once the license's real text
-        # corroborates it — so anything it returns is accepted here. Gating on
-        # similarity_threshold instead would be a no-op, because TLSH used to
-        # floor its confidence at exactly that value (issue #90).
-        detected = self.tlsh_detector.detect_license_tlsh(text, file_path)
-        if detected:
-            return detected
+            # Tier 2: TLSH fuzzy hashing. The detector applies its own bar — a
+            # proposed near neighbour is only returned once the license's real text
+            # corroborates it — so anything it returns is accepted here. Gating on
+            # similarity_threshold instead would be a no-op, because TLSH used to
+            # floor its confidence at exactly that value (issue #90).
+            detected = self.tlsh_detector.detect_license_tlsh(text, file_path)
+            if detected:
+                return detected
         
+
         # Tier 3: Regex pattern matching. Reaching here means every tier that
         # actually compares text declined to identify this one, so a pattern hit
         # is a weak signal about an unrecognized document — not the confident
@@ -2844,7 +2922,7 @@ class LicenseDetector:
                 )
                 detected.confidence = _UNIDENTIFIED_TEXT_CONFIDENCE_CAP
             return detected
-        
+
         # No match found
         return None
     
