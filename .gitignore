@@ -170,3 +170,9 @@ claude.md
 
 # uv does not have first-class support in osslili at this time
 uv.lock
+
+# Jekyll build output for the docs site (GitHub Pages builds it from docs/)
+docs/_site/
+docs/.jekyll-cache/
+docs/Gemfile.lock
+docs/vendor/

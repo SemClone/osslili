@@ -1,43 +1,19 @@
-# OSS License & Copyright Detector (osslili)
+# osslili — OSS License & Copyright Detector
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![PyPI version](https://img.shields.io/pypi/v/osslili.svg)](https://pypi.org/project/osslili/)
 
-A high-performance tool for identifying licenses and copyright information in local source code. Produces detailed evidence of where licenses are detected with support for all 700+ SPDX license identifiers, enabling comprehensive compliance documentation for the SEMCL.ONE ecosystem.
+osslili reads source code and tells you which licenses it carries and who holds the
+copyright. It identifies licenses against the full SPDX list, extracts copyright
+statements, and reports where every finding came from.
 
-## Features
+It is built for license compliance work, where the question is usually "what am I
+allowed to do with this, and how do I know". Every detection is traceable to the file
+and method that produced it, and osslili does not assert a license it cannot
+substantiate — an identification it cannot back up is dropped rather than guessed at.
 
-- **Three-Tier License Detection**: Dice-Sørensen similarity, TLSH fuzzy hashing, and regex pattern matching
-- **Evidence-Based Output**: Exact file paths, confidence scores, and detection methods
-- **700+ SPDX Licenses**: Comprehensive support for all SPDX license identifiers
-- **SEMCL.ONE Integration**: Works seamlessly with purl2notices, ospac, and other ecosystem tools
-
-### How It Works
-
-#### Three-Tier License Detection System
-
-The tool uses a sophisticated multi-tier approach for maximum accuracy:
-
-1. **Tier 1: Dice-Sørensen Similarity with TLSH Confirmation**
-   - Compares license text using Dice-Sørensen coefficient (97% threshold)
-   - Confirms matches using TLSH fuzzy hashing to prevent false positives
-   - Achieves 97-100% accuracy on standard SPDX licenses
-
-2. **Tier 2: TLSH Fuzzy Hash Matching**
-   - Uses Trend Micro Locality Sensitive Hashing for variant detection
-   - Catches license variants like MIT-0, BSD-2-Clause vs BSD-3-Clause
-   - Pre-computed hashes for all 700+ SPDX licenses
-
-3. **Tier 3: Pattern Recognition**
-   - Regex-based detection for license references and identifiers
-   - Extracts from comments, headers, and documentation
-
-#### Additional Detection Methods
-
-- **Package Metadata Scanning**: Detects licenses from package.json, composer.json, pyproject.toml, etc.
-- **Copyright Extraction**: Advanced pattern matching with validation and deduplication
-- **SPDX Identifier Detection**: Finds SPDX-License-Identifier tags in source files
+**Documentation: [semclone.github.io/osslili](https://semclone.github.io/osslili/)**
 
 ## Installation
 
@@ -45,221 +21,149 @@ The tool uses a sophisticated multi-tier approach for maximum accuracy:
 pip install osslili
 ```
 
+Requires Python 3.9 or later. Installing `python-tlsh` alongside it enables an
+additional fuzzy matching tier for reformatted license texts.
+
 For development:
+
 ```bash
 git clone https://github.com/SemClone/osslili.git
 cd osslili
-pip install -e .
+pip install -e ".[dev]"
 ```
 
-## Quick Start
+## Quick start
 
 ```bash
-# Fast default scan (LICENSE files + metadata + docs) - RECOMMENDED
+# Declared license of a project — license files, metadata, README
 osslili .
 
-# Comprehensive deep scan (all source files)
-osslili . --deep
+# Everything, including license headers embedded in source
+osslili --deep .
 
-# Generate SBOM with license evidence
-osslili ./my-project -f cyclonedx-json -o sbom.json
+# SBOM output
+osslili -f cyclonedx-json -o sbom.json .
 ```
-
-## Usage
-
-### Scanning Modes
-
-osslili offers three scanning modes optimized for different use cases:
-
-####  **Default Mode** (Recommended)
-Fast and practical - scans LICENSE files, package metadata, and documentation.
-
-```bash
-# Scans: LICENSE*, README*, *.md, *.txt, package.json, go.mod, etc.
-osslili ./my-project
-```
-
-**What it scans:**
-- **LICENSE files**: LICENSE, COPYING, NOTICE, COPYRIGHT, etc. (28+ patterns)
-- **Documentation**: README, CHANGELOG, CONTRIBUTING (.txt, .md, .rst, .adoc)
-- **Package metadata**: package.json, go.mod, Cargo.toml, pom.xml, etc. (40+ files)
-- **Coverage**: 12+ package ecosystems (npm, Python, Go, Java, .NET, Rust, Ruby, PHP, Swift, Dart, Elixir, Scala)
-
-**Performance**: ~8 seconds on ffmpeg-6.0 (4,000+ files)
-**Use case**: Daily development, CI/CD pipelines, quick license checks
-
-#### **Deep Mode** (Comprehensive)
-Thorough scan of all source files for embedded licenses.
-
-```bash
-# Scans ALL files: .py, .js, .java, .c, .go, etc.
-osslili ./my-project --deep
-```
-
-**Performance**: ~5 minutes on ffmpeg-6.0 (40x slower than default)
-**Use case**: Legal compliance reviews, finding embedded license headers
-
-#### **Strict Mode** (Fastest)
-LICENSE files only - maximum speed.
-
-```bash
-# Scans ONLY LICENSE files (no metadata, no README)
-osslili ./my-project --license-files-only
-```
-
-**Performance**: ~7 seconds on ffmpeg-6.0
-**Use case**: When you only need declared licenses
-
----
-
-### CLI Usage
-
-```bash
-# Default scan - fast and smart (RECOMMENDED)
-osslili /path/to/project
-
-# Deep scan - comprehensive but slower
-osslili /path/to/project --deep
-
-# Strict scan - LICENSE files only
-osslili /path/to/project --license-files-only
-
-# Generate different output formats
-osslili ./my-project -f kissbom -o kissbom.json
-osslili ./my-project -f cyclonedx-json -o sbom.json
-osslili ./my-project -f cyclonedx-xml -o sbom.xml
-
-# Scan with parallel processing (default: 4 threads)
-osslili ./my-project --threads 8
-
-# Scan with limited depth (only 2 levels deep)
-osslili ./my-project --max-depth 2
-
-# Extract and scan archives
-osslili package.tar.gz --max-extraction-depth 2
-
-# Use caching for faster repeated scans
-osslili ./my-project --cache-dir ~/.cache/osslili
-
-# Check version
-osslili --version
-
-# Save results to file
-osslili ./my-project -o license-evidence.json
-
-# With custom configuration and verbose output
-osslili ./src --config config.yaml --verbose
-
-# Debug mode for detailed logging
-osslili ./project --debug
-```
-
-### Example Output
 
 ```json
 {
-  "scan_results": [{
-    "path": "./project",
-    "license_evidence": [
-      {
-        "file": "/path/to/project/LICENSE",
-        "detected_license": "Apache-2.0",
-        "confidence": 0.988,
-        "detection_method": "dice-sorensen",
-        "category": "declared",
-        "match_type": "text_similarity",
-        "description": "Text matches Apache-2.0 license (98.8% similarity)"
-      },
-      {
-        "file": "/path/to/project/package.json",
-        "detected_license": "Apache-2.0",
-        "confidence": 1.0,
-        "detection_method": "tag",
-        "category": "declared",
-        "match_type": "spdx_identifier",
-        "description": "SPDX-License-Identifier: Apache-2.0 found"
-      }
-    ],
-    "copyright_evidence": [
-      {
-        "file": "/path/to/project/src/main.py",
-        "holder": "Example Corp",
-        "years": [2023, 2024],
-        "statement": "Copyright 2023-2024 Example Corp"
-      }
-    ]
-  }],
-  "summary": {
-    "total_files_scanned": 42,
-    "declared_licenses": {"Apache-2.0": 2},
-    "detected_licenses": {},
-    "referenced_licenses": {},
-    "copyright_holders": ["Example Corp"]
-  }
+  "scan_results": [
+    {
+      "path": ".",
+      "license_evidence": [
+        {
+          "file": "/path/to/project/package.json",
+          "detected_license": "MIT",
+          "confidence": 1.0,
+          "detection_method": "tag",
+          "category": "declared",
+          "match_type": "package_metadata",
+          "description": "Package metadata declares MIT license"
+        },
+        {
+          "file": "/path/to/project/LICENSE",
+          "detected_license": "MIT",
+          "confidence": 0.997,
+          "detection_method": "dice-sorensen",
+          "category": "declared",
+          "match_type": "license_file",
+          "description": "License file contains MIT license"
+        }
+      ]
+    }
+  ]
 }
 ```
 
+## Scanning modes
 
-### Library Usage
+| Mode | Command | Reads |
+|---|---|---|
+| Default | `osslili .` | License files, package metadata, README |
+| Deep | `osslili --deep .` | All of the above plus every source file |
+| Strict | `osslili --license-files-only .` | License files only |
+
+Default mode answers "what does this project declare". Deep mode finds license headers
+embedded in code and vendored third-party files, and is considerably slower.
+
+## How detection works
+
+Each file goes through several independent passes — package metadata, SPDX tags,
+keyword matching, and a four-tier full-text cascade:
+
+| Tier | Method | Basis |
+|---|---|---|
+| 0 | `hash` | Exact SHA-256 / MD5 of the normalized text |
+| 1 | `dice-sorensen` | Character-bigram text similarity |
+| 2 | `tlsh` | Fuzzy hashing, corroborated against the license text |
+| 3 | `regex` | Patterns for references and headers |
+
+Detections are not collapsed to a single answer — agreement between independent
+methods is itself evidence. Each carries a `category` (`declared`, `detected`,
+`referenced`, `third-party`) and a confidence score.
+
+Licenses found in bundled third-party notice files are categorized separately, so a
+vendored `THIRD_PARTY_NOTICES` file does not make a permissive project look copyleft.
+
+See [Detection](https://semclone.github.io/osslili/detection/) for the full picture,
+including why the fuzzy tier verifies its own candidates before reporting them.
+
+## Library usage
 
 ```python
 from osslili import LicenseCopyrightDetector
 
-# Initialize detector
 detector = LicenseCopyrightDetector()
-
-# Process a local directory
 result = detector.process_local_path("/path/to/source")
 
-# Process a single file  
-result = detector.process_local_path("/path/to/LICENSE")
+primary = result.get_primary_license()
+if primary:
+    print(f"{primary.spdx_id} ({primary.confidence:.0%} via {primary.detection_method})")
 
-# Generate different output formats
-evidence = detector.generate_evidence([result])
-kissbom = detector.generate_kissbom([result])
-cyclonedx = detector.generate_cyclonedx([result], format_type="json")
-cyclonedx_xml = detector.generate_cyclonedx([result], format_type="xml")
+# The project's own licenses, excluding bundled third-party notices
+for license in result.get_own_licenses():
+    print(license.spdx_id, license.category, license.source_file)
 
-# Access results directly
-for license in result.licenses:
-    print(f"License: {license.spdx_id} ({license.confidence:.0%} confidence)")
-    print(f"  Category: {license.category}")  # declared, detected, or referenced
 for copyright in result.copyrights:
-    print(f"Copyright: © {copyright.holder}")
+    print(copyright.statement)
+
+# Output formats
+evidence = detector.generate_evidence([result], detail_level="full")
+kissbom = detector.generate_kissbom([result])
+sbom = detector.generate_cyclonedx([result], format_type="json")
 ```
-
-
-## Output Format
-
-The tool outputs JSON evidence showing:
-- **File path**: Where the license was found
-- **Detected license**: The SPDX identifier of the license
-- **Confidence**: How confident the detection is (0.0 to 1.0)
-- **Match type**: How the license was detected (license_text, spdx_identifier, license_reference, text_similarity)
-- **Description**: Human-readable description of what was found
-
 
 ## Configuration
 
-Create a `config.yaml` file:
+```bash
+osslili -c osslili.yaml .
+```
 
 ```yaml
 similarity_threshold: 0.97
-max_recursion_depth: 10
-max_extraction_depth: 10
+max_recursion_depth: 4
 thread_count: 4
-cache_dir: "~/.cache/osslili"
+cache_dir: ~/.cache/osslili
 custom_aliases:
-  "Apache 2": "Apache-2.0"
-  "MIT License": "MIT"
+  "My Company License": "LicenseRef-MyCompany"
 ```
+
+Every option is documented at
+[Configuration](https://semclone.github.io/osslili/configuration/).
 
 ## Documentation
 
-- [User Guide](docs/USAGE.md) - Comprehensive usage examples and configuration
-- [API Reference](docs/API.md) - Python API documentation and examples
-- [SPDX Updates](docs/SPDX.md) - How to update SPDX license data
-- [Performance Benchmarks](docs/BENCHMARK_SCANCODE.md) - Comparison with other tools
+Full documentation is at **[semclone.github.io/osslili](https://semclone.github.io/osslili/)**.
+
+- [Overview](https://semclone.github.io/osslili/) — what osslili does, installing, first run
+- [Usage](https://semclone.github.io/osslili/usage/) — scanning modes, every flag, output formats
+- [Detection](https://semclone.github.io/osslili/detection/) — how licenses are identified, reading confidence and category
+- [Python API](https://semclone.github.io/osslili/api/) — using osslili as a library
+- [Configuration](https://semclone.github.io/osslili/configuration/) — config file schema and all options
+- [SPDX data](https://semclone.github.io/osslili/spdx/) — refreshing the bundled license list
+
+The pages are built from `docs/` in this repository, so corrections can go straight
+into a pull request.
 
 ## Contributing
 
@@ -271,13 +175,12 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for deta
 
 ## Support
 
-For support and questions:
-- [GitHub Issues](https://github.com/SemClone/osslili/issues) - Bug reports and feature requests
-- [Documentation](https://github.com/SemClone/osslili) - Complete project documentation
+- [GitHub Issues](https://github.com/SemClone/osslili/issues) — bug reports and feature requests
+- [Documentation](https://semclone.github.io/osslili/) — complete project documentation
 
 ## License
 
-Apache License 2.0 - see [LICENSE](LICENSE) file for details.
+Apache License 2.0 — see [LICENSE](LICENSE) file for details.
 
 ## Authors
 

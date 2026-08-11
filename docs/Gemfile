@@ -1,0 +1,15 @@
+source "https://rubygems.org"
+
+# Pinned to the version GitHub Pages runs, so a local or CI build resolves the
+# same Jekyll and plugin set the published site is built with. github-pages
+# already depends on jekyll-remote-theme, and declaring that separately makes
+# bundler resolve an older Jekyll than Pages uses.
+gem "github-pages", "~> 232", group: :jekyll_plugins
+
+# Left the standard library in recent Ruby releases, and Jekyll still needs them.
+gem "rexml"
+gem "webrick"
+gem "csv"
+gem "base64"
+gem "bigdecimal"
+gem "logger"
