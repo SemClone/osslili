@@ -5,6 +5,25 @@ All notable changes to osslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- **TLSH matcher reported near-identical licenses as declared** (Issue #90): the matcher returned its nearest fuzzy-hash neighbour as the verdict at a confidence floored at 0.97, which outranked the matchers that had the file right. TLSH measures bulk document similarity, so licenses that differ by a single clause are indistinguishable to it — canonical MIT text sits closer to the JSON license (distance 17) than to MIT itself (29), and those clauses are exactly what changes the obligations
+  - TLSH is now a candidate generator: every near neighbour within the distance threshold is collected, and a candidate is only asserted once its actual license text corroborates the scanned text (Dice-Sørensen ≥ 0.9)
+  - A proposal that cannot be substantiated — most bundled SPDX entries ship no license text — is dropped rather than reported, leaving the answer to the tiers that can back it up
+  - Reported confidence is now the measured text agreement instead of a fixed floor, so a fuzzy match no longer outranks an exact or keyword identification of the same file
+  - Observed effect: MIT no longer reported as `JSON`, BSD-3-Clause no longer reported as `BSD-4-Clause` or `BSD-3-Clause-HP`
+- **Keyword matcher asserted licenses from prose that only discusses them** (Issue #91): the PSF license stack explains at length how Python relates to the GPL while being distributed under Python-2.0, and a keyword hit on that commentary asserted `GPL-2.0-or-later` — copyleft claimed over a permissive package
+  - Mentions framed as compatibility notes, license history, exclusions, or linking exceptions no longer count as a grant
+  - All occurrences of a keyword are now examined rather than only the first, so rejecting a mention means "keep looking" instead of giving up on the file
+  - An unversioned "GPL" / "General Public License" mention yields no identifier: it names a family, and GPL-2.0-only and GPL-3.0-only are mutually incompatible, so resolving it to either invents an obligation. The previous fallback guessed `GPL-2.0-or-later`, and its version sniffer accepted any digit in the surrounding window — a copyright year read as a version
+  - Keyword variations now match on word boundaries; `MIT` was matching inside "per**mit**ted" and "li**mit**ation", which run throughout the LGPL and MPL texts
+
+### Technical Details
+- Added `TLSHDetector._find_near_neighbours()` and `TLSHDetector._corroborate()`; the tier-2 gate in `_detect_license_from_text` no longer re-checks `similarity_threshold`, which was a no-op against the old confidence floor
+- Extracted `create_bigrams()` / `dice_coefficient()` into `osslili/utils/text_similarity.py`, shared by the Dice-Sørensen and TLSH tiers
+- Added `tests/test_matcher_accuracy.py` covering both issues
+
 ## [1.7.0] - 2026-07-24
 
 ### Added
