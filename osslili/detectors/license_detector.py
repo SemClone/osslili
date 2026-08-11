@@ -2,6 +2,7 @@
 License detection module with multi-tier detection system.
 """
 
+import itertools
 import logging
 import re
 import fnmatch
@@ -19,6 +20,7 @@ from .tlsh_detector import TLSHDetector
 from ..utils.file_scanner import SafeFileScanner
 from ..utils.license_normalizer import LicenseNormalizer
 from ..utils.regex_matcher import RegexPatternMatcher
+from ..utils.text_similarity import create_bigrams, dice_coefficient
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +29,81 @@ logger = logging.getLogger(__name__)
 # ambiguous about whether later license versions are permitted. This matches a
 # bare GNU-family id so it can be mapped to its modern replacement.
 _DEPRECATED_GNU_RE = re.compile(r'^(?:A?GPL|LGPL|GFDL)-\d+(?:\.\d+)?$')
+
+# Prose that *discusses* a license instead of granting it: compatibility notes,
+# license history, explicit exclusions, and linking exceptions that name a
+# library's license only to carve it out. A license name in a sentence like
+# this says nothing about the terms the file carries. The PSF license stack is
+# the motivating case — it explains at length how Python relates to the GPL
+# while the package itself is Python-2.0, and a keyword hit on that prose used
+# to assert copyleft over a permissive package (issue #91).
+_LICENSE_DISCUSSION_RE = re.compile(
+    r'compatib'                                                   # GPL-compatible, compatibility
+    r'|incompatib'
+    r'|unlike\s+th(?:e|is)\b'
+    r'|(?:previously|formerly|originally)\s+(?:distributed|released|licen[sc]ed)'
+    r'|does\s+not\s+mean\b'
+    r'|(?:is|are|was|were)\s+not\s+(?:distributed|released|licen[sc]ed)\b'
+    r'|as\s+a\s+special\s+exception'                              # linking exceptions
+    r'|permission\s+to\s+link'
+    r'|linking\s+exception',
+    re.IGNORECASE,
+)
+
+# Cap on how far the discussion scan reaches from a match when the text has no
+# paragraph breaks to bound it.
+_DISCUSSION_SPAN_LIMIT = 400
+
+# An explicit GNU version, as it is actually written: "v2", "version 3",
+# "GPL-2.0", "GPLv3". A bare digit anywhere nearby is not a version — a
+# copyright year or a section number would do just as well — so an unversioned
+# mention yields no identifier at all rather than a guessed one.
+_GNU_VERSION_RE = re.compile(
+    r'(?:GPL|General\s+Public\s+License)[\s,-]*v?(?:ersion\s*)?([123])(?:\.\d+)?\b'
+    r'|\bv(?:ersion\s*)?([123])(?:\.\d+)?\s*(?:of\s+the\s+)?(?:GNU\s+)?(?:GPL|General\s+Public\s+License)',
+    re.IGNORECASE,
+)
+
+# The number of occurrences of a single keyword variation examined per file.
+# Bounds the cost on pathological inputs while leaving room to skip over
+# discussion prose to a real grant later in the same file.
+_MAX_KEYWORD_OCCURRENCES = 50
+
+
+def _paragraph_around(content: str, start: int, end: int) -> str:
+    """Return the paragraph containing content[start:end].
+
+    Discussion qualifiers govern their own paragraph: a linking exception names
+    the library it carves out a sentence or two after "as a special exception",
+    while the heading that states a file's real license sits in a paragraph of
+    its own. A fixed character window cannot tell those apart — it either
+    reaches too short to catch the exception or far enough to swallow the
+    heading in a densely packed aggregate license file.
+    """
+    paragraph_start = content.rfind('\n\n', 0, start)
+    paragraph_start = 0 if paragraph_start == -1 else paragraph_start + 2
+
+    paragraph_end = content.find('\n\n', end)
+    paragraph_end = len(content) if paragraph_end == -1 else paragraph_end
+
+    return content[
+        max(paragraph_start, start - _DISCUSSION_SPAN_LIMIT):
+        min(paragraph_end, end + _DISCUSSION_SPAN_LIMIT)
+    ]
+
+
+def _bounded_pattern(variation: str) -> str:
+    """Build a whole-word regex for a license keyword variation.
+
+    Without word boundaries a short identifier matches inside ordinary words —
+    "MIT" occurs in "permitted" and "limitation", which appear throughout the
+    LGPL and MPL texts. Boundaries are only added on sides that end in a word
+    character, so variations bounded by punctuation (e.g. "MIT/X11") still
+    match.
+    """
+    prefix = r'\b' if variation[:1].isalnum() or variation[:1] == '_' else ''
+    suffix = r'\b' if variation[-1:].isalnum() or variation[-1:] == '_' else ''
+    return prefix + re.escape(variation) + suffix
 
 
 class LicenseDetector:
@@ -1611,67 +1688,94 @@ class LicenseDetector:
 
             # Check exact matches first
             for variation in variations:
-                if variation.lower() in content.lower():
-                    # Check context
-                    pattern_re = re.compile(re.escape(variation), re.IGNORECASE)
-                    match = pattern_re.search(content)
-                    if match:
-                        # Check if it appears in a license context
-                        start = max(0, match.start() - 100)
-                        end = min(len(content), match.end() + 50)
-                        context = content[start:end]
-                        has_context = any(re.search(pattern, context, re.IGNORECASE) for pattern in context_patterns)
+                if variation.lower() not in content.lower():
+                    continue
 
-                        # Check for comment or line start (more strict)
-                        line_start = False
-                        if match.start() > 0:
-                            # Look at the entire line leading up to the match
-                            line_start_pos = content.rfind('\n', 0, match.start())
-                            if line_start_pos == -1:
-                                line_start_pos = 0
-                            else:
-                                line_start_pos += 1
-                            line_prefix = content[line_start_pos:match.start()].strip()
+                pattern_re = re.compile(_bounded_pattern(variation), re.IGNORECASE)
 
-                            # Check if line starts with comment markers or license-related keywords
-                            comment_markers = ['#', '//', '/*', '*', '--', '%', ';']
-                            license_keywords = ['license', 'copyright', '©', 'spdx', 'distributed under', 'licensed under']
+                # Walk every occurrence rather than only the first. A license
+                # file may mention a license in passing (compatibility notes,
+                # history) well before it states the terms it actually grants,
+                # so rejecting an occurrence has to mean "keep looking", not
+                # "give up on this variation".
+                for match in itertools.islice(pattern_re.finditer(content), _MAX_KEYWORD_OCCURRENCES):
+                    # Check if it appears in a license context
+                    start = max(0, match.start() - 100)
+                    end = min(len(content), match.end() + 50)
+                    context = content[start:end]
 
-                            line_start = (
-                                any(line_prefix.startswith(marker) for marker in comment_markers) or
-                                any(keyword in line_prefix.lower() for keyword in license_keywords) or
-                                line_prefix == ''
-                            )
+                    # Skip mentions that discuss a license rather than grant it
+                    paragraph = _paragraph_around(content, match.start(), match.end())
+                    if _LICENSE_DISCUSSION_RE.search(paragraph):
+                        logger.debug(
+                            f"Skipping '{variation}' in {file_path}: mention is "
+                            f"discussion, not a grant"
+                        )
+                        continue
+
+                    has_context = any(re.search(pattern, context, re.IGNORECASE) for pattern in context_patterns)
+
+                    # Check for comment or line start (more strict)
+                    line_start = False
+                    if match.start() > 0:
+                        # Look at the entire line leading up to the match
+                        line_start_pos = content.rfind('\n', 0, match.start())
+                        if line_start_pos == -1:
+                            line_start_pos = 0
                         else:
-                            line_start = True
+                            line_start_pos += 1
+                        line_prefix = content[line_start_pos:match.start()].strip()
 
-                        # Only match if we have strong license context or it's in a clear license statement
-                        if has_context and line_start:
-                            # Handle version suffixes and normalization
-                            final_spdx_id = handle_version_suffix(spdx_id, content[match.start():match.end()+20])
+                        # Check if line starts with comment markers or license-related keywords
+                        comment_markers = ['#', '//', '/*', '*', '--', '%', ';']
+                        license_keywords = ['license', 'copyright', '©', 'spdx', 'distributed under', 'licensed under']
 
-                            # Normalize generic GPL to GPL-2.0-or-later if no version specified
-                            if final_spdx_id == 'GPL':
-                                # Look for version hints nearby
-                                context_text = content[max(0, match.start()-100):min(len(content), match.end()+100)]
-                                if '3' in context_text or 'v3' in context_text or 'version 3' in context_text.lower():
-                                    final_spdx_id = 'GPL-3.0'
-                                elif '2' in context_text or 'v2' in context_text or 'version 2' in context_text.lower():
-                                    final_spdx_id = 'GPL-2.0'
-                                else:
-                                    final_spdx_id = 'GPL-2.0-or-later'  # Default for generic GPL
+                        line_start = (
+                            any(line_prefix.startswith(marker) for marker in comment_markers) or
+                            any(keyword in line_prefix.lower() for keyword in license_keywords) or
+                            line_prefix == ''
+                        )
+                    else:
+                        line_start = True
 
-                            licenses.append(DetectedLicense(
-                                spdx_id=final_spdx_id,
-                                name=final_spdx_id,
-                                confidence=0.85,
-                                detection_method=DetectionMethod.KEYWORD.value,
-                                source_file=str(file_path),
-                                category='detected',
-                                match_type='keyword'
-                            ))
-                            found_licenses.add(spdx_id)
-                            break
+                    # Only match if we have strong license context or it's in a clear license statement
+                    if not (has_context and line_start):
+                        continue
+
+                    # Handle version suffixes and normalization
+                    final_spdx_id = handle_version_suffix(spdx_id, content[match.start():match.end()+20])
+
+                    # Resolve a generic "GPL" / "General Public License" mention
+                    # to a versioned id. Without an explicit version the mention
+                    # names a license family, not a license: GPL-2.0-only and
+                    # GPL-3.0-only are mutually incompatible, so guessing one
+                    # invents an obligation. Report nothing instead.
+                    if final_spdx_id == 'GPL':
+                        context_text = content[max(0, match.start()-100):min(len(content), match.end()+100)]
+                        version_match = _GNU_VERSION_RE.search(context_text)
+                        if not version_match:
+                            logger.debug(
+                                f"Skipping unversioned GPL mention in {file_path}: "
+                                f"no explicit version to resolve it to"
+                            )
+                            continue
+                        version = version_match.group(1) or version_match.group(2)
+                        final_spdx_id = f'GPL-{version}.0'
+
+                    licenses.append(DetectedLicense(
+                        spdx_id=final_spdx_id,
+                        name=final_spdx_id,
+                        confidence=0.85,
+                        detection_method=DetectionMethod.KEYWORD.value,
+                        source_file=str(file_path),
+                        category='detected',
+                        match_type='keyword'
+                    ))
+                    found_licenses.add(spdx_id)
+                    break
+
+                if spdx_id in found_licenses:
+                    break
 
             # If no exact match, try fuzzy matching for common typos
             if spdx_id not in found_licenses and spdx_id in ['MIT', 'Apache-2.0', 'GPL-2.0', 'GPL-3.0']:
@@ -1953,9 +2057,13 @@ class LicenseDetector:
         if detected and detected.confidence >= self.config.similarity_threshold:
             return detected
         
-        # Tier 2: TLSH fuzzy hashing
+        # Tier 2: TLSH fuzzy hashing. The detector applies its own bar — a
+        # proposed near neighbour is only returned once the license's real text
+        # corroborates it — so anything it returns is accepted here. Gating on
+        # similarity_threshold instead would be a no-op, because TLSH used to
+        # floor its confidence at exactly that value (issue #90).
         detected = self.tlsh_detector.detect_license_tlsh(text, file_path)
-        if detected and detected.confidence >= self.config.similarity_threshold:
+        if detected:
             return detected
         
         # Tier 3: Regex pattern matching
@@ -2100,21 +2208,12 @@ class LicenseDetector:
     
     def _create_bigrams(self, text: str) -> Set[str]:
         """Create character bigrams from text."""
-        bigrams = set()
-        
-        for i in range(len(text) - 1):
-            bigrams.add(text[i:i+2])
-        
-        return bigrams
-    
+        return create_bigrams(text)
+
     def _dice_coefficient(self, set1: Set[str], set2: Set[str]) -> float:
         """Calculate Dice-Sørensen coefficient between two sets."""
-        if not set1 or not set2:
-            return 0.0
-        
-        intersection = len(set1 & set2)
-        return (2.0 * intersection) / (len(set1) + len(set2))
-    
+        return dice_coefficient(set1, set2)
+
     def _adjust_regex_confidence(self, raw_score: float, category: str, match_type: str, match_count: int) -> float:
         """
         Adjust confidence scores for regex-based license detection based on context.

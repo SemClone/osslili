@@ -8,8 +8,23 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 
 from ..core.models import DetectedLicense, DetectionMethod, LicenseCategory
+from ..utils.text_similarity import create_bigrams, dice_coefficient
 
 logger = logging.getLogger(__name__)
+
+# TLSH distance under which two texts count as near neighbours. TLSH is a
+# locality-sensitive hash over the whole document, so it measures bulk
+# similarity: excellent at finding which licenses a text resembles, useless at
+# telling those licenses apart. Canonical MIT text, for instance, sits closer
+# to the JSON license (distance 17) than to MIT itself (29), because JSON is
+# MIT plus one sentence and that sentence offsets the length difference of a
+# package's own copyright line. See issue #90.
+NEAR_NEIGHBOUR_DISTANCE = 30
+
+# Minimum Dice-Sørensen agreement between the scanned text and a candidate's
+# actual license text before that candidate may be asserted. Matches the bar
+# the Dice-Sørensen tier applies to its own matches.
+CORROBORATION_THRESHOLD = 0.9
 
 # Try to import tlsh, make it optional
 try:
@@ -132,87 +147,143 @@ class TLSHDetector:
         
         return text
     
+    def _find_near_neighbours(self, input_hash: str) -> list:
+        """
+        Find every known license whose TLSH hash is a near neighbour of the input.
+
+        Args:
+            input_hash: TLSH hash of the preprocessed scanned text
+
+        Returns:
+            List of (distance, license_id) tuples, closest first
+        """
+        neighbours = []
+
+        for license_id, hash_data in self.license_hashes.items():
+            try:
+                distance = tlsh.diff(input_hash, hash_data['hash'])
+            except Exception as e:
+                logger.debug(f"Error comparing TLSH hashes for {license_id}: {e}")
+                continue
+
+            if distance <= NEAR_NEIGHBOUR_DISTANCE:
+                neighbours.append((distance, license_id))
+
+        neighbours.sort()
+        return neighbours
+
+    def _corroborate(self, text: str, candidates: list) -> Optional[tuple]:
+        """
+        Pick the candidate whose real license text best agrees with the scanned text.
+
+        TLSH proximity alone cannot separate licenses that differ by a single
+        clause, and those clauses carry the obligations that matter (the JSON
+        license is MIT plus "Good, not Evil"; BSD-4-Clause is BSD-3-Clause plus
+        the advertising clause). So a candidate is only accepted once the
+        license's own text confirms it.
+
+        Args:
+            text: The scanned text
+            candidates: (distance, license_id) tuples from _find_near_neighbours
+
+        Returns:
+            (license_id, similarity) for the best corroborated candidate, or
+            None when no candidate's text can substantiate the match
+        """
+        input_bigrams = create_bigrams(self.spdx_data._normalize_text(text))
+        if not input_bigrams:
+            return None
+
+        best = None
+
+        for _distance, license_id in candidates:
+            license_text = self.spdx_data.get_license_text(license_id)
+            if not license_text:
+                # No text bundled or cached for this id, so the proposal cannot
+                # be checked. Silence beats an unverifiable license assertion.
+                logger.debug(f"No license text available to corroborate {license_id}")
+                continue
+
+            license_bigrams = create_bigrams(self.spdx_data._normalize_text(license_text))
+            similarity = dice_coefficient(input_bigrams, license_bigrams)
+
+            if similarity >= CORROBORATION_THRESHOLD and (best is None or similarity > best[1]):
+                best = (license_id, similarity)
+
+        return best
+
     def detect_license_tlsh(self, text: str, file_path: Path) -> Optional[DetectedLicense]:
         """
         Detect license using TLSH fuzzy hashing.
-        
+
+        TLSH is used as a candidate generator, not as the verdict: the near
+        neighbours it proposes are re-checked against their actual license
+        texts, and only a corroborated candidate is reported. The reported
+        confidence is that text agreement, so a fuzzy match no longer outranks
+        an exact or keyword identification of the same file.
+
         Args:
             text: License text to analyze
             file_path: Source file path
-            
+
         Returns:
             DetectedLicense or None
         """
         if not TLSH_AVAILABLE:
             logger.debug("TLSH not available, skipping")
             return None
-        
+
         if not self._initialized:
             logger.debug("TLSH detector not initialized")
             return None
-        
+
         try:
             # Preprocess input text
             processed_text = self._preprocess_for_tlsh(text)
-            
+
             # Compute hash for input
             input_hash = tlsh.hash(processed_text.encode('utf-8'))
-            
+
             if not input_hash or input_hash == 'TNULL':
                 logger.debug("Could not compute TLSH hash for input text")
                 return None
-            
-            # Find best match
-            best_match = None
-            best_score = float('inf')
-            
-            for license_id, hash_data in self.license_hashes.items():
-                license_hash = hash_data['hash']
-                
-                # Calculate TLSH distance (lower is better)
-                try:
-                    distance = tlsh.diff(input_hash, license_hash)
-                    
-                    # TLSH distance of 0-30 is very similar
-                    # 30-100 is similar
-                    # 100+ is different
-                    if distance < best_score:
-                        best_score = distance
-                        best_match = license_id
-                
-                except Exception as e:
-                    logger.debug(f"Error comparing TLSH hashes: {e}")
-            
-            if best_match and best_score <= 30:  # Very similar threshold
-                # Convert TLSH distance to confidence score
-                # Distance 0 = 100% confidence
-                # Distance 30 = 97% confidence (our threshold)
-                confidence = max(0.97, 1.0 - (best_score / 1000))
-                
-                license_info = self.spdx_data.get_license_info(best_match)
-                
-                # Determine category based on filename
-                name_lower = file_path.name.lower()
-                is_license_file = any(pattern in name_lower for pattern in 
-                                     ['license', 'licence', 'copying', 'copyright', 'notice'])
-                category = LicenseCategory.DECLARED.value if is_license_file else LicenseCategory.DETECTED.value
-                
-                return DetectedLicense(
-                    spdx_id=best_match,
-                    name=license_info.get('name', best_match) if license_info else best_match,
-                    confidence=confidence,
-                    detection_method=DetectionMethod.TLSH.value,
-                    source_file=str(file_path),
-                    category=category,
-                    match_type="text_similarity"
+
+            candidates = self._find_near_neighbours(input_hash)
+            if not candidates:
+                return None
+
+            corroborated = self._corroborate(text, candidates)
+            if not corroborated:
+                logger.debug(
+                    f"TLSH proposed {candidates[0][1]} for {file_path} "
+                    f"(distance {candidates[0][0]}) but no candidate text corroborates it; "
+                    f"not asserting a license"
                 )
-            
-            return None
-        
+                return None
+
+            best_match, confidence = corroborated
+            license_info = self.spdx_data.get_license_info(best_match)
+
+            # Determine category based on filename
+            name_lower = file_path.name.lower()
+            is_license_file = any(pattern in name_lower for pattern in
+                                 ['license', 'licence', 'copying', 'copyright', 'notice'])
+            category = LicenseCategory.DECLARED.value if is_license_file else LicenseCategory.DETECTED.value
+
+            return DetectedLicense(
+                spdx_id=best_match,
+                name=license_info.get('name', best_match) if license_info else best_match,
+                confidence=confidence,
+                detection_method=DetectionMethod.TLSH.value,
+                source_file=str(file_path),
+                category=category,
+                match_type="text_similarity"
+            )
+
         except Exception as e:
             logger.error(f"Error in TLSH detection: {e}")
             return None
-    
+
     def confirm_license_match(self, text: str, license_id: str, threshold: int = 100) -> bool:
         """
         Confirm a license match using TLSH.
