@@ -5,7 +5,7 @@ All notable changes to osslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.7.1] - 2026-08-11
 
 ### Fixed
 - **TLSH matcher reported near-identical licenses as declared** (Issue #90): the matcher returned its nearest fuzzy-hash neighbour as the verdict at a confidence floored at 0.97, which outranked the matchers that had the file right. TLSH measures bulk document similarity, so licenses that differ by a single clause are indistinguishable to it — canonical MIT text sits closer to the JSON license (distance 17) than to MIT itself (29), and those clauses are exactly what changes the obligations
