@@ -84,7 +84,7 @@ all = [
 
 [project.urls]
 Homepage = "https://github.com/SemClone/osslili"
-Documentation = "https://github.com/SemClone/osslili#readme"
+Documentation = "https://semclone.github.io/osslili/"
 Repository = "https://github.com/SemClone/osslili.git"
 Issues = "https://github.com/SemClone/osslili/issues"
 Changelog = "https://github.com/SemClone/osslili/blob/main/CHANGELOG.md"
