@@ -113,6 +113,11 @@ _GNU_VARIANT_PREFIX_RE = re.compile(r'(?:Lesser|Library|Affero)\s+$', re.IGNOREC
 # read in context, let alone a real text match.
 _UNIDENTIFIED_TEXT_CONFIDENCE_CAP = 0.6
 
+# Lowest Dice-Sørensen score the similarity tier will consider at all. Between
+# this floor and the configured similarity_threshold a match must be
+# corroborated by TLSH; at or above the threshold the score stands on its own.
+_DICE_FLOOR = 0.9
+
 # The number of occurrences of a single keyword variation examined per file.
 # Bounds the cost on pathological inputs while leaving room to skip over
 # discussion prose to a real grant later in the same file.
@@ -2163,9 +2168,15 @@ class LicenseDetector:
         if detected:
             return detected
         
-        # Tier 1: Dice-Sørensen similarity
+        # Tier 1: Dice-Sørensen similarity. The tier applies its own acceptance
+        # rule — a strong score outright, a weaker one only if TLSH corroborates
+        # it — so anything it returns is accepted here. Re-gating on
+        # similarity_threshold discarded every corroborated match below it,
+        # which made the corroboration step dead code and silently lost
+        # licenses whose text is bundled (protobuf scored 0.957 against
+        # BSD-3-Clause and was reported as having no license at all).
         detected = self._tier1_dice_sorensen(text, file_path)
-        if detected and detected.confidence >= self.config.similarity_threshold:
+        if detected:
             return detected
         
         # Tier 2: TLSH fuzzy hashing. The detector applies its own bar — a
@@ -2309,11 +2320,14 @@ class LicenseDetector:
                     logger.debug(f"Preferring Apache-2.0 over Pixar (Dice-Sørensen scores within 1%)")
                     break
         
-        if best_match and best_score >= 0.9:  # 90% threshold
-            
-            # For very high confidence (>95%), skip TLSH confirmation
-            # For lower confidence, confirm with TLSH to reduce false positives
-            if best_score >= 0.95 or self.tlsh_detector.confirm_license_match(text, best_match):
+        if best_match and best_score >= _DICE_FLOOR:
+
+            # At or above the configured similarity threshold the score speaks
+            # for itself. Below it, down to the floor, the match must be
+            # corroborated by TLSH before it is accepted — which is what makes
+            # the band between the two usable rather than simply discarded.
+            if best_score >= self.config.similarity_threshold or \
+                    self.tlsh_detector.confirm_license_match(text, best_match):
                 license_info = self.spdx_data.get_license_info(best_match)
                 category, match_type = self._categorize_license(
                     file_path, DetectionMethod.DICE_SORENSEN.value
