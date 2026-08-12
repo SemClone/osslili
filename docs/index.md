@@ -45,11 +45,11 @@ merely resembles. Copyleft and permissive licenses are often only a clause apart
 
 Without it osslili still works and still refuses to guess — it reports less.
 
-`python-tlsh` builds from C, so it needs a compiler. On a slim container image
-install build tools first:
+`python-tlsh` builds from C++, so it needs a compiler. On a slim container image
+install one first — note it is `g++`, not `gcc`:
 
 ```bash
-apt-get install -y gcc python3-dev && pip install python-tlsh
+apt-get install -y g++ && pip install python-tlsh
 ```
 
 To work on osslili itself, install it from a checkout in editable mode:

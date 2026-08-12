@@ -37,8 +37,12 @@ Without a corroborator that band stays closed, because accepting an unverified
 match there means reporting one license as another it merely resembles, and
 copyleft and permissive licenses are often a single clause apart.
 
-`python-tlsh` builds from C and needs a compiler; on slim container images run
-`apt-get install -y gcc python3-dev` first.
+`python-tlsh` builds from C++ and needs a compiler. On slim container images
+install one first:
+
+```bash
+apt-get install -y g++
+```
 
 For development:
 
