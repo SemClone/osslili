@@ -5,6 +5,21 @@ All notable changes to osslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.2] - 2026-08-11
+
+### Added
+- **Documentation site** at [semclone.github.io/osslili](https://semclone.github.io/osslili/), built from `docs/` and published through GitHub Pages
+  - New **Detection** page covering the tier cascade, what each detection method and category means, how to read confidence, and what osslili deliberately declines to report
+  - New **Configuration** page documenting the full schema, split out of the API reference, with every field and its default
+
+### Changed
+- **`Documentation` project URL** now points at the published site instead of the GitHub-rendered README, so the PyPI project page links to the real documentation
+- **Documentation rewritten against the current release.** The previous pages had drifted since v1.5.6: six command line flags were undocumented (`--fast`, `--detail`/`--evidence-detail`, `--max-file-size`, `--skip-content-detection`, `--skip-extensionless`, `--skip-smart-read`), a `--cache-dir` flag was documented that has never existed, seven `Config` fields were missing, the `keyword` detection method was absent, and the third-party license category added in 1.7.0 appeared nowhere
+- **README** rewritten: corrected the stated Python requirement from 3.8 to 3.9, removed a dead link to a benchmark page deleted in 1.6.x, and replaced the outdated three-tier description with the actual four-tier cascade
+
+### Notes
+- `--max-extraction-depth` defaults to `10` and always sets the value, while a bare `Config` defaults to `3`. Both are documented where they apply; the inconsistency itself is unchanged in this release.
+
 ## [1.7.1] - 2026-08-11
 
 ### Fixed
