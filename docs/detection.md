@@ -40,6 +40,7 @@ Tiers run in order, and the first one to produce a match wins.
 | 0 | `hash` | SHA-256 / MD5 of the normalized text against a table of known license hashes. An exact match is reported at confidence `1.0`. |
 | 1 | `dice-sorensen` | Character-bigram Dice-Sørensen similarity against the license corpus. Tolerates reformatting, differing copyright lines, and minor edits. |
 | 2 | `tlsh` | Fuzzy hashing, for texts too modified for tier 1. Requires the optional `python-tlsh` package. |
+| 3 | `regex` | Pattern matching for license references and headers that are not full texts. |
 
 {: .note }
 > **Install `python-tlsh`.** Without it, tier 2 does not run *and* tier 1 loses
@@ -61,7 +62,6 @@ So the band is only opened when something can actually corroborate. **With no
 `python-tlsh` installed there is no corroborator, and the band stays shut** —
 osslili reports less rather than reporting a license that the text merely
 resembles.
-| 3 | `regex` | Pattern matching for license references and headers that are not full texts. |
 
 Normalization strips copyright holder lines before comparison, so the same license
 matches regardless of who holds the copyright or which years are listed.
