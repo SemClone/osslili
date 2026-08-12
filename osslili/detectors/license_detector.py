@@ -1893,19 +1893,27 @@ class LicenseDetector:
 
             # Try to read and detect license from the referenced file
             if license_file_path.exists():
+                license_content = None
                 try:
                     license_content = self.input_processor.read_text_file(license_file_path)
-                    if license_content:
-                        # Detect license from the file content using Dice-Sørensen with TLSH confirmation
-                        detected_licenses = self._detect_from_full_text(license_content, license_file_path)
-                        for detected in detected_licenses:
-                            # Update the source to show it came from pyproject.toml reference
-                            detected.source_file = str(file_path)
-                            detected.match_type = "package_metadata_file"
-                            detected.category = LicenseCategory.DECLARED.value
-                            licenses.append(detected)
                 except Exception as e:
                     logger.debug(f"Failed to read license file {license_file_path}: {e}")
+
+                if license_content:
+                    # Identify the referenced text through the full tier cascade.
+                    # This returns at most one license, not a list.
+                    detected = self._detect_license_from_text(license_content, license_file_path)
+                    if detected:
+                        # Report it against pyproject.toml, which is what declares it
+                        detected.source_file = str(file_path)
+                        detected.match_type = "package_metadata_file"
+                        detected.category = LicenseCategory.DECLARED.value
+                        licenses.append(detected)
+                    else:
+                        logger.debug(
+                            f"No license identified in {license_file_path} referenced by "
+                            f"{file_path}"
+                        )
             else:
                 logger.debug(f"License file {license_file_path} referenced in pyproject.toml does not exist")
 
