@@ -5,6 +5,16 @@ All notable changes to osslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.4] - 2026-08-11
+
+### Fixed
+- **Corroborated similarity matches were discarded** (PR #101). The Dice-Sørensen tier accepts a strong score outright and a weaker one only once TLSH corroborates it, with a floor at 0.90. The cascade then re-checked the result against `similarity_threshold` (default 0.97), above the tier's own floor, so every corroborated match in between was computed and then thrown away
+  - Real cost: `protobuf` and `multiprocess` both ship BSD-3-Clause license files scoring 0.957 and 0.932, and both were reported as carrying no license at all. Both licenses are in the bundled set, so this was lost recall on the most common licenses
+  - `similarity_threshold` now applies where it means something: at or above it a score stands on its own, below it down to the floor a match must be corroborated. Raising the setting still makes matching stricter rather than deleting results
+
+### Notes
+- Across 69 real package license files, four change: `protobuf` and `multiprocess` gain the BSD-3-Clause they always carried, `dill` reports the same license at the same score through the similarity tier rather than the fuzzy one, and `numpy`'s bundled aggregate license file moves from `LGPL-3.0-only` at 0.60 to `GPL-3.0-only` at 0.948 — the GPL-3.0 text is 696 of its 971 lines, shipped for the GCC Runtime Library Exception. Scanning numpy's directory still reports `BSD-3-Clause` as its own license
+
 ## [1.7.3] - 2026-08-11
 
 Recommended upgrade for anyone on 1.7.1 or 1.7.2. Those releases stopped
