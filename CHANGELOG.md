@@ -5,6 +5,38 @@ All notable changes to osslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.3] - 2026-08-11
+
+Recommended upgrade for anyone on 1.7.1 or 1.7.2. Those releases stopped
+detecting licenses they previously found, including canonical GPL source
+headers.
+
+### Fixed
+- **Licenses that 1.7.1 stopped detecting** (Issue #98). The matcher accuracy work in 1.7.1 fixed a class of false positives and introduced a larger class of false negatives. Verified against real license texts, 1.7.0 → 1.7.2 → this release:
+
+  | Input | 1.7.0 | 1.7.1 / 1.7.2 | 1.7.3 |
+  |---|---|---|---|
+  | Canonical FSF GPL-2 header | `GPL-2.0-only` | *nothing* | `GPL-2.0-or-later` |
+  | Canonical FSF GPL-3 header | `GPL-3.0-only` | *nothing* | `GPL-3.0-or-later` |
+  | GPL header + linking exception | `GPL-3.0-only` | *nothing* | `GPL-3.0-or-later` |
+  | `"licensed under GPL2"` | `GPL-2.0-only` | *nothing* | `GPL-2.0-only` |
+  | zlib grant containing "compatibility" | `Zlib` | *nothing* | `Zlib` |
+  | Sleepycat license file (copyleft) | `Sleepycat` | `BSD-3-Clause` @ 1.00 | `Sleepycat` |
+  | CECILL-2.1 license file (copyleft) | `CECILL-2.1` | `GPL-3.0-only` @ 1.00 | `CECILL-2.1` |
+
+  - **GNU version parsing** now reads the phrasing the FSF recommends — "either version 2 of the License, or (at your option) any later version" — where the version attaches to *the License* rather than to *GPL*. Also covers the separator-less `GPL2` form, and a trailing "any later version" now yields an `-or-later` identifier, which is what the grant says
+  - **Linking exceptions no longer suppress the grant they are attached to.** The guard still prevents the carved-out library's license being asserted, but never applies to GNU-family matches — a file carrying a linking exception is by definition licensed under the copyleft license granting it. Paragraph detection now treats a line of bare comment markers as a break, since `\n\n` never occurs inside a `/* ... */` block
+  - **Compatibility detection narrowed** to require a license name alongside the word, so ordinary English "compatibility" in a grant sentence no longer suppresses it
+  - **The fuzzy tier may assert an unambiguous match again.** Requiring corroboration silenced it for the majority of SPDX entries that ship no license text, and the regex tier filled the vacuum at full confidence. It may now also assert a candidate that no other license comes near — its inability to separate near neighbours does not apply when there are none. The margin is measured: across the known near-neighbour confusions the wrong answer never leads by more than 13, and where the tier is right but uncorroborated the correct answer leads by 20 or more
+  - **A regex match reached after every text tier declined is capped below the keyword tier.** It describes an unrecognized document rather than identifying one, and scoring it at 1.0 is what reported copyleft as permissive
+- **A Lesser or Affero mention is no longer claimed by the generic GPL path**, which reported LGPL-2.1 files as `GPL-2.0-only`. Predates 1.7.1
+- **PEP 639 `license = {file = "..."}` resolved to nothing** (Issue #96). The referenced file was passed to a method that does not exist, and the `AttributeError` was swallowed and logged as a failed file read. Full directory scans masked it — the referenced file is scanned independently — so it surfaced only where metadata is read without the license file, notably `extract_package_metadata()` and scans pointed at a manifest
+- **PEP 639 references are now contained to the project directory.** A manifest path is untrusted input; `license = {file = "../../secrets.txt"}` read a file outside the scanned tree and reported its license as the project's own, and an absolute path discarded the base directory entirely. Symlinks out of the tree fail the same check; ordinary nested paths still resolve
+
+### Notes
+- Across 69 real package license files, no license identity changes relative to 1.7.2; thirteen regex detections drop from 1.0 to 0.6, which is the intended correction
+- Detection of licenses whose text is not bundled still depends on the fuzzy tier, and the network fallback for missing texts is unreachable because bundled entries carry no `detailsUrl`. Widening bundled text coverage is tracked separately
+
 ## [1.7.2] - 2026-08-11
 
 ### Added
