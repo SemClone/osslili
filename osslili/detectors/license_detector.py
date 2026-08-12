@@ -145,6 +145,25 @@ def _paragraph_around(content: str, start: int, end: int) -> str:
     ]
 
 
+def _is_contained_by(candidate: Path, base: Path) -> bool:
+    """Whether ``candidate`` resolves to somewhere inside ``base``.
+
+    A manifest's license path is untrusted input. Left unchecked,
+    ``license = {file = "../../../secrets.txt"}`` makes osslili read a file
+    outside the tree it was asked to scan and report its license as the
+    project's own — and an absolute path is worse, because joining one discards
+    the base directory entirely.
+
+    Resolution follows symlinks, so a link pointing out of the tree is caught
+    on the same test.
+    """
+    try:
+        candidate.resolve().relative_to(base.resolve())
+    except (ValueError, OSError):
+        return False
+    return True
+
+
 def _bounded_pattern(variation: str) -> str:
     """Build a whole-word regex for a license keyword variation.
 
@@ -1892,20 +1911,33 @@ class LicenseDetector:
             license_file_path = file_path.parent / license_file_name
 
             # Try to read and detect license from the referenced file
-            if license_file_path.exists():
+            if not _is_contained_by(license_file_path, file_path.parent):
+                logger.debug(
+                    f"Ignoring license file {license_file_name!r} referenced in "
+                    f"{file_path}: resolves outside the project directory"
+                )
+            elif license_file_path.exists():
+                license_content = None
                 try:
                     license_content = self.input_processor.read_text_file(license_file_path)
-                    if license_content:
-                        # Detect license from the file content using Dice-Sørensen with TLSH confirmation
-                        detected_licenses = self._detect_from_full_text(license_content, license_file_path)
-                        for detected in detected_licenses:
-                            # Update the source to show it came from pyproject.toml reference
-                            detected.source_file = str(file_path)
-                            detected.match_type = "package_metadata_file"
-                            detected.category = LicenseCategory.DECLARED.value
-                            licenses.append(detected)
                 except Exception as e:
                     logger.debug(f"Failed to read license file {license_file_path}: {e}")
+
+                if license_content:
+                    # Identify the referenced text through the full tier cascade.
+                    # This returns at most one license, not a list.
+                    detected = self._detect_license_from_text(license_content, license_file_path)
+                    if detected:
+                        # Report it against pyproject.toml, which is what declares it
+                        detected.source_file = str(file_path)
+                        detected.match_type = "package_metadata_file"
+                        detected.category = LicenseCategory.DECLARED.value
+                        licenses.append(detected)
+                    else:
+                        logger.debug(
+                            f"No license identified in {license_file_path} referenced by "
+                            f"{file_path}"
+                        )
             else:
                 logger.debug(f"License file {license_file_path} referenced in pyproject.toml does not exist")
 
