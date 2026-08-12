@@ -38,31 +38,80 @@ _DEPRECATED_GNU_RE = re.compile(r'^(?:A?GPL|LGPL|GFDL)-\d+(?:\.\d+)?$')
 # while the package itself is Python-2.0, and a keyword hit on that prose used
 # to assert copyleft over a permissive package (issue #91).
 _LICENSE_DISCUSSION_RE = re.compile(
-    r'compatib'                                                   # GPL-compatible, compatibility
-    r'|incompatib'
+    # A compatibility *claim about licensing*, not the ordinary English word.
+    # "ensuring compatibility with both open source and commercial products"
+    # sits in a genuine grant sentence and must not suppress it.
+    r'(?:licen[sc]e|GPL|LGPL|AGPL|BSD|MIT|Apache|MPL)[\s-]*(?:in)?compatib'
+    r'|(?:in)?compatib\w*\s+with\s+(?:the\s+)?(?:GNU\s+)?'
+    r'(?:GPL|LGPL|AGPL|BSD|MIT|Apache|MPL|General\s+Public|licen[sc]e)'
     r'|unlike\s+th(?:e|is)\b'
     r'|(?:previously|formerly|originally)\s+(?:distributed|released|licen[sc]ed)'
     r'|does\s+not\s+mean\b'
-    r'|(?:is|are|was|were)\s+not\s+(?:distributed|released|licen[sc]ed)\b'
-    r'|as\s+a\s+special\s+exception'                              # linking exceptions
+    r'|(?:is|are|was|were)\s+not\s+(?:distributed|released|licen[sc]ed)\b',
+    re.IGNORECASE,
+)
+
+# Linking exceptions get their own guard. They name a library's license only to
+# carve it out — "permission to link ... with the OpenSSL library" — so the
+# named license does not govern the file. But the exception is *attached to* a
+# copyleft grant, and the file carrying it is by definition licensed under that
+# copyleft license. Suppressing the GNU-family match too reported GPL source
+# files as carrying no license at all, so this guard never applies to them.
+_LINKING_EXCEPTION_RE = re.compile(
+    r'as\s+a\s+special\s+exception'
     r'|permission\s+to\s+link'
     r'|linking\s+exception',
     re.IGNORECASE,
 )
 
+# License families a linking exception is granted *over*, never carved out of.
+_GNU_FAMILY_PREFIXES = ('GPL', 'LGPL', 'AGPL', 'GFDL')
+
 # Cap on how far the discussion scan reaches from a match when the text has no
 # paragraph breaks to bound it.
 _DISCUSSION_SPAN_LIMIT = 400
 
-# An explicit GNU version, as it is actually written: "v2", "version 3",
-# "GPL-2.0", "GPLv3". A bare digit anywhere nearby is not a version — a
-# copyright year or a section number would do just as well — so an unversioned
-# mention yields no identifier at all rather than a guessed one.
+# A paragraph break: a blank line, or a line carrying nothing but comment
+# markers. Source headers are the reason for the second case — in a "/* ... */"
+# block the blank lines read as " *", so searching for "\n\n" alone finds no
+# break at all and runs the entire header together as one paragraph.
+_PARAGRAPH_BREAK_RE = re.compile(r'\n[ \t]*(?:[*#]|//|--|;)?[ \t]*\r?\n')
+
+# An explicit GNU version, as licenses actually write it. Covers the phrasing
+# the FSF itself recommends and which most GPL source headers therefore use --
+# "either version 2 of the License, or (at your option) any later version" --
+# where the version attaches to "the License" rather than to "GPL". Also covers
+# "GPL-2.0", "GPLv3", "GPL version 2", and the separator-less "GPL2".
+#
+# A bare digit near a license name is still not a version: a copyright year or a
+# section number would qualify just as well, so an unversioned mention yields no
+# identifier rather than a guessed one.
 _GNU_VERSION_RE = re.compile(
-    r'(?:GPL|General\s+Public\s+License)[\s,-]*v?(?:ersion\s*)?([123])(?:\.\d+)?\b'
-    r'|\bv(?:ersion\s*)?([123])(?:\.\d+)?\s*(?:of\s+the\s+)?(?:GNU\s+)?(?:GPL|General\s+Public\s+License)',
+    r'(?:A?GPL|LGPL|General\s+Public\s+License)[\s,-]*v?(?:ersion\s*)?([123])(?:\.\d+)?\b'
+    r'|\bv(?:ersion\s*)?\s*([123])(?:\.\d+)?\s+of\s+the\s+(?:GNU\s+)?'
+    r'(?:A?GPL|LGPL|General\s+Public\s+)?Licen[sc]e\b'
+    r'|\bv(?:ersion\s*)?([123])(?:\.\d+)?\s*(?:of\s+the\s+)?(?:GNU\s+)?'
+    r'(?:A?GPL|LGPL|General\s+Public\s+License)',
     re.IGNORECASE,
 )
+
+# "or (at your option) any later version" — the FSF header wording that makes a
+# versioned grant an "-or-later" one rather than "-only".
+_GNU_OR_LATER_RE = re.compile(
+    r'any\s+later\s+version|or\s+later\b|or,?\s+at\s+your\s+option',
+    re.IGNORECASE,
+)
+
+# A generic "General Public License" match that is really part of the Lesser or
+# Affero name. Those have their own identifiers, so the generic GPL path must
+# not claim them.
+_GNU_VARIANT_PREFIX_RE = re.compile(r'(?:Lesser|Library|Affero)\s+$', re.IGNORECASE)
+
+# Ceiling on a regex match reached through the full-text cascade, i.e. after
+# every tier that compares actual text has declined. Set below the keyword tier
+# so a pattern hit on an unrecognized document cannot outrank a license name
+# read in context, let alone a real text match.
+_UNIDENTIFIED_TEXT_CONFIDENCE_CAP = 0.6
 
 # The number of occurrences of a single keyword variation examined per file.
 # Bounds the cost on pathological inputs while leaving room to skip over
@@ -80,11 +129,15 @@ def _paragraph_around(content: str, start: int, end: int) -> str:
     reaches too short to catch the exception or far enough to swallow the
     heading in a densely packed aggregate license file.
     """
-    paragraph_start = content.rfind('\n\n', 0, start)
-    paragraph_start = 0 if paragraph_start == -1 else paragraph_start + 2
+    # Inside a block comment a "blank" line still carries its comment marker
+    # (" *", "#", "//"), so a bare "\n\n" search runs the whole file together.
+    # Treat a line with nothing but markers and whitespace as a break too.
+    paragraph_start = 0
+    for match in _PARAGRAPH_BREAK_RE.finditer(content, 0, start):
+        paragraph_start = match.end()
 
-    paragraph_end = content.find('\n\n', end)
-    paragraph_end = len(content) if paragraph_end == -1 else paragraph_end
+    paragraph_end_match = _PARAGRAPH_BREAK_RE.search(content, end)
+    paragraph_end = paragraph_end_match.start() if paragraph_end_match else len(content)
 
     return content[
         max(paragraph_start, start - _DISCUSSION_SPAN_LIMIT):
@@ -1507,9 +1560,9 @@ class LicenseDetector:
         # Base license families with common variations
         base_license_mapping = {
             # GPL family
-            'GPL-3.0': ['GPL-3', 'GPLv3', 'GPL version 3', 'GNU General Public License v3',
+            'GPL-3.0': ['GPL-3', 'GPL3', 'GPLv3', 'GPL version 3', 'GNU General Public License v3',
                         'GNU General Public License version 3', 'GPL v3'],
-            'GPL-2.0': ['GPL-2', 'GPLv2', 'GPL version 2', 'GNU General Public License v2',
+            'GPL-2.0': ['GPL-2', 'GPL2', 'GPLv2', 'GPL version 2', 'GNU General Public License v2',
                         'GNU General Public License version 2', 'GPL v2', 'GNU GPL v2',
                         'terms-of-the-GNU-GPL', 'GNU-GPL-v2'],  # Add normalization patterns
             'GPL': ['GPL', 'the GPL', 'GNU GPL', 'General Public License'],  # Generic GPL
@@ -1713,6 +1766,17 @@ class LicenseDetector:
                         )
                         continue
 
+                    # A linking exception carves out the library it names, but is
+                    # itself granted over a copyleft license — so it never
+                    # disqualifies a GNU-family match in the same paragraph.
+                    if (not spdx_id.startswith(_GNU_FAMILY_PREFIXES)
+                            and _LINKING_EXCEPTION_RE.search(paragraph)):
+                        logger.debug(
+                            f"Skipping '{variation}' in {file_path}: named by a "
+                            f"linking exception, not granted"
+                        )
+                        continue
+
                     has_context = any(re.search(pattern, context, re.IGNORECASE) for pattern in context_patterns)
 
                     # Check for comment or line start (more strict)
@@ -1751,7 +1815,17 @@ class LicenseDetector:
                     # GPL-3.0-only are mutually incompatible, so guessing one
                     # invents an obligation. Report nothing instead.
                     if final_spdx_id == 'GPL':
-                        context_text = content[max(0, match.start()-100):min(len(content), match.end()+100)]
+                        # "Lesser"/"Affero General Public License" have their own
+                        # identifiers; the generic path must not claim them.
+                        preceding = content[max(0, match.start() - 16):match.start()]
+                        if _GNU_VARIANT_PREFIX_RE.search(preceding):
+                            continue
+
+                        # Wide enough to reach the version in the FSF header,
+                        # where it trails the license name by a clause.
+                        context_text = content[
+                            max(0, match.start() - 120):min(len(content), match.end() + 180)
+                        ]
                         version_match = _GNU_VERSION_RE.search(context_text)
                         if not version_match:
                             logger.debug(
@@ -1759,8 +1833,13 @@ class LicenseDetector:
                                 f"no explicit version to resolve it to"
                             )
                             continue
-                        version = version_match.group(1) or version_match.group(2)
+                        version = next(g for g in version_match.groups() if g)
                         final_spdx_id = f'GPL-{version}.0'
+
+                        # "or (at your option) any later version" makes the grant
+                        # an -or-later one; without it the version stands alone.
+                        if _GNU_OR_LATER_RE.search(context_text):
+                            final_spdx_id += '-or-later'
 
                     licenses.append(DetectedLicense(
                         spdx_id=final_spdx_id,
@@ -2066,9 +2145,24 @@ class LicenseDetector:
         if detected:
             return detected
         
-        # Tier 3: Regex pattern matching
+        # Tier 3: Regex pattern matching. Reaching here means every tier that
+        # actually compares text declined to identify this one, so a pattern hit
+        # is a weak signal about an unrecognized document — not the confident
+        # identification that a license file would otherwise be scored at.
+        #
+        # Left unbounded, this asserted the wrong license at full confidence for
+        # any license whose text is not bundled: a Sleepycat file, which no tier
+        # could match, was reported as BSD-3-Clause at 1.0 because the patterns
+        # for the BSD clauses it shares fired. Copyleft reported as permissive,
+        # with nothing in the output to suggest doubt.
         detected = self._tier3_regex_matching(text, file_path)
         if detected:
+            if detected.confidence > _UNIDENTIFIED_TEXT_CONFIDENCE_CAP:
+                logger.debug(
+                    f"Capping regex confidence for {detected.spdx_id} in {file_path}: "
+                    f"no text tier could identify this document"
+                )
+                detected.confidence = _UNIDENTIFIED_TEXT_CONFIDENCE_CAP
             return detected
         
         # No match found
