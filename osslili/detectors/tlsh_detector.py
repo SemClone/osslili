@@ -26,6 +26,25 @@ NEAR_NEIGHBOUR_DISTANCE = 30
 # the Dice-Sørensen tier applies to its own matches.
 CORROBORATION_THRESHOLD = 0.9
 
+# How far the runner-up must sit behind the best candidate for that candidate to
+# count as unambiguous. TLSH's weakness is discriminating between licenses that
+# differ by a clause; when nothing else is anywhere near, that weakness does not
+# apply and the match can be trusted without a text to check it against.
+#
+# Measured, not guessed. Across the near-neighbour confusions from issue #90 the
+# wrong answer never led by more than 13 (MIT->JSON 12, ->JSON 13,
+# BSD-3->BSD-4 3 and 2, BSD-3->BSD-3-Clause-HP 1). Across licenses TLSH gets
+# right but cannot corroborate, the correct answer leads by 20 or more
+# (Sleepycat 43, Python-2.0 39, Apache-1.1 26, CECILL-2.1 20). Nothing falls
+# between, so 20 separates them cleanly.
+UNAMBIGUOUS_MARGIN = 20
+
+# Confidence band for an unambiguous but uncorroborated match, interpolated over
+# the distance threshold. Deliberately below the exact-hash and Dice-Sørensen
+# tiers: this is a whole-document resemblance, not a text identification.
+_UNCORROBORATED_CONFIDENCE_MAX = 0.95
+_UNCORROBORATED_CONFIDENCE_MIN = 0.75
+
 # Try to import tlsh, make it optional
 try:
     import tlsh
@@ -212,6 +231,49 @@ class TLSHDetector:
 
         return best
 
+    def _unambiguous_match(self, input_hash: str, candidates: list) -> Optional[tuple]:
+        """
+        Accept the best candidate only when nothing else is close to it.
+
+        The confusions TLSH is prone to all look the same: a cluster of licenses
+        that differ by a clause, sitting within a few points of each other. A
+        best candidate that leads the whole license list by a wide margin is not
+        that situation, and is reliable even with no text to check it against.
+
+        The runner-up is taken from the entire hash table, not just the near
+        neighbour list, so a second candidate sitting just outside the near
+        neighbour threshold still counts against the match.
+
+        Args:
+            input_hash: TLSH hash of the preprocessed scanned text
+            candidates: (distance, license_id) tuples, closest first
+
+        Returns:
+            (license_id, confidence) when unambiguous, otherwise None
+        """
+        best_distance, best_match = candidates[0]
+
+        runner_up = None
+        for license_id, hash_data in self.license_hashes.items():
+            if license_id == best_match:
+                continue
+            try:
+                distance = tlsh.diff(input_hash, hash_data['hash'])
+            except Exception:
+                continue
+            if runner_up is None or distance < runner_up:
+                runner_up = distance
+
+        if runner_up is not None and runner_up - best_distance < UNAMBIGUOUS_MARGIN:
+            return None
+
+        # Closer match, higher confidence, held below the text-matching tiers.
+        span = _UNCORROBORATED_CONFIDENCE_MAX - _UNCORROBORATED_CONFIDENCE_MIN
+        confidence = _UNCORROBORATED_CONFIDENCE_MAX - (
+            best_distance / NEAR_NEIGHBOUR_DISTANCE
+        ) * span
+        return best_match, round(confidence, 3)
+
     def detect_license_tlsh(self, text: str, file_path: Path) -> Optional[DetectedLicense]:
         """
         Detect license using TLSH fuzzy hashing.
@@ -252,16 +314,25 @@ class TLSHDetector:
             if not candidates:
                 return None
 
+            # Preferred: the candidate's own license text confirms the match.
             corroborated = self._corroborate(text, candidates)
-            if not corroborated:
-                logger.debug(
-                    f"TLSH proposed {candidates[0][1]} for {file_path} "
-                    f"(distance {candidates[0][0]}) but no candidate text corroborates it; "
-                    f"not asserting a license"
-                )
-                return None
-
-            best_match, confidence = corroborated
+            if corroborated:
+                best_match, confidence = corroborated
+            else:
+                # Only a minority of SPDX entries ship their text, so most
+                # candidates can never be corroborated. Falling silent for all of
+                # them loses licenses TLSH identifies perfectly well and hands the
+                # verdict to weaker tiers, so an unambiguous match is still
+                # asserted — see UNAMBIGUOUS_MARGIN.
+                unambiguous = self._unambiguous_match(input_hash, candidates)
+                if not unambiguous:
+                    logger.debug(
+                        f"TLSH proposed {candidates[0][1]} for {file_path} "
+                        f"(distance {candidates[0][0]}) but it is neither corroborated "
+                        f"by a license text nor unambiguous; not asserting a license"
+                    )
+                    return None
+                best_match, confidence = unambiguous
             license_info = self.spdx_data.get_license_info(best_match)
 
             # Determine category based on filename
