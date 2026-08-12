@@ -145,6 +145,25 @@ def _paragraph_around(content: str, start: int, end: int) -> str:
     ]
 
 
+def _is_contained_by(candidate: Path, base: Path) -> bool:
+    """Whether ``candidate`` resolves to somewhere inside ``base``.
+
+    A manifest's license path is untrusted input. Left unchecked,
+    ``license = {file = "../../../secrets.txt"}`` makes osslili read a file
+    outside the tree it was asked to scan and report its license as the
+    project's own — and an absolute path is worse, because joining one discards
+    the base directory entirely.
+
+    Resolution follows symlinks, so a link pointing out of the tree is caught
+    on the same test.
+    """
+    try:
+        candidate.resolve().relative_to(base.resolve())
+    except (ValueError, OSError):
+        return False
+    return True
+
+
 def _bounded_pattern(variation: str) -> str:
     """Build a whole-word regex for a license keyword variation.
 
@@ -1892,7 +1911,12 @@ class LicenseDetector:
             license_file_path = file_path.parent / license_file_name
 
             # Try to read and detect license from the referenced file
-            if license_file_path.exists():
+            if not _is_contained_by(license_file_path, file_path.parent):
+                logger.debug(
+                    f"Ignoring license file {license_file_name!r} referenced in "
+                    f"{file_path}: resolves outside the project directory"
+                )
+            elif license_file_path.exists():
                 license_content = None
                 try:
                     license_content = self.input_processor.read_text_file(license_file_path)

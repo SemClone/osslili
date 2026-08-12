@@ -107,6 +107,71 @@ def test_unidentifiable_referenced_file_is_not_an_error(generator, tmp_path):
     assert not result.errors
 
 
+class TestReferencedPathContainment:
+    """A manifest's license path is untrusted input.
+
+    Resolving the reference made osslili read files outside the tree it was
+    asked to scan and report their license as the project's own. An absolute
+    path is worse than a relative one: joining it discards the base directory
+    entirely.
+    """
+
+    @pytest.fixture
+    def project_with_outsider(self, tmp_path):
+        outside = tmp_path / "outside"
+        outside.mkdir()
+        (outside / "secret.txt").write_text(MIT_TEXT)
+        project = tmp_path / "project"
+        project.mkdir()
+        return project
+
+    @pytest.mark.parametrize("reference", [
+        "../outside/secret.txt",
+        "../../etc/passwd",
+        "/etc/passwd",
+    ])
+    def test_path_escaping_the_project_is_ignored(
+        self, generator, project_with_outsider, reference
+    ):
+        project = project_with_outsider
+        (project / "pyproject.toml").write_text(
+            f'[project]\nname = "demo"\nversion = "1.0.0"\n'
+            f'license = {{file = "{reference}"}}\n'
+        )
+
+        result = generator.extract_package_metadata(str(project))
+
+        assert not result.licenses, (
+            f"reported a license read from outside the project via {reference!r}"
+        )
+
+    def test_symlink_escaping_the_project_is_ignored(
+        self, generator, project_with_outsider
+    ):
+        project = project_with_outsider
+        (project / "LICENSE").symlink_to(project.parent / "outside" / "secret.txt")
+        (project / "pyproject.toml").write_text(
+            '[project]\nname = "demo"\nversion = "1.0.0"\nlicense = {file = "LICENSE"}\n'
+        )
+
+        result = generator.extract_package_metadata(str(project))
+
+        assert not result.licenses, "followed a symlink out of the project tree"
+
+    def test_reference_into_a_subdirectory_still_resolves(self, generator, tmp_path):
+        """Containment must not break the ordinary nested-path case."""
+        (tmp_path / "licenses").mkdir()
+        (tmp_path / "licenses" / "LICENSE.txt").write_text(MIT_TEXT)
+        (tmp_path / "pyproject.toml").write_text(
+            '[project]\nname = "demo"\nversion = "1.0.0"\n'
+            'license = {file = "licenses/LICENSE.txt"}\n'
+        )
+
+        result = generator.extract_package_metadata(str(tmp_path))
+
+        assert {l.spdx_id for l in result.licenses} == {"MIT"}
+
+
 def test_inline_license_text_form_still_works(generator, tmp_path):
     """The sibling `license = {text = ...}` form must be unaffected."""
     (tmp_path / "pyproject.toml").write_text(
