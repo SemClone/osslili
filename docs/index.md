@@ -26,11 +26,30 @@ pip install osslili
 
 osslili needs Python 3.9 or later.
 
-Fuzzy hash matching is optional. Installing `python-tlsh` enables an extra matching
-tier for license texts that have been reformatted or lightly edited:
+### Recommended: install `python-tlsh` too
 
 ```bash
 pip install osslili python-tlsh
+```
+
+`python-tlsh` is optional, but **detection is measurably better with it** and we
+recommend installing it for any compliance use.
+
+It powers the fuzzy matching tier, which does two jobs nothing else can. It
+identifies license texts that have been reformatted or lightly edited past what
+exact and similarity matching recognise — several licenses are detectable *only*
+this way. And it corroborates borderline similarity matches, which lets those be
+reported at all: without a corroborator the borderline band is closed, because
+accepting an unverified match there means reporting one license as another it
+merely resembles. Copyleft and permissive licenses are often only a clause apart.
+
+Without it osslili still works and still refuses to guess — it reports less.
+
+`python-tlsh` builds from C, so it needs a compiler. On a slim container image
+install build tools first:
+
+```bash
+apt-get install -y gcc python3-dev && pip install python-tlsh
 ```
 
 To work on osslili itself, install it from a checkout in editable mode:

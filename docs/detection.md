@@ -40,6 +40,27 @@ Tiers run in order, and the first one to produce a match wins.
 | 0 | `hash` | SHA-256 / MD5 of the normalized text against a table of known license hashes. An exact match is reported at confidence `1.0`. |
 | 1 | `dice-sorensen` | Character-bigram Dice-Sørensen similarity against the license corpus. Tolerates reformatting, differing copyright lines, and minor edits. |
 | 2 | `tlsh` | Fuzzy hashing, for texts too modified for tier 1. Requires the optional `python-tlsh` package. |
+
+{: .note }
+> **Install `python-tlsh`.** Without it, tier 2 does not run *and* tier 1 loses
+> its borderline band, described below — so detection is meaningfully weaker.
+> See [Overview]({{ site.baseurl }}/).
+
+### What tier 1 accepts
+
+A similarity score at or above `similarity_threshold` (default `0.97`) is
+accepted outright. Between that and a floor of `0.90`, the match is only
+accepted if the fuzzy tier corroborates it.
+
+That band is where licenses like a reformatted BSD-3-Clause file live — real
+matches that a strict threshold would throw away. But it is also where
+near-identical licenses collide: a Sleepycat license file scores `0.906` against
+BSD-3-Clause, and Sleepycat is copyleft while BSD-3-Clause is not.
+
+So the band is only opened when something can actually corroborate. **With no
+`python-tlsh` installed there is no corroborator, and the band stays shut** —
+osslili reports less rather than reporting a license that the text merely
+resembles.
 | 3 | `regex` | Pattern matching for license references and headers that are not full texts. |
 
 Normalization strips copyright holder lines before comparison, so the same license

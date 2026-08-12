@@ -21,8 +21,24 @@ substantiate — an identification it cannot back up is dropped rather than gues
 pip install osslili
 ```
 
-Requires Python 3.9 or later. Installing `python-tlsh` alongside it enables an
-additional fuzzy matching tier for reformatted license texts.
+Requires Python 3.9 or later.
+
+**Recommended:** install `python-tlsh` alongside it.
+
+```bash
+pip install osslili python-tlsh
+```
+
+It is optional, but detection is measurably better with it. It powers the fuzzy
+matching tier, which identifies license texts too reformatted for exact or
+similarity matching — several licenses are detectable only this way — and
+corroborates borderline similarity matches so they can be reported at all.
+Without a corroborator that band stays closed, because accepting an unverified
+match there means reporting one license as another it merely resembles, and
+copyleft and permissive licenses are often a single clause apart.
+
+`python-tlsh` builds from C and needs a compiler; on slim container images run
+`apt-get install -y gcc python3-dev` first.
 
 For development:
 

@@ -5,6 +5,20 @@ All notable changes to osslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.5] - 2026-08-11
+
+Recommended upgrade for anyone on 1.7.4 that does **not** have `python-tlsh`
+installed — which is the default, since it builds from C and needs a compiler.
+
+### Fixed
+- **Borderline similarity matches were accepted without any corroboration when `python-tlsh` is absent.** 1.7.4 opened the band between the similarity floor (`0.90`) and `similarity_threshold` to matches that TLSH corroborates. But `confirm_license_match()` answers `True` when it cannot check, so with no TLSH installed the corroboration requirement silently became a rubber stamp
+  - A Sleepycat license file was reported as `BSD-3-Clause` at **0.91** — the texts really are that similar, and the clauses that differ are what makes Sleepycat copyleft. In 1.7.3 the same file produced a low-confidence `0.60` pattern guess, so 1.7.4 made a wrong answer look credible
+  - The band is now opened only when a corroborator is actually available. Installs with `python-tlsh` keep everything 1.7.4 added; installs without it get 1.7.3's stricter behaviour
+  - New `TLSHDetector.can_confirm` distinguishes "confirmed" from "could not check"
+
+### Documentation
+- **`python-tlsh` is now documented as recommended**, in the README, the site overview, and the detection page, with what is actually lost without it — tier 2 does not run, and tier 1's borderline band stays shut. Includes the `gcc python3-dev` prerequisite for slim container images
+
 ## [1.7.4] - 2026-08-11
 
 ### Fixed
