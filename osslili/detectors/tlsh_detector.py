@@ -355,19 +355,36 @@ class TLSHDetector:
             logger.error(f"Error in TLSH detection: {e}")
             return None
 
+    @property
+    def can_confirm(self) -> bool:
+        """Whether corroboration is actually available.
+
+        ``python-tlsh`` is an optional dependency that needs a C toolchain to
+        build, so a plain ``pip install osslili`` commonly has no TLSH at all.
+        Callers that treat corroboration as a safety requirement must check
+        this: ``confirm_license_match`` answers True when it cannot check, so a
+        caller that only looks at its return value gets a rubber stamp rather
+        than a confirmation.
+        """
+        return TLSH_AVAILABLE and self._initialized
+
     def confirm_license_match(self, text: str, license_id: str, threshold: int = 100) -> bool:
         """
         Confirm a license match using TLSH.
-        
+
+        Returns True when it cannot check — an unavailable confirmer must not
+        veto an otherwise good match. Check :attr:`can_confirm` first if a real
+        confirmation is required.
+
         Args:
             text: Text to check
             license_id: SPDX license ID to confirm
             threshold: Maximum TLSH distance for confirmation (default 100)
-            
+
         Returns:
-            True if confirmed, False otherwise
+            True if confirmed or unable to check, False if refuted
         """
-        if not TLSH_AVAILABLE or not self._initialized:
+        if not self.can_confirm:
             return True  # Can't confirm, assume valid
         
         try:

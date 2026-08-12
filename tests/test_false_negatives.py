@@ -312,3 +312,51 @@ covered by the above license.
             if detected.detection_method == "dice-sorensen":
                 assert 0.9 <= detected.confidence < 0.97
                 return
+
+
+class TestCorroborationRequiresAConfirmer:
+    """The weaker-score band must stay shut when nothing can corroborate.
+
+    ``python-tlsh`` is optional and needs a C toolchain, so a plain
+    ``pip install osslili`` usually has no TLSH. ``confirm_license_match``
+    answers True when it cannot check — sensible on its own, but a caller
+    treating that as corroboration gets a rubber stamp. Accepting the band on
+    that basis reported a Sleepycat license file as BSD-3-Clause at 0.91: the
+    texts really are that similar, and the clauses that differ are the point.
+    """
+
+    @pytest.fixture
+    def detector_without_tlsh(self, monkeypatch):
+        import osslili.detectors.tlsh_detector as tlsh_module
+        monkeypatch.setattr(tlsh_module, "TLSH_AVAILABLE", False)
+        det = LicenseDetector(Config())
+        _ = det.spdx_data.licenses
+        assert not det.tlsh_detector.can_confirm
+        return det
+
+    def test_band_stays_shut_without_a_confirmer(self, detector_without_tlsh):
+        """A sub-threshold similarity match is not accepted unverified."""
+        text = (
+            TestSimilarityThresholdGate.BSD_3_SLIGHTLY_REWORDED
+            + TestSimilarityThresholdGate.TRAILER
+        )
+        for detected in _detections(detector_without_tlsh, "LICENSE", text):
+            if detected.detection_method == "dice-sorensen":
+                assert detected.confidence >= detector_without_tlsh.config.similarity_threshold, (
+                    f"accepted an uncorroborated {detected.confidence} match with "
+                    f"no confirmer available"
+                )
+
+    def test_strong_matches_are_unaffected(self, detector_without_tlsh):
+        """Licenses that match outright must not need a confirmer at all."""
+        ids = _ids(
+            detector_without_tlsh,
+            "LICENSE",
+            TestSimilarityThresholdGate.BSD_3_SLIGHTLY_REWORDED,
+        )
+        assert "BSD-3-Clause" in ids, f"got {ids}"
+
+    def test_can_confirm_reports_availability(self, detector):
+        """The flag must reflect reality where TLSH *is* installed."""
+        import osslili.detectors.tlsh_detector as tlsh_module
+        assert detector.tlsh_detector.can_confirm == tlsh_module.TLSH_AVAILABLE

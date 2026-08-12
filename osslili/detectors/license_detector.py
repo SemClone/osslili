@@ -2324,10 +2324,21 @@ class LicenseDetector:
 
             # At or above the configured similarity threshold the score speaks
             # for itself. Below it, down to the floor, the match must be
-            # corroborated by TLSH before it is accepted — which is what makes
-            # the band between the two usable rather than simply discarded.
-            if best_score >= self.config.similarity_threshold or \
-                    self.tlsh_detector.confirm_license_match(text, best_match):
+            # corroborated before it is accepted — which is what makes the band
+            # between the two usable rather than simply discarded.
+            #
+            # Corroboration needs TLSH, which is an optional dependency that
+            # needs a C toolchain, so a plain install usually does not have it.
+            # Without it there is nothing to corroborate with, and accepting the
+            # band anyway is how a Sleepycat license file came to be reported as
+            # BSD-3-Clause at 0.91 — the two texts really are that similar, and
+            # the clauses that differ are the whole point. So when no confirmer
+            # is available the band is not opened at all.
+            corroborated = (
+                self.tlsh_detector.can_confirm
+                and self.tlsh_detector.confirm_license_match(text, best_match)
+            )
+            if best_score >= self.config.similarity_threshold or corroborated:
                 license_info = self.spdx_data.get_license_info(best_match)
                 category, match_type = self._categorize_license(
                     file_path, DetectionMethod.DICE_SORENSEN.value
