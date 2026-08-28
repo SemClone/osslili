@@ -234,6 +234,17 @@ OR IMPLIED WARRANTIES ARE DISCLAIMED.
             )
 
 
+try:  # pragma: no cover - the import is the test
+    import tlsh as _tlsh  # noqa: F401
+    HAS_TLSH = True
+except ImportError:  # pragma: no cover
+    HAS_TLSH = False
+
+
+@pytest.mark.skipif(
+    not HAS_TLSH,
+    reason="the corroborated band this covers only exists with the TLSH backend",
+)
 class TestSimilarityThresholdGate:
     """A corroborated similarity match must not be discarded by the caller.
 

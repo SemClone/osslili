@@ -18,6 +18,11 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         python-version: ["3.13"]
+        # Detection genuinely differs with the TLSH backend and without it:
+        # the tier 2 corroborated band only exists when it is installed, so a
+        # licence that resolves for one installation does not for the other.
+        # Both are configurations people run, so both are tested.
+        tlsh: [true, false]
 
     steps:
     - uses: actions/checkout@v7
@@ -33,12 +38,16 @@ jobs:
         pip install pytest pytest-cov
         pip install -e . || pip install .
 
+    - name: Install the TLSH backend
+      if: matrix.tlsh
+      run: pip install -e '.[tlsh]'
+
     - name: Run tests
       run: |
         pytest tests/ -v --tb=short
 
     - name: Upload coverage
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-latest' && matrix.tlsh
       uses: codecov/codecov-action@v7
       with:
         files: ./coverage.xml
