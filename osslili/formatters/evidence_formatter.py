@@ -141,6 +141,7 @@ class EvidenceFormatter:
                     files_seen.add(source)
                     scan_result["copyright_evidence"].append({
                         "file": source,
+                        "file_count": copyright.file_count,
                         "holder": copyright.holder,
                         "years": copyright.years,
                         "statement": copyright.statement
@@ -255,7 +256,8 @@ class EvidenceFormatter:
                     copyright_by_file[source].append({
                         "holder": copyright.holder,
                         "years": copyright.years,
-                        "statement": copyright.statement
+                        "statement": copyright.statement,
+                        "file_count": copyright.file_count
                     })
 
                 # Format copyright evidence (aggregated)
@@ -268,6 +270,7 @@ class EvidenceFormatter:
                             seen_copyrights.add(cp_key)
                             scan_result["copyright_evidence"].append({
                                 "file": file_path,
+                                "file_count": cp["file_count"],
                                 "holder": cp["holder"],
                                 "years": cp["years"],
                                 "statement": cp["statement"]
