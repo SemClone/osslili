@@ -51,11 +51,8 @@ APACHE_BOILERPLATE = (
 def _evidence(tmp_path, name, text):
     target = tmp_path / name
     target.write_text(text)
-    command = Path(sys.executable).parent / "osslili"
-    if not command.exists():
-        pytest.skip("the osslili console script is not installed beside this interpreter")
     result = subprocess.run(
-        [str(command), "-f", "evidence", str(target)],
+        [sys.executable, "-m", "osslili", "-f", "evidence", str(target)],
         capture_output=True, text=True, cwd=REPO_ROOT,
     )
     assert result.returncode == 0, result.stderr
@@ -415,11 +412,8 @@ class TestTheCreditDoesNotBecomeThePackageLicence:
         return tmp_path
 
     def _output(self, tmp_path, form):
-        command = Path(sys.executable).parent / "osslili"
-        if not command.exists():
-            pytest.skip("the osslili console script is not installed beside this interpreter")
         result = subprocess.run(
-            [str(command), "-f", form, str(self._package(tmp_path))],
+            [sys.executable, "-m", "osslili", "-f", form, str(self._package(tmp_path))],
             capture_output=True, text=True, cwd=REPO_ROOT,
         )
         assert result.returncode == 0, result.stderr

@@ -1,0 +1,1046 @@
+"""An SPDX expression on a header line is read whole.
+
+`SPDX-License-Identifier:` may carry an expression, and the header pattern
+stopped at the first space, so `MIT OR Apache-2.0` was reported as MIT,
+dropping a choice the licensor offered, at confidence 1.0.
+
+The exception in `GPL-2.0-only WITH Classpath-exception-2.0` is still not
+reported. That is a different thing: the whole detector drops SPDX exceptions
+rather than tracking them, which is issue #24. What this file covers is the
+truncation, and the licence in a WITH expression now survives it.
+
+The metadata paths always handled expressions: `"license": "MIT OR Apache-2.0"`
+in package.json comes back whole. It was only the header line that truncated.
+"""
+
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def _reported(tmp_path, name, text):
+    target = tmp_path / name
+    target.write_text(text)
+    result = subprocess.run(
+        [sys.executable, "-m", "osslili", "-f", "evidence", str(target)],
+        capture_output=True, text=True, cwd=REPO_ROOT,
+    )
+    assert result.returncode == 0, result.stderr
+    lines = result.stdout.splitlines()
+    start = next((i for i, line in enumerate(lines) if line.strip().startswith("{")), -1)
+    if start < 0:
+        return set()
+    data = json.loads("\n".join(lines[start:]))
+    return {
+        item.get("detected_license")
+        for scan in data.get("scan_results", [])
+        for item in scan.get("license_evidence", [])
+        if item.get("match_type") in (
+            "header_tag", "spdx_identifier", "package_metadata",
+        )
+    }
+
+
+class TestAChoiceIsKept:
+    @pytest.mark.parametrize("expression,expected", [
+        ("MIT OR Apache-2.0", {"MIT", "Apache-2.0"}),
+        ("Apache-2.0 OR MIT", {"MIT", "Apache-2.0"}),
+        ("Apache-2.0 OR MIT OR BSD-3-Clause", {"MIT", "Apache-2.0", "BSD-3-Clause"}),
+        ("MIT AND BSD-3-Clause", {"MIT", "BSD-3-Clause"}),
+        ("(MIT AND BSD-3-Clause)", {"MIT", "BSD-3-Clause"}),
+    ])
+    def test_every_term_is_reported(self, tmp_path, expression, expected):
+        found = _reported(tmp_path, "widget.c", f"// SPDX-License-Identifier: {expression}\n")
+
+        assert found == expected, (expression, found)
+
+    @pytest.mark.parametrize("expression,expected", [
+        ("MIT OR Apache-2.0", {"MIT", "Apache-2.0"}),
+        ("MIT", {"MIT"}),
+    ])
+    def test_the_licence_line_form_too(self, tmp_path, expression, expected):
+        found = _reported(tmp_path, "widget.c", f"// License: {expression}\n")
+
+        assert found == expected, (expression, found)
+
+
+class TestASingleIdentifierIsUnchanged:
+    @pytest.mark.parametrize("identifier", [
+        "MIT", "Apache-2.0", "GPL-2.0-or-later", "BSD-2-Clause", "0BSD",
+        "LGPL-2.1-only", "CC-BY-NC-SA-3.0",
+    ])
+    def test_it_is_reported_as_itself(self, tmp_path, identifier):
+        found = _reported(tmp_path, "widget.c", f"// SPDX-License-Identifier: {identifier}\n")
+
+        assert found == {identifier}, (identifier, found)
+
+    def test_an_or_later_suffix_is_not_an_expression(self, tmp_path):
+        """"GPL-2.0-or-later" contains the word or and is one identifier."""
+        found = _reported(tmp_path, "widget.c", "// SPDX-License-Identifier: GPL-2.0-or-later\n")
+
+        assert found == {"GPL-2.0-or-later"}, found
+
+
+class TestTheLineEndsWhereTheCommentDoes:
+    """Taking the rest of the line means taking whatever closes the comment."""
+
+    @pytest.mark.parametrize("text,expected", [
+        ("/* SPDX-License-Identifier: MIT OR Apache-2.0 */\n", {"MIT", "Apache-2.0"}),
+        ("<!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->\n", {"MIT", "Apache-2.0"}),
+        ("// SPDX-License-Identifier: MIT OR Apache-2.0\n", {"MIT", "Apache-2.0"}),
+        ("# SPDX-License-Identifier: MIT\n", {"MIT"}),
+        ("(* SPDX-License-Identifier: MIT *)\n", {"MIT"}),
+        ("(* SPDX-License-Identifier: BSD-2-Clause *)\n", {"BSD-2-Clause"}),
+    ])
+    def test_the_marker_is_not_taken_for_a_licence(self, tmp_path, text, expected):
+        """Asked of the header line alone. A second pattern reports the same
+        identifier under another match type, so looking at both together
+        cannot see this one failing."""
+        found = _header_records(tmp_path, "widget.c", text)
+
+        assert found == expected, (text, found)
+
+
+class TestTheMetadataPathsStillAgree:
+    """They always read an expression whole. The header line now matches."""
+
+    def test_package_json(self, tmp_path):
+        found = _reported(
+            tmp_path, "package.json",
+            json.dumps({"name": "x", "version": "1.0.0", "license": "MIT OR Apache-2.0"}),
+        )
+
+        assert {"MIT", "Apache-2.0"} <= found, found
+
+    def test_and_a_header_says_the_same(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.rs", "// SPDX-License-Identifier: MIT OR Apache-2.0\n",
+        )
+
+        assert {"MIT", "Apache-2.0"} <= found, found
+
+
+def _header_records(tmp_path, name, text):
+    """Only what the header line itself produced.
+
+    The identifier is also matched by a second pattern elsewhere, which
+    reports under a different match type, so a test that looks at both
+    together cannot see the header line truncating.
+    """
+    target = tmp_path / name
+    target.write_text(text)
+    result = subprocess.run(
+        [sys.executable, "-m", "osslili", "-f", "evidence", str(target)],
+        capture_output=True, text=True, cwd=REPO_ROOT,
+    )
+    assert result.returncode == 0, result.stderr
+    lines = result.stdout.splitlines()
+    start = next((i for i, line in enumerate(lines) if line.strip().startswith("{")), -1)
+    if start < 0:
+        return set()
+    data = json.loads("\n".join(lines[start:]))
+    return {
+        item.get("detected_license")
+        for scan in data.get("scan_results", [])
+        for item in scan.get("license_evidence", [])
+        if item.get("match_type") == "header_tag"
+    }
+
+
+class TestTheHeaderLineItself:
+    @pytest.mark.parametrize("expression,expected", [
+        ("MIT OR Apache-2.0", {"MIT", "Apache-2.0"}),
+        ("Apache-2.0 OR MIT OR BSD-3-Clause", {"MIT", "Apache-2.0", "BSD-3-Clause"}),
+        ("MIT AND BSD-3-Clause", {"MIT", "BSD-3-Clause"}),
+    ])
+    def test_it_reports_every_term(self, tmp_path, expression, expected):
+        found = _header_records(
+            tmp_path, "widget.c", f"// SPDX-License-Identifier: {expression}\n",
+        )
+
+        assert found == expected, (expression, found)
+
+    def test_and_a_parenthesised_expression_too(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c", "// SPDX-License-Identifier: (MIT AND BSD-3-Clause)\n",
+        )
+
+        assert found == {"MIT", "BSD-3-Clause"}, found
+
+    def test_a_single_identifier_stays_one(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c", "// SPDX-License-Identifier: GPL-2.0-or-later\n",
+        )
+
+        assert found == {"GPL-2.0-or-later"}, found
+
+
+class TestWhatFollowsTheExpressionIsNotPartOfIt:
+    """Taking the rest of the line meant taking a note written after the
+    licence, and the parser and the normaliser between them turned
+    "BSD-2-Clause (see LICENSE)" into BSD-3-Clause, a different licence."""
+
+    @pytest.mark.parametrize("text,expected", [
+        ("// License: BSD-2-Clause (see LICENSE)\n", {"BSD-2-Clause"}),
+        ("// License: GPL-2.0-only (see COPYING)\n", {"GPL-2.0-only"}),
+        ("// License: MIT for the parser only\n", {"MIT"}),
+        ("// SPDX-License-Identifier: MIT (see LICENSE for details)\n", {"MIT"}),
+    ])
+    def test_only_the_expression_is_read(self, tmp_path, text, expected):
+        found = _header_records(tmp_path, "widget.c", text)
+
+        assert found == expected, (text, found)
+
+    def test_and_no_other_licence_is_invented(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c", "// License: BSD-2-Clause (see LICENSE)\n",
+        )
+
+        assert "BSD-3-Clause" not in found, found
+
+
+class TestALicenceInAWithExpressionSurvives:
+    """The exception itself is not reported, which is issue #24 and the whole
+    detector's behaviour. The licence it modifies must at least come back."""
+
+    def test_the_licence_is_reported(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GPL-2.0-only WITH Classpath-exception-2.0\n",
+        )
+
+        assert found == {"GPL-2.0-only"}, found
+
+    def test_and_it_keeps_its_only_suffix(self, tmp_path):
+        """Reporting GPL-2.0 instead would say something stricter about later
+        versions than the file says."""
+        found = _header_records(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GPL-2.0-only WITH Classpath-exception-2.0\n",
+        )
+
+        assert "GPL-2.0" not in found, found
+
+
+class TestALaterVersionGrantSurvivesAnException:
+    """"GPL-2.0-or-later WITH Classpath-exception-2.0" was returned whole to
+    the normaliser, which reduced it to the base word and answered GPL-2.0,
+    modernised at the emission boundary to GPL-2.0-only: the opposite of what
+    the file grants."""
+
+    @pytest.mark.parametrize("expression,expected", [
+        ("GPL-2.0-or-later WITH Classpath-exception-2.0", {"GPL-2.0-or-later"}),
+        ("GPL-2.0-only WITH Classpath-exception-2.0", {"GPL-2.0-only"}),
+        ("LGPL-2.1-or-later WITH Classpath-exception-2.0", {"LGPL-2.1-or-later"}),
+        ("GPL-3.0-or-later", {"GPL-3.0-or-later"}),
+    ])
+    def test_the_licence_keeps_its_suffix(self, tmp_path, expression, expected):
+        found = _header_records(
+            tmp_path, "widget.c", f"// SPDX-License-Identifier: {expression}\n",
+        )
+
+        assert found == expected, (expression, found)
+
+    def test_and_never_reads_as_only(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GPL-2.0-or-later WITH Classpath-exception-2.0\n",
+        )
+
+        assert "GPL-2.0-only" not in found and "GPL-2.0" not in found, found
+
+
+class TestProseIsNotAnExpression:
+    """SPDX writes its operators in upper case. Accepting them in any case
+    made a sentence into an expression."""
+
+    @pytest.mark.parametrize("text,expected", [
+        ("// License: MIT and BSD-compatible\n", {"MIT"}),
+        ("// License: MIT or something similar\n", {"MIT"}),
+        ("// License: MIT with attribution\n", {"MIT"}),
+    ])
+    def test_a_lower_case_conjunction_is_a_word(self, tmp_path, text, expected):
+        found = _header_records(tmp_path, "widget.c", text)
+
+        assert found == expected, (text, found)
+
+    def test_and_invents_no_second_licence(self, tmp_path):
+        found = _header_records(tmp_path, "widget.c", "// License: MIT and BSD-compatible\n")
+
+        assert "BSD-3-Clause" not in found, found
+
+    @pytest.mark.parametrize("text,expected", [
+        ("// License: MIT OR Apache-2.0\n", {"MIT", "Apache-2.0"}),
+        ("// License: MIT AND BSD-3-Clause\n", {"MIT", "BSD-3-Clause"}),
+    ])
+    def test_but_upper_case_still_joins(self, tmp_path, text, expected):
+        found = _header_records(tmp_path, "widget.c", text)
+
+        assert found == expected, (text, found)
+
+
+class TestTheExpressionHeaderTakesAnExpression:
+    """License-Expression: is the Python metadata form, and it was reading
+    one word of one."""
+
+    def _all_tags(self, tmp_path, text):
+        target = tmp_path / "METADATA"
+        target.write_text(text)
+        result = subprocess.run(
+            [sys.executable, "-m", "osslili", "-f", "evidence", str(target)],
+            capture_output=True, text=True, cwd=REPO_ROOT,
+        )
+        assert result.returncode == 0, result.stderr
+        lines = result.stdout.splitlines()
+        start = next((i for i, line in enumerate(lines) if line.strip().startswith("{")), -1)
+        if start < 0:
+            return set()
+        data = json.loads("\n".join(lines[start:]))
+        return {
+            item.get("detected_license")
+            for scan in data.get("scan_results", [])
+            for item in scan.get("license_evidence", [])
+            if item.get("match_type") in ("header_tag", "spdx_identifier")
+        }
+
+    def test_both_terms_are_reported(self, tmp_path):
+        found = self._all_tags(tmp_path, "License-Expression: MIT OR Apache-2.0\n")
+
+        assert found == {"MIT", "Apache-2.0"}, found
+
+    def test_and_one_term_is_still_one(self, tmp_path):
+        found = self._all_tags(tmp_path, "License-Expression: MIT\n")
+
+        assert found == {"MIT"}, found
+
+
+class TestEveryLineBasedFormIsTrimmed:
+    """The trimming was applied where the header line is read and not where
+    the same forms are read a second time, so widening the capture carried
+    the trailing text into the other path instead."""
+
+    def _tags(self, tmp_path, name, text):
+        target = tmp_path / name
+        target.write_text(text)
+        result = subprocess.run(
+            [sys.executable, "-m", "osslili", "-f", "evidence", str(target)],
+            capture_output=True, text=True, cwd=REPO_ROOT,
+        )
+        assert result.returncode == 0, result.stderr
+        lines = result.stdout.splitlines()
+        start = next((i for i, line in enumerate(lines) if line.strip().startswith("{")), -1)
+        if start < 0:
+            return set()
+        data = json.loads("\n".join(lines[start:]))
+        return {
+            item.get("detected_license")
+            for scan in data.get("scan_results", [])
+            for item in scan.get("license_evidence", [])
+            if item.get("match_type") in (
+                "header_tag", "spdx_identifier", "package_metadata",
+            )
+        }
+
+    @pytest.mark.parametrize("line,expected", [
+        ("License-Expression: MIT and BSD-compatible", {"MIT"}),
+        ("License-Expression: BSD-2-Clause (see LICENSE)", {"BSD-2-Clause"}),
+        ("License-Expression: MIT OR Apache-2.0", {"MIT", "Apache-2.0"}),
+        ("License-Expression: MIT", {"MIT"}),
+    ])
+    def test_the_python_metadata_form(self, tmp_path, line, expected):
+        found = self._tags(tmp_path, "METADATA", line + "\n")
+
+        assert found == expected, (line, found)
+
+    def test_and_it_invents_no_licence(self, tmp_path):
+        found = self._tags(
+            tmp_path, "METADATA", "License-Expression: BSD-2-Clause (see LICENSE)\n",
+        )
+
+        assert "BSD-3-Clause" not in found, found
+
+
+class TestAMetadataValueIsNotTrimmed:
+    """A JSON or TOML value is already bounded by its quotes, so the rule for
+    lines must not be applied to it."""
+
+    def _tags(self, tmp_path, name, text):
+        return TestEveryLineBasedFormIsTrimmed._tags(
+            TestEveryLineBasedFormIsTrimmed(), tmp_path, name, text,
+        )
+
+    @pytest.mark.parametrize("value,expected", [
+        ("MIT OR Apache-2.0", {"MIT", "Apache-2.0"}),
+        ("MIT", {"MIT"}),
+        ("BSD-3-Clause", {"BSD-3-Clause"}),
+        # Names rather than identifiers, which is what a metadata value often
+        # carries. Trimming these to their first word would leave "The" and
+        # "Apache", and the first of those is nothing at all.
+        ("The MIT License", {"MIT"}),
+        ("Apache License 2.0", {"Apache-2.0"}),
+    ])
+    def test_package_json_reads_its_value_whole(self, tmp_path, value, expected):
+        found = self._tags(
+            tmp_path, "package.json",
+            json.dumps({"name": "x", "version": "1.0.0", "license": value}),
+        )
+
+        assert expected <= found, (value, found)
+
+
+class TestWhichPatternsCountAsALine:
+    """Whether a capture is trimmed is decided by whether its pattern is
+    anchored to the start of a line. That distinction is hard to see from
+    outside, because the metadata files each have their own parser as well,
+    so it is asserted here on the patterns themselves.
+    """
+
+    def _detector(self):
+        from osslili.core.models import Config
+        from osslili.detectors.license_detector import LicenseDetector
+
+        return LicenseDetector(Config())
+
+    def test_the_header_forms_read_a_line(self):
+        from osslili.detectors.license_detector import _reads_a_line
+
+        reading = [
+            p.pattern for p in self._detector().spdx_tag_patterns
+            if _reads_a_line(p)
+        ]
+        joined = " ".join(reading)
+
+        for form in ("SPDX-License-Identifier", "License-Expression",
+                     "License:", "@license"):
+            assert form in joined, (form, reading)
+
+    def test_and_no_quoted_value_does(self):
+        """A value is bounded by its quotes, so what follows it on the line
+        was never captured, and trimming would take "The MIT License" down to
+        "The". The TOML form is anchored to a line start as well, so the
+        anchor cannot be what decides this."""
+        from osslili.detectors.license_detector import _reads_a_line
+
+        trimmed = [
+            p.pattern for p in self._detector().spdx_tag_patterns
+            if _reads_a_line(p)
+        ]
+
+        assert not any('"' in pattern for pattern in trimmed), trimmed
+
+    def test_including_the_anchored_toml_one(self):
+        from osslili.detectors.license_detector import _reads_a_line
+
+        toml = [
+            p for p in self._detector().spdx_tag_patterns
+            if p.pattern.startswith("^") and 'license\\s*=\\s*"' in p.pattern
+        ]
+
+        assert toml, "no anchored TOML value pattern found"
+        assert not any(_reads_a_line(p) for p in toml), [p.pattern for p in toml]
+
+    def test_the_trimming_takes_the_expression_only(self):
+        from osslili.detectors.license_detector import _expression_at_the_front
+
+        names = self._detector()._names_a_licence
+
+        assert _expression_at_the_front("MIT OR Apache-2.0", names) == "MIT OR Apache-2.0"
+        assert _expression_at_the_front("BSD-2-Clause (see LICENSE)", names) == "BSD-2-Clause"
+        assert _expression_at_the_front("MIT and BSD-compatible", names) == "MIT"
+
+    def test_a_field_that_holds_an_expression_reads_more_of_the_line(self):
+        """The lower-case operator and the comma are offered only there."""
+        from osslili.detectors.license_detector import _expression_at_the_front
+
+        names = self._detector()._names_a_licence
+
+        assert _expression_at_the_front("MIT or Apache-2.0", names) == "MIT"
+        assert _expression_at_the_front(
+            "MIT or Apache-2.0", names, True,
+        ) == "MIT or Apache-2.0"
+        assert _expression_at_the_front("MIT, Apache-2.0", names) == "MIT"
+        assert _expression_at_the_front(
+            "MIT, Apache-2.0", names, True,
+        ) == "MIT, Apache-2.0"
+
+    def test_and_would_ruin_a_licence_name(self):
+        """Which is why the metadata values are left alone."""
+        from osslili.detectors.license_detector import _expression_at_the_front
+
+        names = self._detector()._names_a_licence
+
+        assert _expression_at_the_front("The MIT License", names) == "The"
+
+
+class TestTheAnnotationFormTakesAnExpression:
+    """@license is the JavaScript annotation, and it read one word."""
+
+    @pytest.mark.parametrize("value,expected", [
+        ("MIT OR Apache-2.0", {"MIT", "Apache-2.0"}),
+        ("MIT", {"MIT"}),
+        ("MIT AND BSD-3-Clause", {"MIT", "BSD-3-Clause"}),
+    ])
+    def test_every_term_is_reported(self, tmp_path, value, expected):
+        found = _reported(tmp_path, "widget.js", f"// @license {value}\n")
+
+        assert expected <= found, (value, found)
+
+    def test_and_a_note_after_it_is_not_a_licence(self, tmp_path):
+        found = _reported(tmp_path, "widget.js", "// @license MIT (see LICENSE)\n")
+
+        assert found == {"MIT"}, found
+
+
+class TestTheDeprecatedPlusFormInAWithExpression:
+    """GPL-2.0+ means or-later. Leaving the plus out of the operand took it
+    off and reported GPL-2.0, modernised later to GPL-2.0-only."""
+
+    def test_the_grant_survives(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GPL-2.0+ WITH Classpath-exception-2.0\n",
+        )
+
+        assert found == {"GPL-2.0-or-later"}, found
+
+    def test_and_is_not_turned_into_only(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GPL-2.0+ WITH Classpath-exception-2.0\n",
+        )
+
+        assert "GPL-2.0-only" not in found, found
+
+    def test_the_plus_form_alone_still_works(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c", "// SPDX-License-Identifier: GPL-2.0+\n",
+        )
+
+        assert found == {"GPL-2.0-or-later"}, found
+
+
+class TestBracketsAroundPartOfTheExpression:
+    """The kernel's own dual licence tag nests brackets:
+
+        SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR MIT)
+
+    A term that allowed a single bracket matched nothing at the first
+    character, so the trim returned the empty string and the whole line was
+    thrown away, leaving a file with no licence at all.
+    """
+
+    def test_a_nested_expression_is_read(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.h",
+            "/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note)"
+            " OR MIT) */\n",
+        )
+
+        assert "MIT" in found, found
+
+    def test_and_the_line_is_not_thrown_away(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.h",
+            "/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note)"
+            " OR MIT) */\n",
+        )
+
+        assert found, "the licence on line 1 was discarded"
+
+    def test_a_doubled_bracket_keeps_both_terms(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.h",
+            "/* SPDX-License-Identifier: ((MIT OR Apache-2.0)) */\n",
+        )
+
+        assert found == {"MIT", "Apache-2.0"}, found
+
+
+class TestALicenceNameIsNotAnExpression:
+    """"Licensed under the ..." carries a licence name in prose, not an SPDX
+    expression. Trimming its capture to the expression at the front cut the
+    name at its first space: "the MIT No Attribution License" became MIT,
+    asserting an attribution obligation the licensor had waived, and the
+    longer names lost their identifier outright.
+    """
+
+    @pytest.mark.parametrize("name,expected", [
+        ("MIT No Attribution License", "MIT-0"),
+        ("Eclipse Public License 2.0", "EPL-2.0"),
+        ("European Union Public License 1.2", "EUPL-1.2"),
+        ("Creative Commons Attribution 4.0 International License", "CC-BY-4.0"),
+    ])
+    def test_the_whole_name_is_read(self, tmp_path, name, expected):
+        found = _reported(tmp_path, "widget.c", f"// Licensed under the {name}\n")
+
+        assert expected in found, (name, found)
+
+    def test_and_no_attribution_is_not_turned_into_attribution(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.c",
+            "// Licensed under the MIT No Attribution License\n",
+        )
+
+        assert "MIT" not in found, found
+
+    def test_an_expression_after_the_words_still_parses(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.c", "// Licensed under the MIT OR Apache-2.0\n",
+        )
+
+        assert {"MIT", "Apache-2.0"} <= found, found
+
+
+class TestSpaceInsideTheBrackets:
+    """SPDX allows space inside the brackets. A term that did not was refused
+    at the first character, so the trim returned nothing and the whole line
+    was discarded."""
+
+    @pytest.mark.parametrize("expression", [
+        "( MIT OR Apache-2.0 )",
+        "(MIT OR Apache-2.0 )",
+        "( MIT OR Apache-2.0)",
+        "( ( MIT OR Apache-2.0 ) )",
+    ])
+    def test_both_terms_survive_the_space(self, tmp_path, expression):
+        found = _reported(
+            tmp_path, "widget.c", f"// SPDX-License-Identifier: {expression}\n",
+        )
+
+        assert found == {"MIT", "Apache-2.0"}, (expression, found)
+
+
+class TestThePlusIsAGrantNotAQuantifier:
+    """A plus that ends an identifier is the deprecated or-later form. It was
+    listed among the regex characters that mark a false positive, so once the
+    reader stopped truncating the line and the plus reached that check,
+    "@license GPL-2.0+" was thrown away and the file had no licence."""
+
+    def test_the_licence_line_keeps_it(self, tmp_path):
+        found = _reported(tmp_path, "widget.js", "// @license GPL-2.0+\n")
+
+        assert found == {"GPL-2.0-or-later"}, found
+
+    def test_and_it_is_not_read_as_only(self, tmp_path):
+        found = _reported(tmp_path, "widget.js", "// @license GPL-2.0+\n")
+
+        assert "GPL-2.0-only" not in found, found
+
+    def test_a_regex_is_still_refused(self, tmp_path):
+        found = _reported(tmp_path, "widget.js", "// @license [a-z]+\n")
+
+        assert not found, found
+
+    @pytest.mark.parametrize("value,is_false_positive", [
+        ("GPL-2.0+", False),
+        ("LGPL-2.1+", False),
+        ("a[b]+", True),
+        ("GPL-2.0\\d+", True),
+        (".*+", True),
+        ("MIT{2}+", True),
+    ])
+    def test_only_an_identifier_may_carry_it(self, value, is_false_positive):
+        """The rule is an identifier followed by a plus, not a trailing plus.
+
+        A value that reaches this check without passing through the line trim
+        keeps whatever else is written in it, and a bare "ends with a plus"
+        would wave a regex through on the strength of its last character.
+        """
+        from osslili.core.models import Config
+        from osslili.detectors.license_detector import LicenseDetector
+
+        detector = LicenseDetector(Config())
+
+        assert detector._is_false_positive_license(value) is is_false_positive, value
+
+
+class TestALowerCaseOperatorIsReadWhereBothSidesAreLicences:
+    """SPDX writes its operators in upper case, and a reader that insisted on
+    it dropped the second term of "SPDX-License-Identifier: MIT or
+    Apache-2.0", which names two licences.
+
+    Reading them in any case everywhere is worse: in a sentence the same
+    words are ordinary English, and "MIT and BSD-compatible" reported
+    BSD-3-Clause, a licence the file does not name. What separates the two is
+    not the case of the operator but whether each side of it is a licence.
+    """
+
+    @pytest.mark.parametrize("tag", [
+        "SPDX-License-Identifier:",
+        "License-Expression:",
+    ])
+    def test_a_field_that_holds_only_an_expression_reads_it(self, tmp_path, tag):
+        found = _reported(tmp_path, "widget.c", f"// {tag} MIT or Apache-2.0\n")
+
+        assert found == {"MIT", "Apache-2.0"}, (tag, found)
+
+    @pytest.mark.parametrize("tag", [
+        "SPDX-License-Identifier:",
+        "License-Expression:",
+    ])
+    def test_but_not_when_a_side_is_a_description(self, tmp_path, tag):
+        found = _reported(tmp_path, "widget.c", f"// {tag} MIT and BSD-compatible\n")
+
+        assert found == {"MIT"}, (tag, found)
+
+    def test_a_free_text_field_still_refuses_the_lower_case_word(self, tmp_path):
+        """"License:" holds prose, so "and" there is English whatever it joins."""
+        found = _reported(tmp_path, "widget.c", "// License: MIT and Apache-2.0\n")
+
+        assert found == {"MIT"}, found
+
+    def test_brackets_and_a_lower_case_operator_together(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.c", "// SPDX-License-Identifier: (MIT or Apache-2.0)\n",
+        )
+
+        assert found == {"MIT", "Apache-2.0"}, found
+
+    @pytest.mark.parametrize("line", [
+        "// SPDX-License-Identifier: MIT AND BSD-compatible\n",
+        "// License: MIT AND BSD-compatible\n",
+    ])
+    def test_an_upper_case_operator_is_held_to_the_same_test(self, tmp_path, line):
+        """Upper case is what SPDX defines, but the case of the word was
+        never what separated an expression from a sentence. "MIT AND
+        BSD-compatible" is a sentence about MIT, and taking the AND at its
+        word reported BSD-3-Clause, which the file does not name."""
+        found = _reported(tmp_path, "widget.c", line)
+
+        assert found == {"MIT"}, (line, found)
+
+
+class TestAnExceptionIsNotATermOfTheExpression:
+    """What follows WITH is an exception, not a licence. Asking whether it
+    named one refused the whole expression, and the choice after it was
+    lost."""
+
+    def test_a_choice_after_an_exception_survives(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GPL-2.0-only WITH"
+            " Classpath-exception-2.0 or MIT\n",
+        )
+
+        assert found == {"GPL-2.0-only", "MIT"}, found
+
+    def test_the_upper_case_spelling_agrees(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GPL-2.0-only WITH"
+            " Classpath-exception-2.0 OR MIT\n",
+        )
+
+        assert found == {"GPL-2.0-only", "MIT"}, found
+
+    def test_a_description_after_an_exception_is_still_refused(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GPL-2.0-only WITH"
+            " Classpath-exception-2.0 and BSD-compatible\n",
+        )
+
+        assert found == {"GPL-2.0-only"}, found
+
+
+class TestAPlusThatResolvesToNothing:
+    """SPDX replaced the deprecated "or later" form for the GNU family and
+    nowhere else. "MIT+" therefore names no licence, and was emitted verbatim
+    as though it did. The plus is what does not resolve, not the identifier
+    under it."""
+
+    @pytest.mark.parametrize("tag", [
+        "// SPDX-License-Identifier: MIT+\n",
+        "// @license MIT+\n",
+    ])
+    def test_the_identifier_under_it_is_reported(self, tmp_path, tag):
+        found = _reported(tmp_path, "widget.c", tag)
+
+        assert found == {"MIT"}, (tag, found)
+
+    @pytest.mark.parametrize("tag", [
+        "// SPDX-License-Identifier: MIT+\n",
+        "// @license MIT+\n",
+    ])
+    def test_and_the_plus_form_is_not(self, tmp_path, tag):
+        found = _reported(tmp_path, "widget.c", tag)
+
+        assert "MIT+" not in found, (tag, found)
+
+    @pytest.mark.parametrize("expression,expected", [
+        ("GPL-2.0+", "GPL-2.0-or-later"),
+        ("LGPL-2.1+", "LGPL-2.1-or-later"),
+    ])
+    def test_a_plus_that_does_resolve_is_untouched(self, tmp_path, expression, expected):
+        found = _reported(
+            tmp_path, "widget.c", f"// SPDX-License-Identifier: {expression}\n",
+        )
+
+        assert found == {expected}, (expression, found)
+
+    def test_a_plus_on_nothing_recognisable_is_refused(self, tmp_path):
+        found = _reported(tmp_path, "widget.c", "// @license Whatever-9.9+\n")
+
+        assert not found, found
+
+    @pytest.mark.parametrize("value,expected", [
+        ("GPL-2.0+", "GPL-2.0-or-later"),
+        ("LGPL-2.1+", "LGPL-2.1-or-later"),
+        ("MIT+", "MIT"),
+        ("Apache-2.0+", "Apache-2.0"),
+        ("Whatever-9.9+", "Whatever-9.9+"),
+    ])
+    def test_the_rule_itself(self, value, expected):
+        """A plus resolves to the or-later id where SPDX defines one, to the
+        identifier under it where that is a licence, and otherwise not at all.
+
+        The last case is the one the emission guard would also catch. It is
+        asserted here because this function promises never to answer with an
+        id that is not one, and a caller is entitled to rely on that without
+        a second guard behind it.
+        """
+        from osslili.core.models import Config
+        from osslili.detectors.license_detector import LicenseDetector
+
+        detector = LicenseDetector(Config())
+
+        assert detector._to_modern_spdx_id(value) == expected, value
+
+
+class TestATermThatIsNotInTheList:
+    """The rule that decides whether a lower-case operator is an operator
+    asks whether each term is a licence, and the SPDX list alone is too
+    narrow an answer: the deprecated forms this detector resolves itself are
+    not in it, and a reference to a licence held elsewhere never can be."""
+
+    def test_a_deprecated_form_is_a_licence(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.c", "// SPDX-License-Identifier: GFDL-1.3+ or MIT\n",
+        )
+
+        assert found == {"GFDL-1.3-or-later", "MIT"}, found
+
+    @pytest.mark.parametrize("reference", [
+        "LicenseRef-foo",
+        "DocumentRef-upstream:LicenseRef-foo",
+    ])
+    def test_a_reference_to_a_licence_elsewhere_is_one(self, tmp_path, reference):
+        found = _reported(
+            tmp_path, "widget.c",
+            f"// SPDX-License-Identifier: {reference} or MIT\n",
+        )
+
+        assert "MIT" in found, (reference, found)
+
+    @pytest.mark.parametrize("reference", [
+        "LicenseRef-foo",
+        "DocumentRef-upstream:LicenseRef-foo",
+    ])
+    def test_and_the_upper_case_spelling_agrees(self, tmp_path, reference):
+        found = _reported(
+            tmp_path, "widget.c",
+            f"// SPDX-License-Identifier: {reference} OR MIT\n",
+        )
+
+        assert "MIT" in found, (reference, found)
+
+    def test_a_description_is_still_not_a_licence(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GFDL-1.3+ and BSD-compatible\n",
+        )
+
+        assert found == {"GFDL-1.3-or-later"}, found
+
+
+class TestTheLowerCaseSpellingOfWith:
+    """WITH is an operator like the others, and reading it only in upper case
+    stopped the expression at the exception, losing the choice after it."""
+
+    def test_a_choice_after_a_lower_case_with(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GPL-2.0-only with"
+            " Classpath-exception-2.0 or MIT\n",
+        )
+
+        assert found == {"GPL-2.0-only", "MIT"}, found
+
+
+class TestBothReadersOfALineAgree:
+    """A header line is read in two places: one reader looks at the top of a
+    file, the other at any line of it. Both decide whether a lower-case
+    operator counts, and while they spelled that decision out separately they
+    could disagree, so a free-text form reached only by the second was read
+    as though it held an expression."""
+
+    def test_a_free_text_form_below_the_header_is_still_prose(self, tmp_path):
+        found = _reported(tmp_path, "widget.js", "// @license MIT and Apache-2.0\n")
+
+        assert found == {"MIT"}, found
+
+    def test_and_an_expression_form_below_it_is_still_an_expression(self, tmp_path):
+        body = "// widget\n" * 60
+        found = _reported(
+            tmp_path, "widget.c",
+            body + "// SPDX-License-Identifier: MIT or Apache-2.0\n",
+        )
+
+        assert found == {"MIT", "Apache-2.0"}, found
+
+    def test_the_upper_case_operator_reaches_both(self, tmp_path):
+        found = _reported(tmp_path, "widget.js", "// @license MIT AND Apache-2.0\n")
+
+        assert found == {"MIT", "Apache-2.0"}, found
+
+
+class TestACommaJoinsAList:
+    """A comma stands in for an operator, "GPL-2.0, BSD-3-Clause", and the
+    grammar had none, so the line was cut at the first licence. It is read
+    like a lower-case operator, and for the same reason: "BSD-2-Clause, see
+    LICENSE" is a sentence."""
+
+    def test_both_licences_are_reported(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GPL-2.0, BSD-3-Clause\n",
+        )
+
+        assert found == {"GPL-2.0-only", "BSD-3-Clause"}, found
+
+    def test_a_note_after_one_is_not_a_licence(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c", "// License: BSD-2-Clause, see LICENSE\n",
+        )
+
+        assert found == {"BSD-2-Clause"}, found
+
+
+class TestATermIsALicenceWhateverItsCase:
+    """The tag itself is matched without regard to case, and the licence in
+    it may be written the way its authors write it. Asking the SPDX list
+    case-sensitively refused the expression around such a term."""
+
+    @pytest.mark.parametrize("line,expected", [
+        ("// SPDX-License-Identifier: EUPL-1.2 or CeCILL-2.1\n",
+         {"EUPL-1.2", "CECILL-2.1"}),
+        ("// spdx-license-identifier: mit or apache-2.0\n",
+         {"MIT", "Apache-2.0"}),
+    ])
+    def test_every_term_survives(self, tmp_path, line, expected):
+        found = _header_records(tmp_path, "widget.c", line)
+
+        assert found == expected, (line, found)
+
+    def test_a_description_is_still_not_a_licence(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: MIT or bsd-compatible\n",
+        )
+
+        assert found == {"MIT"}, found
+
+
+class TestTheHeaderReaderIsPinnedOnItsOwn:
+    """Two readers answer for a header line, and every test that compares
+    the union of what they report lets one mask the other: the reader at the
+    top of the file can lose a term and the reader of any line put it back
+    under a different match type, so the assertion still holds and the fault
+    is invisible. These look at the header reader's records alone."""
+
+    def test_a_lower_case_operator_reaches_the_header_reader(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c", "// SPDX-License-Identifier: MIT or Apache-2.0\n",
+        )
+
+        assert found == {"MIT", "Apache-2.0"}, found
+
+    def test_and_a_sentence_does_not(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c", "// License: MIT and BSD-compatible\n",
+        )
+
+        assert found == {"MIT"}, found
+
+    def test_a_name_written_with_a_space_reports_the_first_licence(self, tmp_path):
+        """Not an SPDX identifier, so no reading can span it. The first
+        licence is reported and the rest of the line is not, because
+        admitting a space into a term is how prose gets in."""
+        found = _header_records(
+            tmp_path, "widget.c", "// SPDX-License-Identifier: Apache 2.0 or MIT\n",
+        )
+
+        assert found == {"Apache-2.0"}, found
+
+
+class TestACommaMixedWithAnOperator:
+    """A comma was handled only where the expression had no operator at all,
+    so a list that mixed the two lost the term on one side of the comma."""
+
+    @pytest.mark.parametrize("expression,expected", [
+        ("MIT, Apache-2.0 OR BSD-3-Clause", {"MIT", "Apache-2.0", "BSD-3-Clause"}),
+        ("MIT OR Apache-2.0, BSD-3-Clause", {"MIT", "Apache-2.0", "BSD-3-Clause"}),
+        ("MIT, Apache-2.0", {"MIT", "Apache-2.0"}),
+        ("MIT, Apache-2.0, BSD-3-Clause", {"MIT", "Apache-2.0", "BSD-3-Clause"}),
+    ])
+    def test_every_term_is_reported(self, tmp_path, expression, expected):
+        found = _header_records(
+            tmp_path, "widget.c", f"// SPDX-License-Identifier: {expression}\n",
+        )
+
+        assert found == expected, (expression, found)
+
+    def test_a_comma_after_an_exception(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GPL-2.0-only WITH"
+            " Classpath-exception-2.0, MIT\n",
+        )
+
+        assert found == {"GPL-2.0-only", "MIT"}, found
+
+
+class TestTheDocumentFormsToo:
+    """A document has no comment syntax, so it is read by its own set of
+    patterns, and this branch widened two of their captures without a test
+    reaching them. A README that states a licence in an SPDX tag deserves the
+    same reading as a source file that does."""
+
+    def _in_a_document(self, tmp_path, tag):
+        body = "# Widget\n\nSome prose.\n" * 20
+        return _reported(tmp_path, "README.md", body + tag + "\n")
+
+    @pytest.mark.parametrize("tag", [
+        "SPDX-License-Identifier: MIT OR Apache-2.0",
+        "License-Expression: MIT OR Apache-2.0",
+        "@license MIT OR Apache-2.0",
+    ])
+    def test_every_term_is_reported(self, tmp_path, tag):
+        found = self._in_a_document(tmp_path, tag)
+
+        assert found == {"MIT", "Apache-2.0"}, (tag, found)
+
+    @pytest.mark.parametrize("tag", [
+        "SPDX-License-Identifier: BSD-2-Clause (see LICENSE)",
+        "License-Expression: BSD-2-Clause (see LICENSE)",
+        "@license BSD-2-Clause (see LICENSE)",
+    ])
+    def test_and_a_note_after_it_is_not_a_licence(self, tmp_path, tag):
+        found = self._in_a_document(tmp_path, tag)
+
+        assert found == {"BSD-2-Clause"}, (tag, found)
+
+    def test_a_licence_below_the_header_keeps_its_version(self, tmp_path):
+        """The pattern that reads any line of a file, rather than its top,
+        captures the identifier itself. Losing the hyphen and the dot from
+        that capture left "BSD" behind, which the normaliser answered with
+        BSD-3-Clause: a different licence."""
+        body = "// widget\n" * 60
+        found = _reported(tmp_path, "widget.c", body + "License: BSD-2-Clause\n")
+
+        assert found == {"BSD-2-Clause"}, found

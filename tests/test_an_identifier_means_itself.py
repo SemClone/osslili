@@ -30,11 +30,8 @@ def _reported(tmp_path, text, name="LICENSE"):
     """What the tool says about a file, through the interface a caller uses."""
     target = tmp_path / name
     target.write_text(text)
-    command = Path(sys.executable).parent / "osslili"
-    if not command.exists():
-        pytest.skip("the osslili console script is not installed beside this interpreter")
     result = subprocess.run(
-        [str(command), "-f", "evidence", str(target)],
+        [sys.executable, "-m", "osslili", "-f", "evidence", str(target)],
         capture_output=True, text=True, cwd=REPO_ROOT,
     )
     assert result.returncode == 0, result.stderr
