@@ -58,13 +58,19 @@ class CopyrightInfo:
     statement: str = ""
     source_file: Optional[str] = None
     confidence: float = 0.0
-    
+    # How many files the statement was found in. `source_file` names the
+    # first of them in scan order, and one file alone cannot tell a package's
+    # own copyright from a vendored one's: a statement in forty files is the
+    # package, a statement in one is usually not.
+    file_count: int = 1
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "holder": self.holder,
             "years": self.years,
             "statement": self.statement,
             "source_file": self.source_file,
+            "file_count": self.file_count,
             "confidence": self.confidence
         }
 

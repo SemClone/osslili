@@ -141,6 +141,7 @@ class EvidenceFormatter:
                     files_seen.add(source)
                     scan_result["copyright_evidence"].append({
                         "file": source,
+                        "file_count": copyright.file_count,
                         "holder": copyright.holder,
                         "years": copyright.years,
                         "statement": copyright.statement

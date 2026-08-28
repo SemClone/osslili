@@ -16,6 +16,35 @@ from ..utils.file_scanner import SafeFileScanner
 logger = logging.getLogger(__name__)
 
 
+def _the_file_itself(path):
+    """What identifies one file, whichever name it was reached by.
+
+    A file is reached more than once. A setup.py is read as source for the
+    lines in it and again as metadata for the author it declares; a LICENSE
+    may be a symbolic link to LICENSE.txt; two names may be hard links to one
+    file; and on a filesystem that ignores case, setup.py and Setup.py are
+    the same file spelled two ways. Counting the names counted one file
+    several times.
+
+    The filesystem's own answer is used, the device and inode, because that
+    is what "the same file" means and no comparison of names gets all four of
+    those cases right. Where it cannot be had, the resolved name is the most
+    that can be said, and failing that the name as given.
+    """
+    if not path:
+        return ""
+    try:
+        stat = Path(path).stat()
+        if stat.st_ino:
+            return (stat.st_dev, stat.st_ino)
+    except (OSError, ValueError, RuntimeError):
+        pass
+    try:
+        return str(Path(path).resolve())
+    except (OSError, ValueError, RuntimeError):
+        return str(path)
+
+
 class CopyrightExtractor:
     """Extract copyright information from source code."""
     
@@ -89,6 +118,7 @@ class CopyrightExtractor:
         """
         copyrights = []
         processed_statements = set()
+        said_in = {}
         
         if path.is_file():
             files_to_scan = [path]
@@ -97,48 +127,82 @@ class CopyrightExtractor:
             files_to_scan = self._find_copyright_files(path)
         
         logger.info(f"Scanning {len(files_to_scan)} files for copyright information")
-        
-        # Process files
+
+        # What each file yielded, kept against the file rather than merged as
+        # it arrives. Threads finish in whatever order they finish in, and
+        # reading the results in that order decided both the order of the
+        # list and, because a repeated statement is kept once, which file it
+        # was said to come from. The same scan of the same directory answered
+        # differently every time.
+        found_in = {
+            file_path: results
+            for file_path, results in self._extract_from_each(files_to_scan)
+        }
+
+        # Read them back in the order the files were chosen, which is the
+        # order this extractor means: the files most likely to carry the
+        # package's own copyright first.
+        for file_path in files_to_scan:
+            name = _the_file_itself(file_path)
+            for copyright_info in found_in.get(file_path, []):
+                # Which files said it, and not how many times it was
+                # matched. A header written "Copyright (c) 2014 ..." is found
+                # by the pattern for the word and again by the pattern for
+                # the sign, so counting the matches said a statement in
+                # twelve files was in twenty-four.
+                said_in.setdefault(copyright_info.statement, set()).add(name)
+                if copyright_info.statement in processed_statements:
+                    continue
+                processed_statements.add(copyright_info.statement)
+                copyrights.append(copyright_info)
+
+        # Sort by confidence. The sort is stable and what it sorts is now in
+        # a settled order, so equal confidences keep the order above.
+        copyrights.sort(key=lambda x: x.confidence, reverse=True)
+
+        # Also check package metadata. These files said it too: a name in
+        # both package.json and setup.py is in two of them, and counting the
+        # statement before they were read left it at one.
+        metadata_copyrights = self._extract_from_metadata(path)
+        for mc in metadata_copyrights:
+            said_in.setdefault(mc.statement, set()).add(
+                _the_file_itself(mc.source_file)
+            )
+            if mc.statement not in processed_statements:
+                processed_statements.add(mc.statement)
+                copyrights.append(mc)
+
+        # A consumer that can see a statement is in forty files and another
+        # in one can tell the package's own copyright from a vendored file's,
+        # which the first file alone does not tell it.
+        for copyright_info in copyrights:
+            copyright_info.file_count = len(said_in[copyright_info.statement])
+
+        return copyrights
+
+    def _extract_from_each(self, files_to_scan: List[Path]):
+        """Every file paired with what it yielded, in no particular order.
+
+        The caller puts them back in order. Threads are used only to read the
+        files, not to decide what the answer looks like.
+        """
         if self.config.thread_count > 1 and len(files_to_scan) > 10:
-            # Multi-threaded processing for many files
             with ThreadPoolExecutor(max_workers=self.config.thread_count) as executor:
                 futures = {
                     executor.submit(self._extract_copyrights_from_file, file_path): file_path
                     for file_path in files_to_scan
                 }
-                
+
                 for future in as_completed(futures):
+                    file_path = futures[future]
                     try:
-                        file_copyrights = future.result()
-                        for copyright_info in file_copyrights:
-                            # Deduplicate by statement
-                            if copyright_info.statement not in processed_statements:
-                                processed_statements.add(copyright_info.statement)
-                                copyrights.append(copyright_info)
+                        yield file_path, future.result()
                     except Exception as e:
-                        file_path = futures[future]
                         logger.error(f"Error extracting copyright from {file_path}: {e}")
         else:
-            # Single-threaded processing
             for file_path in files_to_scan:
-                file_copyrights = self._extract_copyrights_from_file(file_path)
-                for copyright_info in file_copyrights:
-                    if copyright_info.statement not in processed_statements:
-                        processed_statements.add(copyright_info.statement)
-                        copyrights.append(copyright_info)
-        
-        # Sort by confidence
-        copyrights.sort(key=lambda x: x.confidence, reverse=True)
-        
-        # Also check package metadata
-        metadata_copyrights = self._extract_from_metadata(path)
-        for mc in metadata_copyrights:
-            if mc.statement not in processed_statements:
-                processed_statements.add(mc.statement)
-                copyrights.append(mc)
-        
-        return copyrights
-    
+                yield file_path, self._extract_copyrights_from_file(file_path)
+
     def _find_copyright_files(self, directory: Path) -> List[Path]:
         """Find files likely to contain copyright information."""
         files_to_scan = []
@@ -147,22 +211,29 @@ class CopyrightExtractor:
             follow_symlinks=False
         )
         
+        # Each group is sorted, because a directory walk returns what the
+        # filesystem gives it and two machines need not agree. The groups
+        # themselves stay in the order below, which is what this method
+        # means: the files most likely to carry the package's own copyright
+        # are read first, and a statement is attributed to the first file it
+        # was found in.
+
         # Priority 1: License and author files
         for file_name in self.author_files:
-            for file_path in scanner.scan_directory(directory, file_name):
+            for file_path in sorted(scanner.scan_directory(directory, file_name)):
                 files_to_scan.append(file_path)
         
         # Priority 2: License files (only at root level)
         license_patterns = ['LICENSE*', 'LICENCE*', 'COPYING*', 'COPYRIGHT*', 'NOTICE*']
         for pattern in license_patterns:
-            for file_path in directory.glob(pattern):
+            for file_path in sorted(directory.glob(pattern)):
                 if file_path.is_file() and file_path not in files_to_scan:
                     files_to_scan.append(file_path)
         
         # Priority 3: README files (only at root level)
         readme_patterns = ['README*', 'readme*']
         for pattern in readme_patterns:
-            for file_path in directory.glob(pattern):
+            for file_path in sorted(directory.glob(pattern)):
                 if file_path.is_file() and file_path not in files_to_scan:
                     files_to_scan.append(file_path)
         
@@ -177,7 +248,7 @@ class CopyrightExtractor:
         
         # Scan ALL source files - no limit
         for ext in source_extensions:
-            for file_path in scanner.scan_directory(directory, f'*{ext}'):
+            for file_path in sorted(scanner.scan_directory(directory, f'*{ext}')):
                 if file_path not in files_to_scan:
                     files_to_scan.append(file_path)
         
