@@ -170,3 +170,138 @@ class TestHowManyFilesSaidIt:
             ])
 
         assert len({once() for _ in range(3)}) == 1
+
+
+class TestWhatTheCountCounts:
+    """Files, not matches. A header written "Copyright (c) 2014 ..." is found
+    by the pattern for the word and again by the pattern for the sign, so
+    counting the matches said a statement in twelve files was in twenty-four,
+    and a licence file naming its author once said two."""
+
+    def _written_twice_over(self, tmp_path, how_many):
+        root = tmp_path / "widget"
+        root.mkdir()
+        for index in range(how_many):
+            (root / f"f{index:02d}.c").write_text(
+                "// Copyright (c) 2014 Manu Martinez-Almeida\n"
+                f"int x{index};\n"
+            )
+        return root
+
+    def test_a_statement_matched_twice_in_one_file_counts_once(self, tmp_path):
+        root = self._written_twice_over(tmp_path, 12)
+
+        counts = {
+            c.statement: c.file_count
+            for c in _extractor().extract_copyrights(root)
+        }
+
+        assert set(counts.values()) == {12}, counts
+
+    def test_and_a_single_file_counts_one(self, tmp_path):
+        root = self._written_twice_over(tmp_path, 1)
+
+        counts = {
+            c.statement: c.file_count
+            for c in _extractor().extract_copyrights(root)
+        }
+
+        assert set(counts.values()) == {1}, counts
+
+
+class TestTheMetadataFilesCountToo:
+    """A name in both package.json and setup.py is in two files. The count
+    was settled before those files were read, so it stayed at one."""
+
+    def _a_package(self, tmp_path):
+        import json as _json
+
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "package.json").write_text(
+            _json.dumps({"name": "widget", "version": "1.0.0", "author": "Acme Labs"})
+        )
+        (root / "setup.py").write_text(
+            'from setuptools import setup\nsetup(name="widget", author="Acme Labs")\n'
+        )
+        return root
+
+    def test_the_name_is_found_at_all(self, tmp_path):
+        """Metadata is a separate pass, and nothing else here would notice if
+        it stopped running."""
+        root = self._a_package(tmp_path)
+
+        statements = {c.statement for c in _extractor().extract_copyrights(root)}
+
+        assert "Copyright Acme Labs" in statements, statements
+
+    def test_and_both_files_are_counted(self, tmp_path):
+        root = self._a_package(tmp_path)
+
+        counts = {
+            c.statement: c.file_count
+            for c in _extractor().extract_copyrights(root)
+        }
+
+        assert counts["Copyright Acme Labs"] == 2, counts
+
+
+class TestEveryGroupOfFilesIsSorted:
+    """The search reads author files, then licence files, then READMEs, then
+    source. Each group is walked separately and each needed sorting: a group
+    left in filesystem order picked whichever file the directory happened to
+    list first."""
+
+    def _named(self, tmp_path, *names):
+        root = tmp_path / "widget"
+        root.mkdir()
+        for name in names:
+            path = root / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("Copyright 2014 Manu Martinez-Almeida\n")
+        return root
+
+    def test_the_author_files(self, tmp_path):
+        root = self._named(tmp_path, "z/AUTHORS", "a/AUTHORS")
+
+        chosen = [
+            p for p in _extractor()._find_copyright_files(root)
+            if p.name == "AUTHORS"
+        ]
+
+        assert chosen == sorted(chosen), [str(p) for p in chosen]
+
+    def test_the_licence_files_at_the_root(self, tmp_path):
+        root = self._named(
+            tmp_path, "LICENSE.z", "LICENSE.m", "LICENSE.a", "LICENSE.b",
+        )
+
+        chosen = [
+            p.name for p in _extractor()._find_copyright_files(root)
+            if p.name.startswith("LICENSE")
+        ]
+
+        assert chosen == sorted(chosen), chosen
+
+    def test_the_readme_files_at_the_root(self, tmp_path):
+        root = self._named(
+            tmp_path, "README.z", "README.m", "README.a", "README.b",
+        )
+
+        chosen = [
+            p.name for p in _extractor()._find_copyright_files(root)
+            if p.name.startswith("README")
+        ]
+
+        assert chosen == sorted(chosen), chosen
+
+    def test_the_names_used_here_are_not_already_in_order(self, tmp_path):
+        """Two names come back from a directory in order often enough that a
+        test using two proves nothing. These four do not."""
+        root = self._named(
+            tmp_path, "README.z", "README.m", "README.a", "README.b",
+        )
+
+        walked = [p.name for p in root.glob("README*")]
+
+        assert walked != sorted(walked), walked

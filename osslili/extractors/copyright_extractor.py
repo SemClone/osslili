@@ -89,7 +89,7 @@ class CopyrightExtractor:
         """
         copyrights = []
         processed_statements = set()
-        seen_in = {}
+        said_in = {}
         
         if path.is_file():
             files_to_scan = [path]
@@ -115,31 +115,37 @@ class CopyrightExtractor:
         # package's own copyright first.
         for file_path in files_to_scan:
             for copyright_info in found_in.get(file_path, []):
+                # Which files said it, and not how many times it was matched.
+                # A header written "Copyright (c) 2014 ..." is found by the
+                # pattern for the word and again by the pattern for the sign,
+                # so counting the matches said a statement in twelve files
+                # was in twenty-four.
+                said_in.setdefault(copyright_info.statement, set()).add(file_path)
                 if copyright_info.statement in processed_statements:
-                    # Said in more than one file. A consumer that can see a
-                    # statement is in forty files and another in one can tell
-                    # the package's own copyright from a vendored file's,
-                    # which the first file alone does not tell it.
-                    seen_in[copyright_info.statement] += 1
                     continue
                 processed_statements.add(copyright_info.statement)
-                seen_in[copyright_info.statement] = 1
                 copyrights.append(copyright_info)
 
         # Sort by confidence. The sort is stable and what it sorts is now in
         # a settled order, so equal confidences keep the order above.
         copyrights.sort(key=lambda x: x.confidence, reverse=True)
 
-        for copyright_info in copyrights:
-            copyright_info.file_count = seen_in.get(copyright_info.statement, 1)
-        
-        # Also check package metadata
+        # Also check package metadata. These files said it too: a name in
+        # both package.json and setup.py is in two of them, and counting the
+        # statement before they were read left it at one.
         metadata_copyrights = self._extract_from_metadata(path)
         for mc in metadata_copyrights:
+            said_in.setdefault(mc.statement, set()).add(mc.source_file)
             if mc.statement not in processed_statements:
                 processed_statements.add(mc.statement)
                 copyrights.append(mc)
-        
+
+        # A consumer that can see a statement is in forty files and another
+        # in one can tell the package's own copyright from a vendored file's,
+        # which the first file alone does not tell it.
+        for copyright_info in copyrights:
+            copyright_info.file_count = len(said_in.get(copyright_info.statement, ())) or 1
+
         return copyrights
     
     def _extract_from_each(self, files_to_scan: List[Path]):
