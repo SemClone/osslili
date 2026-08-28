@@ -1003,3 +1003,44 @@ class TestACommaMixedWithAnOperator:
         )
 
         assert found == {"GPL-2.0-only", "MIT"}, found
+
+
+class TestTheDocumentFormsToo:
+    """A document has no comment syntax, so it is read by its own set of
+    patterns, and this branch widened two of their captures without a test
+    reaching them. A README that states a licence in an SPDX tag deserves the
+    same reading as a source file that does."""
+
+    def _in_a_document(self, tmp_path, tag):
+        body = "# Widget\n\nSome prose.\n" * 20
+        return _reported(tmp_path, "README.md", body + tag + "\n")
+
+    @pytest.mark.parametrize("tag", [
+        "SPDX-License-Identifier: MIT OR Apache-2.0",
+        "License-Expression: MIT OR Apache-2.0",
+        "@license MIT OR Apache-2.0",
+    ])
+    def test_every_term_is_reported(self, tmp_path, tag):
+        found = self._in_a_document(tmp_path, tag)
+
+        assert found == {"MIT", "Apache-2.0"}, (tag, found)
+
+    @pytest.mark.parametrize("tag", [
+        "SPDX-License-Identifier: BSD-2-Clause (see LICENSE)",
+        "License-Expression: BSD-2-Clause (see LICENSE)",
+        "@license BSD-2-Clause (see LICENSE)",
+    ])
+    def test_and_a_note_after_it_is_not_a_licence(self, tmp_path, tag):
+        found = self._in_a_document(tmp_path, tag)
+
+        assert found == {"BSD-2-Clause"}, (tag, found)
+
+    def test_a_licence_below_the_header_keeps_its_version(self, tmp_path):
+        """The pattern that reads any line of a file, rather than its top,
+        captures the identifier itself. Losing the hyphen and the dot from
+        that capture left "BSD" behind, which the normaliser answered with
+        BSD-3-Clause: a different licence."""
+        body = "// widget\n" * 60
+        found = _reported(tmp_path, "widget.c", body + "License: BSD-2-Clause\n")
+
+        assert found == {"BSD-2-Clause"}, found
