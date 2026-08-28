@@ -245,6 +245,29 @@ def _has_a_document_suffix(file_path) -> bool:
 _LICENCE_NAME = r'([A-Za-z0-9\-\.\s]+?)'
 
 
+# The shape of an SPDX expression: identifiers joined by OR, AND or WITH,
+# optionally in parentheses. Used to take the expression off the front of a
+# header line and leave whatever follows it, because the rest of the line is
+# not always the expression: "License: BSD-2-Clause (see LICENSE)" handed
+# whole to the parser became "BSD-2-Clause see LICENSE", which the normaliser
+# then read as plain BSD and reported as BSD-3-Clause.
+_EXPRESSION = re.compile(
+    r'\(?[A-Za-z0-9.\-+]+\)?'
+    r'(?:\s+(?:OR|AND|WITH)\s+\(?[A-Za-z0-9.\-+]+\)?)*',
+    re.IGNORECASE,
+)
+
+
+def _expression_at_the_front(text: str) -> str:
+    """The SPDX expression this line opens with, and nothing after it.
+
+    Brackets around a whole expression need no special handling: each term of
+    the pattern above allows one, so "(MIT AND BSD-3-Clause)" matches through.
+    """
+    match = _EXPRESSION.match(text.strip())
+    return match.group(0) if match else ''
+
+
 _SELF_REFERRING = (
     # optionally "Portions of ..."
     r'(?:portions\s+of\s+)?'
@@ -1272,10 +1295,9 @@ class LicenseDetector:
             matches = re.finditer(pattern, header_content, re.IGNORECASE | re.MULTILINE)
             for match in matches:
                 expression = match.group(1).strip()
-                # Trailing comment markers. The parentheses SPDX allows
-                # around a whole expression are left to the parser, which
-                # already takes them off.
-                expression = expression.rstrip('*/>-').strip()
+                # The expression, and not whatever follows it on the line:
+                # a closing comment marker, or a note like "(see LICENSE)".
+                expression = _expression_at_the_front(expression)
 
                 for license_id in self._parse_license_expression(expression):
 

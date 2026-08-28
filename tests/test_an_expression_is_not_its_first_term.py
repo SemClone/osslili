@@ -1,10 +1,13 @@
 """An SPDX expression on a header line is read whole.
 
 `SPDX-License-Identifier:` may carry an expression, and the header pattern
-stopped at the first space. `MIT OR Apache-2.0` was reported as MIT, dropping
-a choice the licensor offered, and `GPL-2.0-only WITH Classpath-exception-2.0`
-as GPL-2.0-only, dropping the exception that form exists for. Both at
-confidence 1.0, both stating something the file does not.
+stopped at the first space, so `MIT OR Apache-2.0` was reported as MIT,
+dropping a choice the licensor offered, at confidence 1.0.
+
+The exception in `GPL-2.0-only WITH Classpath-exception-2.0` is still not
+reported. That is a different thing: the whole detector drops SPDX exceptions
+rather than tracking them, which is issue #24. What this file covers is the
+truncation, and the licence in a WITH expression now survives it.
 
 The metadata paths always handled expressions: `"license": "MIT OR Apache-2.0"`
 in package.json comes back whole. It was only the header line that truncated.
@@ -94,9 +97,14 @@ class TestTheLineEndsWhereTheCommentDoes:
         ("<!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->\n", {"MIT", "Apache-2.0"}),
         ("// SPDX-License-Identifier: MIT OR Apache-2.0\n", {"MIT", "Apache-2.0"}),
         ("# SPDX-License-Identifier: MIT\n", {"MIT"}),
+        ("(* SPDX-License-Identifier: MIT *)\n", {"MIT"}),
+        ("(* SPDX-License-Identifier: BSD-2-Clause *)\n", {"BSD-2-Clause"}),
     ])
     def test_the_marker_is_not_taken_for_a_licence(self, tmp_path, text, expected):
-        found = _reported(tmp_path, "widget.c", text)
+        """Asked of the header line alone. A second pattern reports the same
+        identifier under another match type, so looking at both together
+        cannot see this one failing."""
+        found = _header_records(tmp_path, "widget.c", text)
 
         assert found == expected, (text, found)
 
@@ -176,3 +184,50 @@ class TestTheHeaderLineItself:
         )
 
         assert found == {"GPL-2.0-or-later"}, found
+
+
+class TestWhatFollowsTheExpressionIsNotPartOfIt:
+    """Taking the rest of the line meant taking a note written after the
+    licence, and the parser and the normaliser between them turned
+    "BSD-2-Clause (see LICENSE)" into BSD-3-Clause, a different licence."""
+
+    @pytest.mark.parametrize("text,expected", [
+        ("// License: BSD-2-Clause (see LICENSE)\n", {"BSD-2-Clause"}),
+        ("// License: GPL-2.0-only (see COPYING)\n", {"GPL-2.0-only"}),
+        ("// License: MIT for the parser only\n", {"MIT"}),
+        ("// SPDX-License-Identifier: MIT (see LICENSE for details)\n", {"MIT"}),
+    ])
+    def test_only_the_expression_is_read(self, tmp_path, text, expected):
+        found = _header_records(tmp_path, "widget.c", text)
+
+        assert found == expected, (text, found)
+
+    def test_and_no_other_licence_is_invented(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c", "// License: BSD-2-Clause (see LICENSE)\n",
+        )
+
+        assert "BSD-3-Clause" not in found, found
+
+
+class TestALicenceInAWithExpressionSurvives:
+    """The exception itself is not reported, which is issue #24 and the whole
+    detector's behaviour. The licence it modifies must at least come back."""
+
+    def test_the_licence_is_reported(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GPL-2.0-only WITH Classpath-exception-2.0\n",
+        )
+
+        assert found == {"GPL-2.0-only"}, found
+
+    def test_and_it_keeps_its_only_suffix(self, tmp_path):
+        """Reporting GPL-2.0 instead would say something stricter about later
+        versions than the file says."""
+        found = _header_records(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GPL-2.0-only WITH Classpath-exception-2.0\n",
+        )
+
+        assert "GPL-2.0" not in found, found
