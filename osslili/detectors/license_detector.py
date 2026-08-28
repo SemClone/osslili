@@ -207,6 +207,7 @@ class LicenseDetector:
         
         # SPDX tag patterns
         self.spdx_tag_patterns = self._compile_spdx_patterns()
+        self.prose_patterns = self._compile_prose_patterns()
         
         # Common license indicators in text
         self.license_indicators = [
@@ -395,8 +396,38 @@ class LicenseDetector:
             re.compile(r'^\s*License:\s*([A-Za-z0-9\-\.]+)', re.IGNORECASE | re.MULTILINE),
             # @license <license>
             re.compile(r'@license\s+([A-Za-z0-9\-\.]+)', re.IGNORECASE),
-            # Licensed under <license> - Fixed to capture full license name
-            re.compile(r'[Ll]icensed\s+under\s+(?:the\s+)?([A-Za-z0-9\-\.\s]+?)(?:\s+[Ll]icense)?(?:[,\n;]|$)', re.IGNORECASE),
+            # A line opening with "Licensed under <license>", which is how
+            # Apache's boilerplate declares itself, in the licence text and in
+            # every source header carrying it.
+            re.compile(r'^[\s*#/<!-]*[Ll]icensed\s+under\s+(?:the\s+)?([A-Za-z0-9\-\.\s]+?)(?:\s+[Ll]icense)?(?:[,\n;]|$)', re.IGNORECASE | re.MULTILINE),
+        ]
+
+    def _compile_prose_patterns(self) -> List[re.Pattern]:
+        """Patterns that match a licence named inside a sentence.
+
+        Kept apart from the ones above because they are a different kind of
+        claim. "SPDX-License-Identifier: Apache-2.0" is a file declaring its
+        licence. "the bundled minifier is licensed under the Apache License"
+        is a file mentioning someone else's, and the two were reported
+        identically: same method, same confidence, same category. A consumer
+        that wanted to trust declarations had to refuse both.
+
+        What separates them is where the phrase sits. Apache's own boilerplate
+        opens a line: "Licensed under the Apache License, Version 2.0 (the
+        "License")", and it opens one in the licence text itself and in every
+        source header that carries it. A credit has the thing being credited
+        in front of it. So a line that begins with the phrase, after nothing
+        but indentation or a comment marker, is still read as a declaration,
+        and only a phrase with words before it is read as a reference.
+
+        Words, not merely something: requiring any non-space character in
+        front counted the asterisk of a Java comment, so the Apache header
+        that opens " * Licensed under the Apache License" was read as a
+        reference to one. It has to be a letter or a digit.
+        """
+        return [
+            # ... is licensed under <license>, with something in front of it.
+            re.compile(r'[A-Za-z0-9][^\n]*?[Ll]icensed\s+under\s+(?:the\s+)?([A-Za-z0-9\-\.\s]+?)(?:\s+[Ll]icense)?(?:[,\n;]|$)', re.IGNORECASE),
         ]
     
     def detect_licenses(self, path: Path) -> List[DetectedLicense]:
@@ -1085,10 +1116,17 @@ class LicenseDetector:
         lines = content.splitlines()[:30]
         header_content = '\n'.join(lines)
 
-        # Extract SPDX tags from comments
+        # Extract SPDX tags from comments.
+        #
+        # Both anchored to the start of a line, allowing for a comment marker
+        # or indentation. "License:" was matched after any space, so it fired
+        # mid-sentence: "it bundles terser, license: BSD-2-Clause, for
+        # minification" was reported as the file declaring BSD-2-Clause, at
+        # confidence 1.0. A credits section near the top of a short README is
+        # exactly where that sits.
         spdx_patterns = [
-            r'(?:^|\s)SPDX-License-Identifier:\s*([^\s\n]+)',
-            r'(?:^|\s)License:\s*([^\s\n]+)',
+            r'^[\s*#/<!-]*SPDX-License-Identifier:\s*([^\s\n]+)',
+            r'^[\s*#/<!-]*License:\s*([^\s\n]+)',
         ]
 
         for pattern in spdx_patterns:
@@ -1500,6 +1538,18 @@ class LicenseDetector:
 
         return licenses
 
+    def _categorize_tag(self, file_path: Path, is_prose: bool):
+        """How to file a tag match, given which pattern found it.
+
+        A licence named inside a sentence is a reference to one, which is
+        what the referenced category is for. Reporting it as declared said
+        the file states that licence, and a package whose README credits a
+        dependency was read as carrying the dependency's licence.
+        """
+        if is_prose:
+            return LicenseCategory.REFERENCED.value, "prose_reference"
+        return self._categorize_license(file_path, DetectionMethod.TAG.value)
+
     def _detect_spdx_tags(self, content: str, file_path: Path) -> List[DetectedLicense]:
         """Detect SPDX license identifiers in content."""
         licenses = []
@@ -1511,7 +1561,10 @@ class LicenseDetector:
         if any(name in file_name for name in ['spdx_licenses.py', 'license_detector.py']):
             return licenses
         
-        for pattern in self.spdx_tag_patterns:
+        for pattern, is_prose in (
+            [(p, False) for p in self.spdx_tag_patterns]
+            + [(p, True) for p in self.prose_patterns]
+        ):
             matches = pattern.findall(content)
             
             for match in matches:
@@ -1541,8 +1594,8 @@ class LicenseDetector:
                         license_info = self.spdx_data.get_license_info(normalized_id)
 
                         if license_info:
-                            category, match_type = self._categorize_license(
-                                file_path, DetectionMethod.TAG.value
+                            category, match_type = self._categorize_tag(
+                                file_path, is_prose
                             )
                             licenses.append(DetectedLicense(
                                 spdx_id=license_info['licenseId'],
@@ -1556,8 +1609,8 @@ class LicenseDetector:
                         else:
                             # Only record unknown licenses if they look valid
                             if self._looks_like_valid_license(normalized_id):
-                                category, match_type = self._categorize_license(
-                                    file_path, DetectionMethod.TAG.value
+                                category, match_type = self._categorize_tag(
+                                    file_path, is_prose
                                 )
                                 licenses.append(DetectedLicense(
                                     spdx_id=normalized_id,
