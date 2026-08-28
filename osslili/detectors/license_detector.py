@@ -253,8 +253,11 @@ _LICENCE_NAME = r'([A-Za-z0-9\-\.\s]+?)'
 # then read as plain BSD and reported as BSD-3-Clause.
 _EXPRESSION = re.compile(
     r'\(?[A-Za-z0-9.\-+]+\)?'
-    r'(?:\s+(?:OR|AND|WITH)\s+\(?[A-Za-z0-9.\-+]+\)?)*',
-    re.IGNORECASE,
+    # Upper case, because that is what SPDX defines them as. Accepting the
+    # words in any case made prose into an expression: "License: MIT and
+    # BSD-compatible" read "and" as an operator and reported BSD-3-Clause,
+    # which the file does not name.
+    r'(?:\s+(?:OR|AND|WITH)\s+\(?[A-Za-z0-9.\-+]+\)?)*'
 )
 
 
@@ -485,7 +488,7 @@ class LicenseDetector:
             # was read as this file declaring MIT.
             re.compile(r'^' + _COMMENT_OPENING + r'SPDX-License-Identifier:\s*([^\n]+?)(?:\s*\*/)?(?:\s*-->)?$', re.IGNORECASE | re.MULTILINE),
             # Python METADATA: License-Expression: <license>
-            re.compile(r'^' + _COMMENT_OPENING + r'License-Expression:\s*([^\s\n]+)', re.IGNORECASE | re.MULTILINE),
+            re.compile(r'^' + _COMMENT_OPENING + r'License-Expression:\s*([^\n]+)', re.IGNORECASE | re.MULTILINE),
             # package.json style: "license": "MIT" or licenses array with "type": "MIT"
             re.compile(r'"license"\s*:\s*"([^"]+)"', re.IGNORECASE),
             # package.json licenses array: {"type": "MIT", ...}
@@ -545,7 +548,7 @@ class LicenseDetector:
         """
         return [
             re.compile(r'^' + _DOCUMENT_OPENING + r'SPDX-License-Identifier:\s*([^\n]+?)(?:\s*-->)?$', re.IGNORECASE | re.MULTILINE),
-            re.compile(r'^' + _DOCUMENT_OPENING + r'License-Expression:\s*([^\s\n]+)', re.IGNORECASE | re.MULTILINE),
+            re.compile(r'^' + _DOCUMENT_OPENING + r'License-Expression:\s*([^\n]+)', re.IGNORECASE | re.MULTILINE),
             re.compile(r'^' + _DOCUMENT_OPENING + r'License:\s*([A-Za-z0-9\-\.]+)', re.IGNORECASE | re.MULTILINE),
             re.compile(r'^' + _DOCUMENT_OPENING + r'@license\s+([A-Za-z0-9\-\.]+)', re.IGNORECASE | re.MULTILINE),
             re.compile(r'^' + _DOCUMENT_OPENING + r'(?-i:Licensed)\s+under\s+(?:the\s+)?' + _LICENCE_NAME + r'(?:\s+[Ll]icense)?(?:\.\s|[,\n;]|$)', re.IGNORECASE | re.MULTILINE),
@@ -2326,7 +2329,16 @@ class LicenseDetector:
         if 'or later' in expression_lower or 'or-later' in expression_lower:
             # Check if this is really a suffix or an OR expression
             # GPL-2.0-or-later is a suffix, but "MIT OR Apache" is an expression
-            if not re.search(r'\s+OR\s+(?!later)', expression, re.IGNORECASE):
+            #
+            # An AND or a WITH makes it an expression too, whatever the
+            # suffix. Returning "GPL-2.0-or-later WITH Classpath-exception-2.0"
+            # whole left the normaliser to read it, and it reduced the lot to
+            # the base word gpl and answered GPL-2.0, which the emission
+            # boundary then modernised to GPL-2.0-only: the opposite of what
+            # the file grants.
+            joined = re.search(r'\s+(?:OR(?!\s+later)|AND|WITH)\s+', expression,
+                               re.IGNORECASE)
+            if not joined:
                 return [expression.strip()]
 
         # Handle comma-separated licenses (e.g., "MIT, Apache-2.0, BSD")

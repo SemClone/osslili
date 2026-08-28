@@ -231,3 +231,98 @@ class TestALicenceInAWithExpressionSurvives:
         )
 
         assert "GPL-2.0" not in found, found
+
+
+class TestALaterVersionGrantSurvivesAnException:
+    """"GPL-2.0-or-later WITH Classpath-exception-2.0" was returned whole to
+    the normaliser, which reduced it to the base word and answered GPL-2.0,
+    modernised at the emission boundary to GPL-2.0-only: the opposite of what
+    the file grants."""
+
+    @pytest.mark.parametrize("expression,expected", [
+        ("GPL-2.0-or-later WITH Classpath-exception-2.0", {"GPL-2.0-or-later"}),
+        ("GPL-2.0-only WITH Classpath-exception-2.0", {"GPL-2.0-only"}),
+        ("LGPL-2.1-or-later WITH Classpath-exception-2.0", {"LGPL-2.1-or-later"}),
+        ("GPL-3.0-or-later", {"GPL-3.0-or-later"}),
+    ])
+    def test_the_licence_keeps_its_suffix(self, tmp_path, expression, expected):
+        found = _header_records(
+            tmp_path, "widget.c", f"// SPDX-License-Identifier: {expression}\n",
+        )
+
+        assert found == expected, (expression, found)
+
+    def test_and_never_reads_as_only(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GPL-2.0-or-later WITH Classpath-exception-2.0\n",
+        )
+
+        assert "GPL-2.0-only" not in found and "GPL-2.0" not in found, found
+
+
+class TestProseIsNotAnExpression:
+    """SPDX writes its operators in upper case. Accepting them in any case
+    made a sentence into an expression."""
+
+    @pytest.mark.parametrize("text,expected", [
+        ("// License: MIT and BSD-compatible\n", {"MIT"}),
+        ("// License: MIT or something similar\n", {"MIT"}),
+        ("// License: MIT with attribution\n", {"MIT"}),
+    ])
+    def test_a_lower_case_conjunction_is_a_word(self, tmp_path, text, expected):
+        found = _header_records(tmp_path, "widget.c", text)
+
+        assert found == expected, (text, found)
+
+    def test_and_invents_no_second_licence(self, tmp_path):
+        found = _header_records(tmp_path, "widget.c", "// License: MIT and BSD-compatible\n")
+
+        assert "BSD-3-Clause" not in found, found
+
+    @pytest.mark.parametrize("text,expected", [
+        ("// License: MIT OR Apache-2.0\n", {"MIT", "Apache-2.0"}),
+        ("// License: MIT AND BSD-3-Clause\n", {"MIT", "BSD-3-Clause"}),
+    ])
+    def test_but_upper_case_still_joins(self, tmp_path, text, expected):
+        found = _header_records(tmp_path, "widget.c", text)
+
+        assert found == expected, (text, found)
+
+
+class TestTheExpressionHeaderTakesAnExpression:
+    """License-Expression: is the Python metadata form, and it was reading
+    one word of one."""
+
+    def _all_tags(self, tmp_path, text):
+        target = tmp_path / "METADATA"
+        target.write_text(text)
+        command = Path(sys.executable).parent / "osslili"
+        if not command.exists():
+            pytest.skip("the osslili console script is not installed beside this interpreter")
+        result = subprocess.run(
+            [str(command), "-f", "evidence", str(target)],
+            capture_output=True, text=True, cwd=REPO_ROOT,
+        )
+        assert result.returncode == 0, result.stderr
+        lines = result.stdout.splitlines()
+        start = next((i for i, line in enumerate(lines) if line.strip().startswith("{")), -1)
+        if start < 0:
+            return set()
+        data = json.loads("\n".join(lines[start:]))
+        return {
+            item.get("detected_license")
+            for scan in data.get("scan_results", [])
+            for item in scan.get("license_evidence", [])
+            if item.get("match_type") in ("header_tag", "spdx_identifier")
+        }
+
+    def test_both_terms_are_reported(self, tmp_path):
+        found = self._all_tags(tmp_path, "License-Expression: MIT OR Apache-2.0\n")
+
+        assert found == {"MIT", "Apache-2.0"}, found
+
+    def test_and_one_term_is_still_one(self, tmp_path):
+        found = self._all_tags(tmp_path, "License-Expression: MIT\n")
+
+        assert found == {"MIT"}, found
