@@ -287,3 +287,106 @@ class TestTheReferencePatternOnItsOwn:
     ])
     def test_a_phrase_with_words_before_it_is(self, line):
         assert self._matches(line), line
+
+
+class TestAFileThatNamesItself:
+    """"This file is licensed under the MIT License" and "Dual licensed under
+    MIT OR Apache-2.0" are declarations with words in front of the phrase, so
+    a rule that read any such words as a credit lost them."""
+
+    @pytest.mark.parametrize("line", [
+        "// This file is licensed under the MIT License.",
+        "# This project is licensed under the MIT License.",
+        " * This software is licensed under the MIT License.",
+        "This package is licensed under the MIT License.",
+        "Dual licensed under MIT OR Apache-2.0",
+        "Also licensed under MIT",
+        "The software is licensed under the MIT License.",
+    ])
+    def test_it_declares(self, tmp_path, line):
+        evidence = _evidence(tmp_path, "Widget.java", line + "\n")
+
+        assert _declared(evidence), (line, evidence)
+        assert _referenced(evidence) == set(), (line, evidence)
+
+    @pytest.mark.parametrize("line", [
+        "The bundled minifier is licensed under the Apache License, Version 2.0.",
+        "This project vendors terser, which is licensed under the BSD License.",
+    ])
+    def test_but_naming_something_else_does_not(self, tmp_path, line):
+        evidence = _evidence(tmp_path, "README.md", line + "\n")
+
+        assert _referenced(evidence), (line, evidence)
+
+
+class TestEveryCommentStyleOpensAHeader:
+    """A header is a header whatever the language marks comments with."""
+
+    @pytest.mark.parametrize("prefix", [
+        "# ", "// ", " * ", "<!-- ", "; ", "% ", "(* ", "-- ", "   ", "",
+    ])
+    def test_a_licence_line_is_read(self, tmp_path, prefix):
+        evidence = _evidence(tmp_path, "source.txt", prefix + "License: MIT\n")
+
+        assert "MIT" in _declared(evidence), (prefix, evidence)
+
+    @pytest.mark.parametrize("prefix", [
+        "# ", "// ", " * ", "<!-- ", "; ", "% ", "(* ", "-- ", "   ", "",
+    ])
+    def test_and_so_is_an_identifier_line(self, tmp_path, prefix):
+        evidence = _evidence(tmp_path, "source.txt", prefix + "SPDX-License-Identifier: MIT\n")
+
+        assert "MIT" in _declared(evidence), (prefix, evidence)
+
+
+class TestTheCreditDoesNotBecomeThePackageLicence:
+    """What the reported bug actually costs: the credited licence reaching the
+    package's own licence and its SBOM."""
+
+    def _package(self, tmp_path):
+        (tmp_path / "package.json").write_text(
+            json.dumps({"name": "widget", "version": "1.0.0", "license": "MIT"})
+        )
+        (tmp_path / "README.md").write_text(
+            "# widget\n\nThe bundled minifier is licensed under the "
+            "Apache License, Version 2.0.\n"
+        )
+        (tmp_path / "LICENSE").write_text(
+            "MIT License\n\nPermission is hereby granted, free of charge.\n"
+        )
+        return tmp_path
+
+    def _output(self, tmp_path, form):
+        command = Path(sys.executable).parent / "osslili"
+        if not command.exists():
+            pytest.skip("the osslili console script is not installed beside this interpreter")
+        result = subprocess.run(
+            [str(command), "-f", form, str(self._package(tmp_path))],
+            capture_output=True, text=True, cwd=REPO_ROOT,
+        )
+        assert result.returncode == 0, result.stderr
+        return result.stdout
+
+    def test_the_primary_licence_is_the_package_s_own(self, tmp_path):
+        output = self._output(tmp_path, "kissbom")
+
+        assert json.loads(output[output.index("{"):])["packages"][0]["license"] == "MIT"
+
+    def test_a_referenced_licence_is_not_one_of_the_project_s_own(self):
+        """Asked of the model, which is what every formatter reads."""
+        from osslili.core.models import DetectedLicense, DetectionResult, LicenseCategory
+
+        result = DetectionResult(path="/repo")
+        result.licenses = [
+            DetectedLicense(spdx_id="MIT", name="MIT", confidence=1.0,
+                            detection_method="tag", source_file="/repo/LICENSE",
+                            category=LicenseCategory.DECLARED.value,
+                            match_type="license_file"),
+            DetectedLicense(spdx_id="Apache-2.0", name="Apache", confidence=1.0,
+                            detection_method="tag", source_file="/repo/README.md",
+                            category=LicenseCategory.REFERENCED.value,
+                            match_type="prose_reference"),
+        ]
+
+        assert [lic.spdx_id for lic in result.get_own_licenses()] == ["MIT"]
+        assert result.get_primary_license().spdx_id == "MIT"

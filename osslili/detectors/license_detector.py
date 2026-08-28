@@ -183,6 +183,23 @@ def _bounded_pattern(variation: str) -> str:
     return prefix + re.escape(variation) + suffix
 
 
+# What may sit between the start of a line and a licence header: indentation
+# and comment markers. Semicolons open a comment in Lisp and in ini files,
+# percent signs in TeX and R, parentheses with a star in ML and Pascal, and a
+# header written in one of those is as much a declaration as one in C.
+_COMMENT_OPENING = r'[\s*#/<!;%()-]*'
+
+# Ways a file refers to itself before saying what it is licensed under.
+# "This file is licensed under the MIT License" and "Dual licensed under MIT
+# OR Apache-2.0" are the file stating its own licence, not crediting anything.
+_SELF_REFERRING = (
+    r'(?:this\s+(?:file|project|software|package|library|module|work|code|'
+    r'program|distribution)|the\s+(?:software|code|project|program)|'
+    r'dual|also|source\s+code)\s*'
+    r'(?:is|are|was|may\s+be|can\s+be)?\s*'
+)
+
+
 class LicenseDetector:
     """Detect licenses in source code using multiple detection methods."""
     
@@ -398,8 +415,15 @@ class LicenseDetector:
             re.compile(r'@license\s+([A-Za-z0-9\-\.]+)', re.IGNORECASE),
             # A line opening with "Licensed under <license>", which is how
             # Apache's boilerplate declares itself, in the licence text and in
-            # every source header carrying it.
-            re.compile(r'^[\s*#/<!-]*[Ll]icensed\s+under\s+(?:the\s+)?([A-Za-z0-9\-\.\s]+?)(?:\s+[Ll]icense)?(?:[,\n;]|$)', re.IGNORECASE | re.MULTILINE),
+            # every source header carrying it. Also the forms where the file
+            # names itself first: "This file is licensed under the MIT
+            # License", "Dual licensed under MIT OR Apache-2.0".
+            re.compile(
+                r'^' + _COMMENT_OPENING + r'(?:' + _SELF_REFERRING + r')?'
+                r'[Ll]icensed\s+under\s+(?:the\s+)?'
+                r'([A-Za-z0-9\-\.\s]+?)(?:\s+[Ll]icense)?(?:[,\n;]|$)',
+                re.IGNORECASE | re.MULTILINE,
+            ),
         ]
 
     def _compile_prose_patterns(self) -> List[re.Pattern]:
@@ -1125,8 +1149,8 @@ class LicenseDetector:
         # confidence 1.0. A credits section near the top of a short README is
         # exactly where that sits.
         spdx_patterns = [
-            r'^[\s*#/<!-]*SPDX-License-Identifier:\s*([^\s\n]+)',
-            r'^[\s*#/<!-]*License:\s*([^\s\n]+)',
+            r'^' + _COMMENT_OPENING + r'SPDX-License-Identifier:\s*([^\s\n]+)',
+            r'^' + _COMMENT_OPENING + r'License:\s*([^\s\n]+)',
         ]
 
         for pattern in spdx_patterns:
