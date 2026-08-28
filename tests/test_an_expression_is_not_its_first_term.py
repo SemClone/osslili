@@ -976,3 +976,30 @@ class TestTheHeaderReaderIsPinnedOnItsOwn:
         )
 
         assert found == {"Apache-2.0"}, found
+
+
+class TestACommaMixedWithAnOperator:
+    """A comma was handled only where the expression had no operator at all,
+    so a list that mixed the two lost the term on one side of the comma."""
+
+    @pytest.mark.parametrize("expression,expected", [
+        ("MIT, Apache-2.0 OR BSD-3-Clause", {"MIT", "Apache-2.0", "BSD-3-Clause"}),
+        ("MIT OR Apache-2.0, BSD-3-Clause", {"MIT", "Apache-2.0", "BSD-3-Clause"}),
+        ("MIT, Apache-2.0", {"MIT", "Apache-2.0"}),
+        ("MIT, Apache-2.0, BSD-3-Clause", {"MIT", "Apache-2.0", "BSD-3-Clause"}),
+    ])
+    def test_every_term_is_reported(self, tmp_path, expression, expected):
+        found = _header_records(
+            tmp_path, "widget.c", f"// SPDX-License-Identifier: {expression}\n",
+        )
+
+        assert found == expected, (expression, found)
+
+    def test_a_comma_after_an_exception(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GPL-2.0-only WITH"
+            " Classpath-exception-2.0, MIT\n",
+        )
+
+        assert found == {"GPL-2.0-only", "MIT"}, found

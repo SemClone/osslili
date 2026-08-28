@@ -2550,11 +2550,6 @@ class LicenseDetector:
             if not joined:
                 return [expression.strip()]
 
-        # Handle comma-separated licenses (e.g., "MIT, Apache-2.0, BSD")
-        if ',' in expression and not any(op in expression.upper() for op in [' OR ', ' AND ', ' WITH ']):
-            parts = [p.strip() for p in expression.split(',')]
-            return [p for p in parts if p]
-
         # Collect all licenses found in the expression
         licenses = []
 
@@ -2585,8 +2580,13 @@ class LicenseDetector:
         # For now, just flatten everything
         temp_expression = temp_expression.replace('(', '').replace(')', '')
 
-        # Split on AND/OR operators
-        parts = re.split(r'\s+(?:AND|OR)\s+', temp_expression, flags=re.IGNORECASE)
+        # Split on AND/OR operators, and on the comma that stands in for one.
+        # A comma was handled only where the expression had no operator at
+        # all, so a list that mixed the two lost a term: "MIT, Apache-2.0 OR
+        # BSD-3-Clause" reported the two after the comma and not the one
+        # before it.
+        parts = re.split(r'\s*,\s*|\s+(?:AND|OR)\s+', temp_expression,
+                         flags=re.IGNORECASE)
 
         for part in parts:
             part = part.strip()
