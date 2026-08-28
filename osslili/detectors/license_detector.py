@@ -256,12 +256,15 @@ _EXPRESSION = re.compile(
     # "((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause)", opens with two,
     # and a term that allowed only one matched nothing at all, which threw
     # the whole line away and left the file with no licence.
-    r'\(*[A-Za-z0-9.\-+]+\)*'
+    # SPDX allows space inside the brackets, "( MIT OR Apache-2.0 )", and a
+    # term that did not was refused at the first character, which threw the
+    # whole line away.
+    r'(?:\(\s*)*[A-Za-z0-9.\-+]+(?:\s*\))*'
     # Upper case, because that is what SPDX defines them as. Accepting the
     # words in any case made prose into an expression: "License: MIT and
     # BSD-compatible" read "and" as an operator and reported BSD-3-Clause,
     # which the file does not name.
-    r'(?:\s+(?:OR|AND|WITH)\s+\(*[A-Za-z0-9.\-+]+\)*)*'
+    r'(?:\s+(?:OR|AND|WITH)\s+(?:\(\s*)*[A-Za-z0-9.\-+]+(?:\s*\))*)*'
 )
 
 
@@ -2722,6 +2725,13 @@ class LicenseDetector:
         # Skip if it's a valid SPDX expression with parentheses (not a false positive)
         if any(op in license_id.upper() for op in [' OR ', ' AND ', ' WITH ']):
             # This looks like a valid SPDX expression, not a false positive
+            return False
+
+        # A plus that ends an identifier is the deprecated or-later form,
+        # GPL-2.0+, not a regex quantifier. Rejecting it outright left
+        # "@license GPL-2.0+" with no licence at all once the reader stopped
+        # truncating the line and the plus reached this check.
+        if re.fullmatch(r'[A-Za-z0-9.\-]+\+', license_id):
             return False
 
         # Skip if contains regex patterns or code-like syntax

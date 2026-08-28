@@ -575,3 +575,66 @@ class TestALicenceNameIsNotAnExpression:
         )
 
         assert {"MIT", "Apache-2.0"} <= found, found
+
+
+class TestSpaceInsideTheBrackets:
+    """SPDX allows space inside the brackets. A term that did not was refused
+    at the first character, so the trim returned nothing and the whole line
+    was discarded."""
+
+    @pytest.mark.parametrize("expression", [
+        "( MIT OR Apache-2.0 )",
+        "(MIT OR Apache-2.0 )",
+        "( MIT OR Apache-2.0)",
+        "( ( MIT OR Apache-2.0 ) )",
+    ])
+    def test_both_terms_survive_the_space(self, tmp_path, expression):
+        found = _reported(
+            tmp_path, "widget.c", f"// SPDX-License-Identifier: {expression}\n",
+        )
+
+        assert found == {"MIT", "Apache-2.0"}, (expression, found)
+
+
+class TestThePlusIsAGrantNotAQuantifier:
+    """A plus that ends an identifier is the deprecated or-later form. It was
+    listed among the regex characters that mark a false positive, so once the
+    reader stopped truncating the line and the plus reached that check,
+    "@license GPL-2.0+" was thrown away and the file had no licence."""
+
+    def test_the_licence_line_keeps_it(self, tmp_path):
+        found = _reported(tmp_path, "widget.js", "// @license GPL-2.0+\n")
+
+        assert found == {"GPL-2.0-or-later"}, found
+
+    def test_and_it_is_not_read_as_only(self, tmp_path):
+        found = _reported(tmp_path, "widget.js", "// @license GPL-2.0+\n")
+
+        assert "GPL-2.0-only" not in found, found
+
+    def test_a_regex_is_still_refused(self, tmp_path):
+        found = _reported(tmp_path, "widget.js", "// @license [a-z]+\n")
+
+        assert not found, found
+
+    @pytest.mark.parametrize("value,is_false_positive", [
+        ("GPL-2.0+", False),
+        ("LGPL-2.1+", False),
+        ("a[b]+", True),
+        ("GPL-2.0\\d+", True),
+        (".*+", True),
+        ("MIT{2}+", True),
+    ])
+    def test_only_an_identifier_may_carry_it(self, value, is_false_positive):
+        """The rule is an identifier followed by a plus, not a trailing plus.
+
+        A value that reaches this check without passing through the line trim
+        keeps whatever else is written in it, and a bare "ends with a plus"
+        would wave a regex through on the strength of its last character.
+        """
+        from osslili.core.models import Config
+        from osslili.detectors.license_detector import LicenseDetector
+
+        detector = LicenseDetector(Config())
+
+        assert detector._is_false_positive_license(value) is is_false_positive, value
