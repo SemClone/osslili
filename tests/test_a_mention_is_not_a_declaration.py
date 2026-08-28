@@ -824,3 +824,60 @@ class TestTheSameTwoRulesOnTheCodePath:
         )
 
         assert "MIT" in _declared(evidence), evidence
+
+
+class TestTheSubjectMayTakeEitherArticle:
+    """"The package is licensed under" says the same as "This package is"."""
+
+    @pytest.mark.parametrize("subject", [
+        "The package", "The project", "The library", "The module",
+        "The contents", "This source code", "The source code",
+    ])
+    def test_it_declares(self, tmp_path, subject):
+        evidence = _evidence(
+            tmp_path, "README.md", f"{subject} is licensed under the MIT License.\n",
+        )
+
+        assert "MIT" in _declared(evidence), (subject, evidence)
+
+
+class TestADocumentNamedWithASuffixThatIsNotOne:
+    """README.1st was listed and unreachable, because the check that found it
+    also refused any name containing a dot."""
+
+    def test_it_is_read_as_a_document(self, tmp_path):
+        evidence = _evidence(
+            tmp_path, "README.1st",
+            "Bundled dependencies:\n* Licensed under the MIT License.\n",
+        )
+
+        assert _declared(evidence) == set(), evidence
+
+
+class TestWhatTheCapitalisationRuleGivesUp:
+    """Written down as a test so it is a decision on the record.
+
+    A line opening "licensed under the MIT License" in lower case, with no
+    subject, is not read as a declaration. Some projects do write their
+    header that way. The alternative is accepting it, and then every
+    hard-wrapped credit whose continuation line begins with the same words is
+    a declaration too, at confidence 1.0, for a licence the package does not
+    have. Over-claiming someone else's licence is the worse of the two.
+    """
+
+    def test_a_lower_case_subjectless_header_is_not_read(self, tmp_path):
+        evidence = _evidence(tmp_path, "widget.c", "// licensed under the MIT License.\n")
+
+        assert _declared(evidence) == set(), evidence
+
+    def test_capitalising_it_is_enough(self, tmp_path):
+        evidence = _evidence(tmp_path, "widget.c", "// Licensed under the MIT License.\n")
+
+        assert "MIT" in _declared(evidence), evidence
+
+    def test_and_so_is_naming_the_subject(self, tmp_path):
+        evidence = _evidence(
+            tmp_path, "widget.c", "// this file is licensed under the MIT License.\n",
+        )
+
+        assert "MIT" in _declared(evidence), evidence

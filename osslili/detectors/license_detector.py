@@ -231,7 +231,9 @@ def _has_a_document_suffix(file_path) -> bool:
     name = str(getattr(file_path, 'name', file_path)).lower()
     if any(name.endswith(suffix) for suffix in _DOCUMENT_SUFFIXES):
         return True
-    return '.' not in name and name in _DOCUMENT_STEMS
+    # Matched whole, so the guard against names with a suffix is not needed
+    # and did make README.1st unreachable, since the entry for it has one.
+    return name in _DOCUMENT_STEMS
 
 
 # What a licence name may be made of. It is the terminator below that keeps
@@ -246,10 +248,9 @@ _LICENCE_NAME = r'([A-Za-z0-9\-\.\s]+?)'
 _SELF_REFERRING = (
     # optionally "Portions of ..."
     r'(?:portions\s+of\s+)?'
-    r'(?:this\s+(?:file|project|software|package|library|module|work|code|'
-    r'program|distribution|repository|repo|crate|gem|plugin|extension|tool|'
-    r'application|app|component|utility)|'
-    r'the\s+(?:software|code|project|program|repository|library)|'
+    r'(?:th(?:is|e)\s+(?:file|project|software|package|library|module|work|'
+    r'code|program|distribution|repository|repo|crate|gem|plugin|extension|'
+    r'tool|application|app|component|utility|source\s+code|contents)|'
     r'dual|source\s+code)\s*'
     r'(?:is|are|was|may\s+be|can\s+be)?\s*'
     # "is dual licensed", "are jointly licensed"
