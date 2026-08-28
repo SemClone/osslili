@@ -45,6 +45,30 @@ class LicenseNormalizer:
             self.version_patterns = {}
             self.spdx_corrections = {}
 
+    @staticmethod
+    def _exact_spdx_id(license_id, spdx_data):
+        """The SPDX identifier this string already is, if it is one.
+
+        Matched without regard to case, so "mit" still becomes "MIT", and
+        returned in SPDX's own spelling.
+        """
+        if not license_id or spdx_data is None:
+            return None
+
+        licenses = getattr(spdx_data, 'licenses', None)
+        if not licenses:
+            return None
+
+        if license_id in licenses:
+            return license_id
+
+        wanted = license_id.lower()
+        for known in licenses:
+            if known.lower() == wanted:
+                return known
+
+        return None
+
     def normalize_license_id(self, license_id: str, spdx_data=None) -> str:
         """
         Normalize license ID to match SPDX format.
@@ -62,6 +86,19 @@ class LicenseNormalizer:
         # Remove whitespace and normalize case for lookup
         normalized = license_id.strip()
         lookup_key = normalized.lower()
+
+        # Step 0: a string that is already an SPDX identifier means itself.
+        #
+        # Everything below is for turning vague input into an identifier:
+        # "BSD" into BSD-3-Clause, "lgpl" into LGPL-2.1. Those guesses used to
+        # run first, and they do not check whether they are guessing about
+        # something exact. "BSD-2-Clause" reduced to the base word "bsd" and
+        # came back BSD-3-Clause, a different licence with a clause it does
+        # not have. "LGPL-2.1-or-later" came back LGPL-2.1-only, dropping the
+        # recipient's option to use a later version.
+        canonical = self._exact_spdx_id(normalized, spdx_data)
+        if canonical:
+            return canonical
 
         # Step 1: Check SPDX data aliases first if available
         if spdx_data:
