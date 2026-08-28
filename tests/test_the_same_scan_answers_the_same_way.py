@@ -496,21 +496,32 @@ class TestTheFilesAreReadOnMoreThanOneThread:
     here still passes, on the single-threaded path, having tested nothing
     about the fault."""
 
-    def test_a_directory_of_thirty_files_uses_the_pool(self, tmp_path, monkeypatch):
+    def _workers_used(self, tmp_path, monkeypatch):
         import osslili.extractors.copyright_extractor as module
 
         root = _a_package(tmp_path)
-        used = []
+        asked_for = []
         real = module.ThreadPoolExecutor
 
         def watched(*args, **kwargs):
-            used.append(True)
+            asked_for.append(kwargs.get("max_workers"))
             return real(*args, **kwargs)
 
         monkeypatch.setattr(module, "ThreadPoolExecutor", watched)
         _extractor().extract_copyrights(root)
+        return asked_for
 
-        assert used, "the files were read on one thread, so nothing raced"
+    def test_a_directory_of_thirty_files_uses_the_pool(self, tmp_path, monkeypatch):
+        asked_for = self._workers_used(tmp_path, monkeypatch)
+
+        assert asked_for, "the files were read on one thread, so nothing raced"
+
+    def test_and_asks_for_the_threads_it_was_configured_with(self, tmp_path, monkeypatch):
+        """A pool of one is a pool, and reading the files on it would leave
+        the race this file exists for unexercised."""
+        asked_for = self._workers_used(tmp_path, monkeypatch)
+
+        assert asked_for == [_extractor().config.thread_count], asked_for
 
 
 class TestTheCountIsInTheRecord:
@@ -755,3 +766,65 @@ class TestAFileThatCannotBeRead:
         counts = {c.statement: c.file_count for c in extractor.extract_copyrights(root)}
 
         assert counts[SHARED] == HOW_MANY - 1, counts
+
+
+class TestAHolderIsNotAStatement:
+    """One holder writes more than one statement. "Copyright 2014 Acme Labs"
+    and "Copyright 2020 Acme Labs" name the same company and different years,
+    and the years are part of what is being claimed.
+
+    Every other fixture here gives each holder one statement, so keeping one
+    record per holder rather than per statement passes all of them while
+    dropping a year the file states.
+    """
+
+    def _two_years_one_holder(self, tmp_path):
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "a.c").write_text("// Copyright 2014 Acme Labs\nint x;\n")
+        (root / "b.c").write_text("// Copyright 2020 Acme Labs\nint y;\n")
+        return root
+
+    def test_both_statements_are_reported(self, tmp_path):
+        root = self._two_years_one_holder(tmp_path)
+
+        statements = {c.statement for c in _extractor().extract_copyrights(root)}
+
+        assert statements == {
+            "Copyright 2014 Acme Labs",
+            "Copyright 2020 Acme Labs",
+        }, statements
+
+    def test_and_they_are_the_same_holder(self, tmp_path):
+        """Which is what makes the test above worth having."""
+        root = self._two_years_one_holder(tmp_path)
+
+        holders = {c.holder for c in _extractor().extract_copyrights(root)}
+
+        assert holders == {"Acme Labs"}, holders
+
+    def test_each_is_in_one_file(self, tmp_path):
+        root = self._two_years_one_holder(tmp_path)
+
+        counts = {
+            c.statement: c.file_count
+            for c in _extractor().extract_copyrights(root)
+        }
+
+        assert counts == {
+            "Copyright 2014 Acme Labs": 1,
+            "Copyright 2020 Acme Labs": 1,
+        }, counts
+
+    def test_and_each_names_its_own_file(self, tmp_path):
+        root = self._two_years_one_holder(tmp_path)
+
+        attributed = {
+            c.statement: Path(c.source_file).name
+            for c in _extractor().extract_copyrights(root)
+        }
+
+        assert attributed == {
+            "Copyright 2014 Acme Labs": "a.c",
+            "Copyright 2020 Acme Labs": "b.c",
+        }, attributed
