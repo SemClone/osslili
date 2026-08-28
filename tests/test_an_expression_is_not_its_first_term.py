@@ -691,3 +691,100 @@ class TestALowerCaseOperatorIsReadWhereBothSidesAreLicences:
         )
 
         assert len(found) == 2 and "MIT" in found, found
+
+
+class TestAnExceptionIsNotATermOfTheExpression:
+    """What follows WITH is an exception, not a licence. Asking whether it
+    named one refused the whole expression, and the choice after it was
+    lost."""
+
+    def test_a_choice_after_an_exception_survives(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GPL-2.0-only WITH"
+            " Classpath-exception-2.0 or MIT\n",
+        )
+
+        assert found == {"GPL-2.0-only", "MIT"}, found
+
+    def test_the_upper_case_spelling_agrees(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GPL-2.0-only WITH"
+            " Classpath-exception-2.0 OR MIT\n",
+        )
+
+        assert found == {"GPL-2.0-only", "MIT"}, found
+
+    def test_a_description_after_an_exception_is_still_refused(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GPL-2.0-only WITH"
+            " Classpath-exception-2.0 and BSD-compatible\n",
+        )
+
+        assert found == {"GPL-2.0-only"}, found
+
+
+class TestAPlusThatResolvesToNothing:
+    """SPDX replaced the deprecated "or later" form for the GNU family and
+    nowhere else. "MIT+" therefore names no licence, and was emitted verbatim
+    as though it did. The plus is what does not resolve, not the identifier
+    under it."""
+
+    @pytest.mark.parametrize("tag", [
+        "// SPDX-License-Identifier: MIT+\n",
+        "// @license MIT+\n",
+    ])
+    def test_the_identifier_under_it_is_reported(self, tmp_path, tag):
+        found = _reported(tmp_path, "widget.c", tag)
+
+        assert found == {"MIT"}, (tag, found)
+
+    @pytest.mark.parametrize("tag", [
+        "// SPDX-License-Identifier: MIT+\n",
+        "// @license MIT+\n",
+    ])
+    def test_and_the_plus_form_is_not(self, tmp_path, tag):
+        found = _reported(tmp_path, "widget.c", tag)
+
+        assert "MIT+" not in found, (tag, found)
+
+    @pytest.mark.parametrize("expression,expected", [
+        ("GPL-2.0+", "GPL-2.0-or-later"),
+        ("LGPL-2.1+", "LGPL-2.1-or-later"),
+    ])
+    def test_a_plus_that_does_resolve_is_untouched(self, tmp_path, expression, expected):
+        found = _reported(
+            tmp_path, "widget.c", f"// SPDX-License-Identifier: {expression}\n",
+        )
+
+        assert found == {expected}, (expression, found)
+
+    def test_a_plus_on_nothing_recognisable_is_refused(self, tmp_path):
+        found = _reported(tmp_path, "widget.c", "// @license Whatever-9.9+\n")
+
+        assert not found, found
+
+    @pytest.mark.parametrize("value,expected", [
+        ("GPL-2.0+", "GPL-2.0-or-later"),
+        ("LGPL-2.1+", "LGPL-2.1-or-later"),
+        ("MIT+", "MIT"),
+        ("Apache-2.0+", "Apache-2.0"),
+        ("Whatever-9.9+", "Whatever-9.9+"),
+    ])
+    def test_the_rule_itself(self, value, expected):
+        """A plus resolves to the or-later id where SPDX defines one, to the
+        identifier under it where that is a licence, and otherwise not at all.
+
+        The last case is the one the emission guard would also catch. It is
+        asserted here because this function promises never to answer with an
+        id that is not one, and a caller is entitled to rely on that without
+        a second guard behind it.
+        """
+        from osslili.core.models import Config
+        from osslili.detectors.license_detector import LicenseDetector
+
+        detector = LicenseDetector(Config())
+
+        assert detector._to_modern_spdx_id(value) == expected, value

@@ -321,7 +321,8 @@ def _holds_an_expression(pattern) -> bool:
     return any(form in pattern.pattern for form in _EXPRESSION_FORMS)
 
 
-_TERMS = re.compile(r'\s+(?:[Oo][Rr]|[Aa][Nn][Dd]|[Ww][Ii][Tt][Hh])\s+')
+_TERMS = re.compile(r'\s+(?:[Oo][Rr]|[Aa][Nn][Dd])\s+')
+_AN_EXCEPTION = re.compile(r'\s+[Ww][Ii][Tt][Hh]\s+.*$')
 
 
 def _every_term_names_a_licence(expression: str, names_a_licence) -> bool:
@@ -330,8 +331,16 @@ def _every_term_names_a_licence(expression: str, names_a_licence) -> bool:
     This is what separates an expression whose operators are spelled in lower
     case from a sentence that merely contains the word "and". Both look the
     same; only their terms differ.
+
+    A term is an operand of OR or AND. What follows WITH is an exception, not
+    a licence, and asking whether it names one refused the whole expression:
+    "GPL-2.0-only WITH Classpath-exception-2.0 or MIT" lost the MIT, which
+    is a choice the licensor offered.
     """
-    terms = [term.strip(' ()') for term in _TERMS.split(expression)]
+    terms = [
+        _AN_EXCEPTION.sub('', term).strip(' ()')
+        for term in _TERMS.split(expression)
+    ]
     return all(terms) and all(names_a_licence(term) for term in terms)
 
 
@@ -2361,6 +2370,13 @@ class LicenseDetector:
                 candidate = base + '-or-later'
                 if self._is_valid_spdx_id(candidate):
                     return candidate
+            # SPDX replaced the form for the GNU family and nowhere else, so
+            # "MIT+" names no licence and was emitted verbatim as though it
+            # did. The plus is what does not resolve, not the identifier
+            # under it, and dropping the whole thing left a file whose only
+            # licence statement is that line with no licence at all.
+            if self._is_valid_spdx_id(base):
+                return base
             return lid
 
         # Bare deprecated form: GPL-2.0 -> GPL-2.0-only.
