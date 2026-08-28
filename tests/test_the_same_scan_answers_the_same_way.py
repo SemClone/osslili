@@ -384,8 +384,66 @@ class TestAStatementIsReportedOnce:
 
 
 class TestOneFileReachedByTwoNames:
-    """A LICENSE that is a symbolic link to LICENSE.txt is reached by both
-    names, and counting the names counted the one file twice."""
+    """A file is reached more than once, and by names that do not match. A
+    LICENSE may be a symbolic link to LICENSE.txt; two names may be hard
+    links to one file; on a filesystem that ignores case, setup.py and
+    Setup.py are one file spelled two ways. Counting the names counted the
+    one file several times, and no comparison of names gets all of these
+    right, which is why the filesystem is asked instead."""
+
+    def test_a_hard_link_is_not_a_second_file(self, tmp_path):
+        import os
+
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "f00.c").write_text("// Copyright 2014 Acme Labs\nint x;\n")
+        os.link(root / "f00.c", root / "f01.c")
+
+        counts = {
+            c.statement: c.file_count
+            for c in _extractor().extract_copyrights(root)
+        }
+
+        assert counts["Copyright 2014 Acme Labs"] == 1, counts
+
+    def test_a_setup_py_spelled_with_a_capital(self, tmp_path):
+        """On a filesystem that ignores case the metadata pass finds it under
+        the name it looks for and the walk reports the spelling on disk."""
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "Setup.py").write_text(
+            "# Copyright Acme Labs\n"
+            "from setuptools import setup\n"
+            'setup(name="widget", author="Acme Labs")\n'
+        )
+
+        counts = {
+            c.statement: c.file_count
+            for c in _extractor().extract_copyrights(root)
+        }
+
+        assert counts["Copyright Acme Labs"] == 1, counts
+
+    def test_a_setup_py_that_is_a_link_to_the_real_one(self, tmp_path):
+        """The metadata pass reads it as setup.py and the walk reads it as
+        real.py, so the two sides must agree on what identifies a file."""
+        import os
+
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "real.py").write_text(
+            "# Copyright Acme Labs\n"
+            "from setuptools import setup\n"
+            'setup(name="widget", author="Acme Labs")\n'
+        )
+        os.symlink("real.py", root / "setup.py")
+
+        counts = {
+            c.statement: c.file_count
+            for c in _extractor().extract_copyrights(root)
+        }
+
+        assert counts["Copyright Acme Labs"] == 1, counts
 
     def test_a_symbolic_link_is_not_a_second_file(self, tmp_path):
         import os
@@ -454,3 +512,89 @@ class TestTheCountIsInTheRecord:
         record.file_count = 7
 
         assert record.to_dict()["file_count"] == 7
+
+
+class TestWhatIdentifiesAFile:
+    """The helper answers for a path that names no file, because a caller
+    cannot always know that in advance and a count is not worth an error."""
+
+    @pytest.mark.parametrize("kind", ["loop", "broken", "missing", "long"])
+    def test_a_path_that_names_no_file_still_answers(self, tmp_path, kind):
+        import os
+        from osslili.extractors.copyright_extractor import _the_file_itself
+
+        if kind == "loop":
+            os.symlink(tmp_path / "b", tmp_path / "a")
+            os.symlink(tmp_path / "a", tmp_path / "b")
+            path = tmp_path / "a"
+        elif kind == "broken":
+            os.symlink(tmp_path / "nowhere", tmp_path / "broken")
+            path = tmp_path / "broken"
+        elif kind == "long":
+            path = tmp_path / ("x" * 300)
+        else:
+            path = tmp_path / "nope.txt"
+
+        assert _the_file_itself(path)
+
+    @pytest.mark.parametrize("nothing", ["", None])
+    def test_and_nothing_is_nothing(self, nothing):
+        from osslili.extractors.copyright_extractor import _the_file_itself
+
+        assert _the_file_itself(nothing) == ""
+
+    def test_two_names_for_one_file_answer_alike(self, tmp_path):
+        import os
+        from osslili.extractors.copyright_extractor import _the_file_itself
+
+        (tmp_path / "real.txt").write_text("x")
+        os.symlink("real.txt", tmp_path / "linked.txt")
+        os.link(tmp_path / "real.txt", tmp_path / "hard.txt")
+
+        answers = {
+            _the_file_itself(tmp_path / name)
+            for name in ("real.txt", "linked.txt", "hard.txt")
+        }
+
+        assert len(answers) == 1, answers
+
+    def test_the_device_is_part_of_the_answer(self, tmp_path, monkeypatch):
+        """An inode number is unique within a filesystem and not between
+        them, so a scan that crosses a mount point could see two files with
+        the same number. Asserted here rather than through a scan, because
+        arranging a second filesystem is not something a test can do."""
+        from pathlib import Path as _Path
+        from osslili.extractors.copyright_extractor import _the_file_itself
+
+        (tmp_path / "one.txt").write_text("x")
+        (tmp_path / "two.txt").write_text("x")
+        real = _Path.stat
+
+        class OnItsOwnDevice:
+            def __init__(self, stat, device):
+                self.st_ino = 7
+                self.st_dev = device
+                self._stat = stat
+
+            def __getattr__(self, name):
+                return getattr(self._stat, name)
+
+        def stat_of(self, *args, **kwargs):
+            device = 1 if self.name == "one.txt" else 2
+            return OnItsOwnDevice(real(self, *args, **kwargs), device)
+
+        monkeypatch.setattr(_Path, "stat", stat_of)
+
+        assert _the_file_itself(tmp_path / "one.txt") != _the_file_itself(
+            tmp_path / "two.txt"
+        )
+
+    def test_and_two_files_do_not(self, tmp_path):
+        from osslili.extractors.copyright_extractor import _the_file_itself
+
+        (tmp_path / "one.txt").write_text("x")
+        (tmp_path / "two.txt").write_text("x")
+
+        assert _the_file_itself(tmp_path / "one.txt") != _the_file_itself(
+            tmp_path / "two.txt"
+        )

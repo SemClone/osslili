@@ -16,23 +16,32 @@ from ..utils.file_scanner import SafeFileScanner
 logger = logging.getLogger(__name__)
 
 
-def _the_file_itself(path) -> str:
-    """One name for one file, whichever way it was reached.
+def _the_file_itself(path):
+    """What identifies one file, whichever name it was reached by.
 
-    A file is reached more than once: a setup.py is read as source for the
-    lines in it and again as metadata for the author it declares, and a
-    LICENSE that is a symbolic link to LICENSE.txt is reached by both names.
-    Counting the names counted the file twice, so the count is taken of what
-    the names resolve to.
+    A file is reached more than once. A setup.py is read as source for the
+    lines in it and again as metadata for the author it declares; a LICENSE
+    may be a symbolic link to LICENSE.txt; two names may be hard links to one
+    file; and on a filesystem that ignores case, setup.py and Setup.py are
+    the same file spelled two ways. Counting the names counted one file
+    several times.
 
-    A path that cannot be resolved is its own name, which is the most that
-    can be said about it.
+    The filesystem's own answer is used, the device and inode, because that
+    is what "the same file" means and no comparison of names gets all four of
+    those cases right. Where it cannot be had, the resolved name is the most
+    that can be said, and failing that the name as given.
     """
     if not path:
         return ""
     try:
+        stat = Path(path).stat()
+        if stat.st_ino:
+            return (stat.st_dev, stat.st_ino)
+    except (OSError, ValueError, RuntimeError):
+        pass
+    try:
         return str(Path(path).resolve())
-    except OSError:
+    except (OSError, ValueError, RuntimeError):
         return str(path)
 
 
