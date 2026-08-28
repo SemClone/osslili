@@ -1258,31 +1258,40 @@ class LicenseDetector:
             _DOCUMENT_OPENING if self._reads_as_a_document(file_path)
             else _COMMENT_OPENING
         )
+        # The rest of the line, not the first word of it. SPDX defines an
+        # expression here, and stopping at the first space reported
+        # "MIT OR Apache-2.0" as MIT, dropping a choice the licensor
+        # offered, and "GPL-2.0-only WITH Classpath-exception-2.0" as
+        # GPL-2.0-only, dropping the exception that form exists for.
         spdx_patterns = [
-            r'^' + opening + r'SPDX-License-Identifier:\s*([^\s\n]+)',
-            r'^' + opening + r'License:\s*([^\s\n]+)',
+            r'^' + opening + r'SPDX-License-Identifier:\s*([^\n]+)',
+            r'^' + opening + r'License:\s*([^\n]+)',
         ]
 
         for pattern in spdx_patterns:
             matches = re.finditer(pattern, header_content, re.IGNORECASE | re.MULTILINE)
             for match in matches:
-                license_id = match.group(1).strip()
-                # Remove comment markers if present
-                license_id = license_id.rstrip('*/>').strip()
+                expression = match.group(1).strip()
+                # Trailing comment markers. The parentheses SPDX allows
+                # around a whole expression are left to the parser, which
+                # already takes them off.
+                expression = expression.rstrip('*/>-').strip()
 
-                normalized_id = self._normalize_license_id(license_id)
-                license_info = self.spdx_data.get_license_info(normalized_id)
+                for license_id in self._parse_license_expression(expression):
 
-                if license_info:
-                    licenses.append(DetectedLicense(
-                        spdx_id=license_info['licenseId'],
-                        name=license_info.get('name', normalized_id),
-                        confidence=1.0,
-                        detection_method=DetectionMethod.TAG.value,
-                        source_file=str(file_path),
-                        category=LicenseCategory.DECLARED.value,
-                        match_type="header_tag"
-                    ))
+                    normalized_id = self._normalize_license_id(license_id)
+                    license_info = self.spdx_data.get_license_info(normalized_id)
+
+                    if license_info:
+                        licenses.append(DetectedLicense(
+                            spdx_id=license_info['licenseId'],
+                            name=license_info.get('name', normalized_id),
+                            confidence=1.0,
+                            detection_method=DetectionMethod.TAG.value,
+                            source_file=str(file_path),
+                            category=LicenseCategory.DECLARED.value,
+                            match_type="header_tag"
+                        ))
 
         return licenses
 
