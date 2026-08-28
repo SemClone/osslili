@@ -418,29 +418,43 @@ class TestWhichPatternsCountAsALine:
 
         return LicenseDetector(Config())
 
-    def test_the_header_forms_are_anchored(self):
-        anchored = [
+    def test_the_header_forms_read_a_line(self):
+        from osslili.detectors.license_detector import _reads_a_line
+
+        reading = [
             p.pattern for p in self._detector().spdx_tag_patterns
-            if p.pattern.startswith("^")
+            if _reads_a_line(p)
         ]
-        joined = " ".join(anchored)
+        joined = " ".join(reading)
 
         for form in ("SPDX-License-Identifier", "License-Expression",
                      "License:", "@license"):
-            assert form in joined, (form, anchored)
+            assert form in joined, (form, reading)
 
-    def test_and_the_metadata_values_are_not(self):
-        """A JSON or TOML value is bounded by its quotes, so there is nothing
-        after it to trim, and trimming would take "The MIT License" down to
-        "The"."""
-        loose = [
+    def test_and_no_quoted_value_does(self):
+        """A value is bounded by its quotes, so what follows it on the line
+        was never captured, and trimming would take "The MIT License" down to
+        "The". The TOML form is anchored to a line start as well, so the
+        anchor cannot be what decides this."""
+        from osslili.detectors.license_detector import _reads_a_line
+
+        trimmed = [
             p.pattern for p in self._detector().spdx_tag_patterns
-            if not p.pattern.startswith("^")
+            if _reads_a_line(p)
         ]
-        joined = " ".join(loose)
 
-        assert '"license"' in joined, loose
-        assert '"type"' in joined, loose
+        assert not any('"' in pattern for pattern in trimmed), trimmed
+
+    def test_including_the_anchored_toml_one(self):
+        from osslili.detectors.license_detector import _reads_a_line
+
+        toml = [
+            p for p in self._detector().spdx_tag_patterns
+            if p.pattern.startswith("^") and 'license\\s*=\\s*"' in p.pattern
+        ]
+
+        assert toml, "no anchored TOML value pattern found"
+        assert not any(_reads_a_line(p) for p in toml), [p.pattern for p in toml]
 
     def test_the_trimming_takes_the_expression_only(self):
         from osslili.detectors.license_detector import _expression_at_the_front
@@ -454,3 +468,50 @@ class TestWhichPatternsCountAsALine:
         from osslili.detectors.license_detector import _expression_at_the_front
 
         assert _expression_at_the_front("The MIT License") == "The"
+
+
+class TestTheAnnotationFormTakesAnExpression:
+    """@license is the JavaScript annotation, and it read one word."""
+
+    @pytest.mark.parametrize("value,expected", [
+        ("MIT OR Apache-2.0", {"MIT", "Apache-2.0"}),
+        ("MIT", {"MIT"}),
+        ("MIT AND BSD-3-Clause", {"MIT", "BSD-3-Clause"}),
+    ])
+    def test_every_term_is_reported(self, tmp_path, value, expected):
+        found = _reported(tmp_path, "widget.js", f"// @license {value}\n")
+
+        assert expected <= found, (value, found)
+
+    def test_and_a_note_after_it_is_not_a_licence(self, tmp_path):
+        found = _reported(tmp_path, "widget.js", "// @license MIT (see LICENSE)\n")
+
+        assert found == {"MIT"}, found
+
+
+class TestTheDeprecatedPlusFormInAWithExpression:
+    """GPL-2.0+ means or-later. Leaving the plus out of the operand took it
+    off and reported GPL-2.0, modernised later to GPL-2.0-only."""
+
+    def test_the_grant_survives(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GPL-2.0+ WITH Classpath-exception-2.0\n",
+        )
+
+        assert found == {"GPL-2.0-or-later"}, found
+
+    def test_and_is_not_turned_into_only(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GPL-2.0+ WITH Classpath-exception-2.0\n",
+        )
+
+        assert "GPL-2.0-only" not in found, found
+
+    def test_the_plus_form_alone_still_works(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c", "// SPDX-License-Identifier: GPL-2.0+\n",
+        )
+
+        assert found == {"GPL-2.0-or-later"}, found

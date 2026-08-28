@@ -261,6 +261,29 @@ _EXPRESSION = re.compile(
 )
 
 
+# The header forms, whose capture runs to the end of a line and so may pick
+# up a closing comment marker or a note to the reader. A quoted value is not
+# among them however it is anchored: what follows it on the line is outside
+# the quotes and was never captured.
+_LINE_FORMS = (
+    'SPDX-License-Identifier',
+    'License-Expression',
+    'License:',
+    '@license',
+    'Licensed',
+)
+
+
+def _reads_a_line(pattern) -> bool:
+    """Whether this pattern's capture runs to the end of a line.
+
+    Decided by which form it matches, and no quoted value matches one, which
+    a test asserts. Checking for a quote as well would be a second rule
+    saying the same thing, and nothing could tell whether it still held.
+    """
+    return any(form in pattern.pattern for form in _LINE_FORMS)
+
+
 def _expression_at_the_front(text: str) -> str:
     """The SPDX expression this line opens with, and nothing after it.
 
@@ -500,7 +523,7 @@ class LicenseDetector:
             # General License: <license> (but more restrictive to avoid false positives)
             re.compile(r'^\s*License:\s*([A-Za-z0-9\-\.]+)', re.IGNORECASE | re.MULTILINE),
             # @license <license>
-            re.compile(r'^' + _COMMENT_OPENING + r'@license\s+([A-Za-z0-9\-\.]+)', re.IGNORECASE | re.MULTILINE),
+            re.compile(r'^' + _COMMENT_OPENING + r'@license\s+([^\n]+)', re.IGNORECASE | re.MULTILINE),
             # A line opening with "Licensed under <license>", which is how
             # Apache's boilerplate declares itself, in the licence text and in
             # every source header carrying it. Also the forms where the file
@@ -550,7 +573,7 @@ class LicenseDetector:
             re.compile(r'^' + _DOCUMENT_OPENING + r'SPDX-License-Identifier:\s*([^\n]+?)(?:\s*-->)?$', re.IGNORECASE | re.MULTILINE),
             re.compile(r'^' + _DOCUMENT_OPENING + r'License-Expression:\s*([^\n]+)', re.IGNORECASE | re.MULTILINE),
             re.compile(r'^' + _DOCUMENT_OPENING + r'License:\s*([A-Za-z0-9\-\.]+)', re.IGNORECASE | re.MULTILINE),
-            re.compile(r'^' + _DOCUMENT_OPENING + r'@license\s+([A-Za-z0-9\-\.]+)', re.IGNORECASE | re.MULTILINE),
+            re.compile(r'^' + _DOCUMENT_OPENING + r'@license\s+([^\n]+)', re.IGNORECASE | re.MULTILINE),
             re.compile(r'^' + _DOCUMENT_OPENING + r'(?-i:Licensed)\s+under\s+(?:the\s+)?' + _LICENCE_NAME + r'(?:\s+[Ll]icense)?(?:\.\s|[,\n;]|$)', re.IGNORECASE | re.MULTILINE),
             re.compile(r'^' + _DOCUMENT_OPENING + _SELF_REFERRING + r'[Ll]icensed\s+under\s+(?:the\s+)?' + _LICENCE_NAME + r'(?:\s+[Ll]icense)?(?:\.\s|[,\n;]|$)', re.IGNORECASE | re.MULTILINE),
         ]
@@ -1740,10 +1763,12 @@ class LicenseDetector:
             self.document_tag_patterns if in_a_document else self.spdx_tag_patterns
         )
         # Which patterns read to the end of a line, and so may pick up
-        # whatever follows the expression on it. The metadata forms do not:
-        # a JSON or TOML value is already bounded by its quotes.
+        # whatever follows the expression on it. Said outright rather than
+        # guessed from the anchor: the TOML form is anchored too, and its
+        # capture is a quoted value, so trimming it took "The MIT License"
+        # down to "The".
         for pattern, is_prose, reads_a_line in (
-            [(p, False, p.pattern.startswith('^')) for p in tag_patterns]
+            [(p, False, _reads_a_line(p)) for p in tag_patterns]
             + [(p, True, False) for p in self.prose_patterns]
         ):
             matches = pattern.findall(content)
@@ -2362,7 +2387,11 @@ class LicenseDetector:
 
         # First handle WITH exceptions specially (keep them together)
         # e.g., "GPL-3.0 WITH Classpath-exception-2.0"
-        with_pattern = r'([A-Za-z0-9\-\.]+)\s+WITH\s+([A-Za-z0-9\-\.]+)'
+        # The operand may carry the deprecated "+" form, GPL-2.0+, which is
+        # handled everywhere else. Leaving it out took the plus off and
+        # reported GPL-2.0, modernised later to GPL-2.0-only: the opposite of
+        # what the file grants.
+        with_pattern = r'([A-Za-z0-9\-\.+]+)\s+WITH\s+([A-Za-z0-9\-\.]+)'
         with_matches = re.findall(with_pattern, expression, re.IGNORECASE)
 
         # Keep track of what we've processed
