@@ -179,7 +179,7 @@ class CopyrightExtractor:
             copyright_info.file_count = len(said_in[copyright_info.statement])
 
         return copyrights
-    
+
     def _extract_from_each(self, files_to_scan: List[Path]):
         """Every file paired with what it yielded, in no particular order.
 
