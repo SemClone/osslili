@@ -85,10 +85,17 @@ class DetectionResult:
         """Licenses representing the project itself.
 
         Excludes bundled third-party notice files, which carry dependency
-        licenses rather than the project's own license (issue #78).
+        licenses rather than the project's own license (issue #78), and
+        licences the project only refers to. A README saying "the bundled
+        minifier is licensed under the Apache License" is crediting a
+        dependency, and that credit reached the package licence and the SBOM
+        (issue #109).
         """
-        return [l for l in self.licenses
-                if l.category != LicenseCategory.THIRD_PARTY.value]
+        borrowed = {
+            LicenseCategory.THIRD_PARTY.value,
+            LicenseCategory.REFERENCED.value,
+        }
+        return [l for l in self.licenses if l.category not in borrowed]
 
     def get_third_party_licenses(self) -> List[DetectedLicense]:
         """Licenses detected in bundled third-party notice files (issue #78)."""

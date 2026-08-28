@@ -183,6 +183,81 @@ def _bounded_pattern(variation: str) -> str:
     return prefix + re.escape(variation) + suffix
 
 
+# What may sit between the start of a line and a licence header: indentation
+# and comment markers. Semicolons open a comment in Lisp and in ini files,
+# percent signs in TeX and R, parentheses with a star in ML and Pascal, and a
+# header written in one of those is as much a declaration as one in C.
+#
+# Written as whole markers rather than a set of characters, because a set
+# containing a hyphen also accepted a Markdown bullet, and "- Licensed under
+# the MIT License" under a Dependencies heading is a credit, not a header.
+_COMMENT_OPENING = r'(?:[\s*#;%]|//|/\*|<!--|--|\(\*)*'
+
+# Ways a file refers to itself before saying what it is licensed under.
+# "This file is licensed under the MIT License" and "Dual licensed under MIT
+# OR Apache-2.0" are the file stating its own licence, not crediting anything.
+#
+# A bare "Also" is not among them. It continues whatever sentence came before,
+# and after "the bundled parser is licensed under the BSD License" the thing
+# it continues is a credit. Without tracking what the previous sentence was
+# about there is no way to tell, and reading it as a declaration is the answer
+# that puts someone else's licence on the package.
+# A file whose subject is prose. It has no comment syntax, so an asterisk or
+# a hyphen opening a line is a bullet, and a quoted "license": "MIT" is the
+# document showing what a metadata file contains rather than declaring
+# anything. Only forms that are headers in prose as well count there.
+_DOCUMENT_SUFFIXES = (
+    '.md', '.markdown', '.mdown', '.rst', '.adoc', '.asciidoc',
+    '.txt', '.text', '.textile', '.org', '.rdoc', '.pod', '.wiki', '.me',
+)
+
+# Prose files that carry no suffix at all. A GNU-style README is the common
+# one, and it took the rules for code, so an asterisk opening a bullet was
+# read as a comment marker and a credit under it declared.
+_DOCUMENT_STEMS = (
+    'readme', 'readme.1st', 'install', 'changelog', 'changes', 'news',
+    'history', 'authors', 'contributors', 'contributing', 'credits',
+    'thanks', 'todo', 'faq', 'security', 'support', 'roadmap', 'manual',
+)
+
+# The openings a document can have: indentation, and the markers that are
+# still comments in one. Not the asterisk or the double hyphen, which are a
+# bullet and a rule.
+_DOCUMENT_OPENING = r'(?:[\s#]|<!--)*'
+
+
+def _has_a_document_suffix(file_path) -> bool:
+    """Whether the name says this file's subject is prose."""
+    name = str(getattr(file_path, 'name', file_path)).lower()
+    if any(name.endswith(suffix) for suffix in _DOCUMENT_SUFFIXES):
+        return True
+    # Matched whole, so the guard against names with a suffix is not needed
+    # and did make README.1st unreachable, since the entry for it has one.
+    return name in _DOCUMENT_STEMS
+
+
+# What a licence name may be made of. It is the terminator below that keeps
+# it from running on: ending the match at a full stop followed by a space
+# stops the capture at the end of the sentence, which is what it took to
+# report BSD-2-Clause rather than the whole of "BSD-2-Clause License. The
+# bundled CSS minifier is", which normalised to BSD-3-Clause, a licence the
+# file never names.
+_LICENCE_NAME = r'([A-Za-z0-9\-\.\s]+?)'
+
+
+_SELF_REFERRING = (
+    # optionally "Portions of ..."
+    r'(?:portions\s+of\s+)?'
+    r'(?:th(?:is|e)\s+(?:file|project|software|package|library|module|work|'
+    r'code|program|distribution|repository|repo|crate|gem|plugin|extension|'
+    r'tool|application|app|component|utility|source\s+code|contents)|'
+    r'dual|source\s+code)\s*'
+    r'(?:is|are|was|may\s+be|can\s+be)?\s*'
+    # "is dual licensed", "are jointly licensed"
+    r'(?:dual|jointly|multi)?\s*'
+)
+
+
 class LicenseDetector:
     """Detect licenses in source code using multiple detection methods."""
     
@@ -207,6 +282,8 @@ class LicenseDetector:
         
         # SPDX tag patterns
         self.spdx_tag_patterns = self._compile_spdx_patterns()
+        self.prose_patterns = self._compile_prose_patterns()
+        self.document_tag_patterns = self._compile_document_tag_patterns()
         
         # Common license indicators in text
         self.license_indicators = [
@@ -380,9 +457,12 @@ class LicenseDetector:
             # SPDX-License-Identifier: <license>
             # Match complex expressions including parentheses, AND, OR, WITH
             # Stop at newline or end of comment markers
-            re.compile(r'SPDX-License-Identifier:\s*([^\n]+?)(?:\s*\*/)?(?:\s*-->)?$', re.IGNORECASE | re.MULTILINE),
+            # Anchored, because the identifier is a header. Unanchored, the
+            # sentence "dependency foo declares SPDX-License-Identifier: MIT"
+            # was read as this file declaring MIT.
+            re.compile(r'^' + _COMMENT_OPENING + r'SPDX-License-Identifier:\s*([^\n]+?)(?:\s*\*/)?(?:\s*-->)?$', re.IGNORECASE | re.MULTILINE),
             # Python METADATA: License-Expression: <license>
-            re.compile(r'License-Expression:\s*([^\s\n]+)', re.IGNORECASE),
+            re.compile(r'^' + _COMMENT_OPENING + r'License-Expression:\s*([^\s\n]+)', re.IGNORECASE | re.MULTILINE),
             # package.json style: "license": "MIT" or licenses array with "type": "MIT"
             re.compile(r'"license"\s*:\s*"([^"]+)"', re.IGNORECASE),
             # package.json licenses array: {"type": "MIT", ...}
@@ -394,9 +474,87 @@ class LicenseDetector:
             # General License: <license> (but more restrictive to avoid false positives)
             re.compile(r'^\s*License:\s*([A-Za-z0-9\-\.]+)', re.IGNORECASE | re.MULTILINE),
             # @license <license>
-            re.compile(r'@license\s+([A-Za-z0-9\-\.]+)', re.IGNORECASE),
-            # Licensed under <license> - Fixed to capture full license name
-            re.compile(r'[Ll]icensed\s+under\s+(?:the\s+)?([A-Za-z0-9\-\.\s]+?)(?:\s+[Ll]icense)?(?:[,\n;]|$)', re.IGNORECASE),
+            re.compile(r'^' + _COMMENT_OPENING + r'@license\s+([A-Za-z0-9\-\.]+)', re.IGNORECASE | re.MULTILINE),
+            # A line opening with "Licensed under <license>", which is how
+            # Apache's boilerplate declares itself, in the licence text and in
+            # every source header carrying it. Also the forms where the file
+            # names itself first: "This file is licensed under the MIT
+            # License", "Dual licensed under MIT OR Apache-2.0".
+            # With no subject, capitalised. A hard-wrapped sentence
+            # continues in lower case, so "licensed under the BSD-2-Clause
+            # License. The bundled CSS minifier is" opening a line is the
+            # middle of a credit, not the start of a header.
+            re.compile(
+                r'^' + _COMMENT_OPENING + r'(?-i:Licensed)\s+under\s+(?:the\s+)?'
+                r'' + _LICENCE_NAME + r'(?:\s+[Ll]icense)?(?:\.\s|[,\n;]|$)',
+                re.IGNORECASE | re.MULTILINE,
+            ),
+            # With a subject, any case: "This file is licensed under the MIT
+            # License" is a sentence of its own however it is capitalised.
+            re.compile(
+                r'^' + _COMMENT_OPENING + _SELF_REFERRING
+                + r'[Ll]icensed\s+under\s+(?:the\s+)?'
+                r'' + _LICENCE_NAME + r'(?:\s+[Ll]icense)?(?:\.\s|[,\n;]|$)',
+                re.IGNORECASE | re.MULTILINE,
+            ),
+        ]
+
+    def _reads_as_a_document(self, file_path) -> bool:
+        """Whether this file's subject is prose rather than code.
+
+        A licence file is not a document however it is suffixed, since
+        LICENSE.txt and LICENCE.md hold the licence itself. Which files those
+        are is asked of _is_license_file rather than decided again here, so
+        there is one answer to that question rather than two that can drift.
+        """
+        if not _has_a_document_suffix(file_path):
+            return False
+        return not self._is_license_file(Path(str(file_path)))
+
+    def _compile_document_tag_patterns(self) -> List[re.Pattern]:
+        """The declaration forms that mean something in a document.
+
+        A README has no comment syntax. An asterisk or a hyphen opening a line
+        is a bullet, so "- Licensed under the MIT License" under a
+        Dependencies heading is a credit rather than a header, and a quoted
+        \"license\": \"MIT\" is the document showing what a package file
+        contains. Those forms are dropped here and kept for code.
+        """
+        return [
+            re.compile(r'^' + _DOCUMENT_OPENING + r'SPDX-License-Identifier:\s*([^\n]+?)(?:\s*-->)?$', re.IGNORECASE | re.MULTILINE),
+            re.compile(r'^' + _DOCUMENT_OPENING + r'License-Expression:\s*([^\s\n]+)', re.IGNORECASE | re.MULTILINE),
+            re.compile(r'^' + _DOCUMENT_OPENING + r'License:\s*([A-Za-z0-9\-\.]+)', re.IGNORECASE | re.MULTILINE),
+            re.compile(r'^' + _DOCUMENT_OPENING + r'@license\s+([A-Za-z0-9\-\.]+)', re.IGNORECASE | re.MULTILINE),
+            re.compile(r'^' + _DOCUMENT_OPENING + r'(?-i:Licensed)\s+under\s+(?:the\s+)?' + _LICENCE_NAME + r'(?:\s+[Ll]icense)?(?:\.\s|[,\n;]|$)', re.IGNORECASE | re.MULTILINE),
+            re.compile(r'^' + _DOCUMENT_OPENING + _SELF_REFERRING + r'[Ll]icensed\s+under\s+(?:the\s+)?' + _LICENCE_NAME + r'(?:\s+[Ll]icense)?(?:\.\s|[,\n;]|$)', re.IGNORECASE | re.MULTILINE),
+        ]
+
+    def _compile_prose_patterns(self) -> List[re.Pattern]:
+        """Patterns that match a licence named inside a sentence.
+
+        Kept apart from the ones above because they are a different kind of
+        claim. "SPDX-License-Identifier: Apache-2.0" is a file declaring its
+        licence. "the bundled minifier is licensed under the Apache License"
+        is a file mentioning someone else's, and the two were reported
+        identically: same method, same confidence, same category. A consumer
+        that wanted to trust declarations had to refuse both.
+
+        What separates them is where the phrase sits. Apache's own boilerplate
+        opens a line: "Licensed under the Apache License, Version 2.0 (the
+        "License")", and it opens one in the licence text itself and in every
+        source header that carries it. A credit has the thing being credited
+        in front of it. So a line that begins with the phrase, after nothing
+        but indentation or a comment marker, is still read as a declaration,
+        and only a phrase with words before it is read as a reference.
+
+        Words, not merely something: requiring any non-space character in
+        front counted the asterisk of a Java comment, so the Apache header
+        that opens " * Licensed under the Apache License" was read as a
+        reference to one. It has to be a letter or a digit.
+        """
+        return [
+            # ... is licensed under <license>, with something in front of it.
+            re.compile(r'[A-Za-z0-9][^\n]*?[Ll]icensed\s+under\s+(?:the\s+)?' + _LICENCE_NAME + r'(?:\s+[Ll]icense)?(?:\.\s|[,\n;]|$)', re.IGNORECASE),
         ]
     
     def detect_licenses(self, path: Path) -> List[DetectedLicense]:
@@ -1085,10 +1243,24 @@ class LicenseDetector:
         lines = content.splitlines()[:30]
         header_content = '\n'.join(lines)
 
-        # Extract SPDX tags from comments
+        # Extract SPDX tags from comments.
+        #
+        # Both anchored to the start of a line, allowing for a comment marker
+        # or indentation. "License:" was matched after any space, so it fired
+        # mid-sentence: "it bundles terser, license: BSD-2-Clause, for
+        # minification" was reported as the file declaring BSD-2-Clause, at
+        # confidence 1.0. A credits section near the top of a short README is
+        # exactly where that sits.
+        # A document has no comment syntax, so an asterisk opening a line is
+        # a bullet: "* Licensed under the MIT License" under a Dependencies
+        # heading is a credit rather than a header.
+        opening = (
+            _DOCUMENT_OPENING if self._reads_as_a_document(file_path)
+            else _COMMENT_OPENING
+        )
         spdx_patterns = [
-            r'(?:^|\s)SPDX-License-Identifier:\s*([^\s\n]+)',
-            r'(?:^|\s)License:\s*([^\s\n]+)',
+            r'^' + opening + r'SPDX-License-Identifier:\s*([^\s\n]+)',
+            r'^' + opening + r'License:\s*([^\s\n]+)',
         ]
 
         for pattern in spdx_patterns:
@@ -1500,6 +1672,24 @@ class LicenseDetector:
 
         return licenses
 
+    def _categorize_tag(self, file_path: Path, is_prose: bool):
+        """How to file a tag match, given which pattern found it.
+
+        A licence named inside a sentence is a reference to one, which is
+        what the referenced category is for. Reporting it as declared said
+        the file states that licence, and a package whose README credits a
+        dependency was read as carrying the dependency's licence.
+
+        Except inside a licence file, where there is no one else to be
+        referring to. A pointer-style LICENSE reading "FooBar is licensed
+        under the MIT License. See ... for the full text." is that package
+        stating its licence, and calling it a reference left the file with no
+        declaration at all.
+        """
+        if is_prose and not self._is_license_file(file_path):
+            return LicenseCategory.REFERENCED.value, "prose_reference"
+        return self._categorize_license(file_path, DetectionMethod.TAG.value)
+
     def _detect_spdx_tags(self, content: str, file_path: Path) -> List[DetectedLicense]:
         """Detect SPDX license identifiers in content."""
         licenses = []
@@ -1511,7 +1701,14 @@ class LicenseDetector:
         if any(name in file_name for name in ['spdx_licenses.py', 'license_detector.py']):
             return licenses
         
-        for pattern in self.spdx_tag_patterns:
+        in_a_document = self._reads_as_a_document(file_path)
+        tag_patterns = (
+            self.document_tag_patterns if in_a_document else self.spdx_tag_patterns
+        )
+        for pattern, is_prose in (
+            [(p, False) for p in tag_patterns]
+            + [(p, True) for p in self.prose_patterns]
+        ):
             matches = pattern.findall(content)
             
             for match in matches:
@@ -1541,8 +1738,8 @@ class LicenseDetector:
                         license_info = self.spdx_data.get_license_info(normalized_id)
 
                         if license_info:
-                            category, match_type = self._categorize_license(
-                                file_path, DetectionMethod.TAG.value
+                            category, match_type = self._categorize_tag(
+                                file_path, is_prose
                             )
                             licenses.append(DetectedLicense(
                                 spdx_id=license_info['licenseId'],
@@ -1556,8 +1753,8 @@ class LicenseDetector:
                         else:
                             # Only record unknown licenses if they look valid
                             if self._looks_like_valid_license(normalized_id):
-                                category, match_type = self._categorize_license(
-                                    file_path, DetectionMethod.TAG.value
+                                category, match_type = self._categorize_tag(
+                                    file_path, is_prose
                                 )
                                 licenses.append(DetectedLicense(
                                     spdx_id=normalized_id,
