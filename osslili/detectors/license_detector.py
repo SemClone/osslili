@@ -208,7 +208,16 @@ _COMMENT_OPENING = r'(?:[\s*#;%]|//|/\*|<!--|--|\(\*)*'
 # anything. Only forms that are headers in prose as well count there.
 _DOCUMENT_SUFFIXES = (
     '.md', '.markdown', '.mdown', '.rst', '.adoc', '.asciidoc',
-    '.txt', '.text', '.textile', '.org',
+    '.txt', '.text', '.textile', '.org', '.rdoc', '.pod', '.wiki', '.me',
+)
+
+# Prose files that carry no suffix at all. A GNU-style README is the common
+# one, and it took the rules for code, so an asterisk opening a bullet was
+# read as a comment marker and a credit under it declared.
+_DOCUMENT_STEMS = (
+    'readme', 'readme.1st', 'install', 'changelog', 'changes', 'news',
+    'history', 'authors', 'contributors', 'contributing', 'credits',
+    'thanks', 'todo', 'faq', 'security', 'support', 'roadmap', 'manual',
 )
 
 # The openings a document can have: indentation, and the markers that are
@@ -220,7 +229,18 @@ _DOCUMENT_OPENING = r'(?:[\s#]|<!--)*'
 def _has_a_document_suffix(file_path) -> bool:
     """Whether the name says this file's subject is prose."""
     name = str(getattr(file_path, 'name', file_path)).lower()
-    return any(name.endswith(suffix) for suffix in _DOCUMENT_SUFFIXES)
+    if any(name.endswith(suffix) for suffix in _DOCUMENT_SUFFIXES):
+        return True
+    return '.' not in name and name in _DOCUMENT_STEMS
+
+
+# What a licence name may be made of. It is the terminator below that keeps
+# it from running on: ending the match at a full stop followed by a space
+# stops the capture at the end of the sentence, which is what it took to
+# report BSD-2-Clause rather than the whole of "BSD-2-Clause License. The
+# bundled CSS minifier is", which normalised to BSD-3-Clause, a licence the
+# file never names.
+_LICENCE_NAME = r'([A-Za-z0-9\-\.\s]+?)'
 
 
 _SELF_REFERRING = (
@@ -459,10 +479,21 @@ class LicenseDetector:
             # every source header carrying it. Also the forms where the file
             # names itself first: "This file is licensed under the MIT
             # License", "Dual licensed under MIT OR Apache-2.0".
+            # With no subject, capitalised. A hard-wrapped sentence
+            # continues in lower case, so "licensed under the BSD-2-Clause
+            # License. The bundled CSS minifier is" opening a line is the
+            # middle of a credit, not the start of a header.
             re.compile(
-                r'^' + _COMMENT_OPENING + r'(?:' + _SELF_REFERRING + r')?'
-                r'[Ll]icensed\s+under\s+(?:the\s+)?'
-                r'([A-Za-z0-9\-\.\s]+?)(?:\s+[Ll]icense)?(?:[,\n;]|$)',
+                r'^' + _COMMENT_OPENING + r'(?-i:Licensed)\s+under\s+(?:the\s+)?'
+                r'' + _LICENCE_NAME + r'(?:\s+[Ll]icense)?(?:\.\s|[,\n;]|$)',
+                re.IGNORECASE | re.MULTILINE,
+            ),
+            # With a subject, any case: "This file is licensed under the MIT
+            # License" is a sentence of its own however it is capitalised.
+            re.compile(
+                r'^' + _COMMENT_OPENING + _SELF_REFERRING
+                + r'[Ll]icensed\s+under\s+(?:the\s+)?'
+                r'' + _LICENCE_NAME + r'(?:\s+[Ll]icense)?(?:\.\s|[,\n;]|$)',
                 re.IGNORECASE | re.MULTILINE,
             ),
         ]
@@ -493,7 +524,8 @@ class LicenseDetector:
             re.compile(r'^' + _DOCUMENT_OPENING + r'License-Expression:\s*([^\s\n]+)', re.IGNORECASE | re.MULTILINE),
             re.compile(r'^' + _DOCUMENT_OPENING + r'License:\s*([A-Za-z0-9\-\.]+)', re.IGNORECASE | re.MULTILINE),
             re.compile(r'^' + _DOCUMENT_OPENING + r'@license\s+([A-Za-z0-9\-\.]+)', re.IGNORECASE | re.MULTILINE),
-            re.compile(r'^' + _DOCUMENT_OPENING + r'(?:' + _SELF_REFERRING + r')?[Ll]icensed\s+under\s+(?:the\s+)?([A-Za-z0-9\-\.\s]+?)(?:\s+[Ll]icense)?(?:[,\n;]|$)', re.IGNORECASE | re.MULTILINE),
+            re.compile(r'^' + _DOCUMENT_OPENING + r'(?-i:Licensed)\s+under\s+(?:the\s+)?' + _LICENCE_NAME + r'(?:\s+[Ll]icense)?(?:\.\s|[,\n;]|$)', re.IGNORECASE | re.MULTILINE),
+            re.compile(r'^' + _DOCUMENT_OPENING + _SELF_REFERRING + r'[Ll]icensed\s+under\s+(?:the\s+)?' + _LICENCE_NAME + r'(?:\s+[Ll]icense)?(?:\.\s|[,\n;]|$)', re.IGNORECASE | re.MULTILINE),
         ]
 
     def _compile_prose_patterns(self) -> List[re.Pattern]:
@@ -521,7 +553,7 @@ class LicenseDetector:
         """
         return [
             # ... is licensed under <license>, with something in front of it.
-            re.compile(r'[A-Za-z0-9][^\n]*?[Ll]icensed\s+under\s+(?:the\s+)?([A-Za-z0-9\-\.\s]+?)(?:\s+[Ll]icense)?(?:[,\n;]|$)', re.IGNORECASE),
+            re.compile(r'[A-Za-z0-9][^\n]*?[Ll]icensed\s+under\s+(?:the\s+)?' + _LICENCE_NAME + r'(?:\s+[Ll]icense)?(?:\.\s|[,\n;]|$)', re.IGNORECASE),
         ]
     
     def detect_licenses(self, path: Path) -> List[DetectedLicense]:
@@ -1646,8 +1678,14 @@ class LicenseDetector:
         what the referenced category is for. Reporting it as declared said
         the file states that licence, and a package whose README credits a
         dependency was read as carrying the dependency's licence.
+
+        Except inside a licence file, where there is no one else to be
+        referring to. A pointer-style LICENSE reading "FooBar is licensed
+        under the MIT License. See ... for the full text." is that package
+        stating its licence, and calling it a reference left the file with no
+        declaration at all.
         """
-        if is_prose:
+        if is_prose and not self._is_license_file(file_path):
             return LicenseCategory.REFERENCED.value, "prose_reference"
         return self._categorize_license(file_path, DetectionMethod.TAG.value)
 

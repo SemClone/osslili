@@ -643,3 +643,184 @@ class TestOneAnswerToWhatALicenceFileIs:
         source = inspect.getsource(LicenseDetector._reads_as_a_document)
 
         assert "_is_license_file" in source
+
+
+class TestAHardWrappedCredit:
+    """Seventy-two column wrapping puts the middle of a sentence at the start
+    of a line, and the line-position rule read that as a header. It also let
+    the capture run past the full stop and into the next sentence, so a name
+    the file never wrote was normalised into a licence it never named."""
+
+    WRAPPED = (
+        "This distribution bundles a copy of terser for minification. terser is\n"
+        "licensed under the BSD-2-Clause License. The bundled CSS minifier is\n"
+        "licensed under the Apache License, Version 2.0.\n"
+    )
+
+    def test_it_declares_nothing(self, tmp_path):
+        evidence = _evidence(tmp_path, "README.md", self.WRAPPED)
+
+        assert _declared(evidence) == set(), evidence
+
+    def test_and_invents_no_licence(self, tmp_path):
+        """It said BSD-2-Clause and the tool reported BSD-3-Clause, which is
+        a different licence with a clause the file does not carry."""
+        evidence = _evidence(tmp_path, "README.md", self.WRAPPED)
+
+        assert "BSD-3-Clause" not in {spdx for spdx, _, _ in evidence}, evidence
+
+    def test_a_capitalised_header_still_declares(self, tmp_path):
+        """The discriminator. A wrapped sentence continues in lower case."""
+        evidence = _evidence(
+            tmp_path, "Widget.java",
+            ' * Licensed under the Apache License, Version 2.0 (the "License");\n',
+        )
+
+        assert "Apache-2.0" in _declared(evidence), evidence
+
+    def test_and_a_subject_declares_in_any_case(self, tmp_path):
+        """"This file is licensed under" is a sentence of its own, and its
+        verb is lower case because that is how the sentence reads."""
+        evidence = _evidence(
+            tmp_path, "Widget.java", "// This file is licensed under the MIT License.\n",
+        )
+
+        assert "MIT" in _declared(evidence), evidence
+
+
+class TestProseInsideALicenceFile:
+    """A pointer-style LICENSE names the package and links to the text. There
+    is no one else for it to be referring to."""
+
+    POINTER = (
+        "FooBar is licensed under the MIT License.\n"
+        "See https://opensource.org/licenses/MIT for the full text.\n"
+    )
+
+    @pytest.mark.parametrize("name", ["LICENSE", "LICENCE.md", "COPYING"])
+    def test_it_declares(self, tmp_path, name):
+        evidence = _evidence(tmp_path, name, self.POINTER)
+
+        assert "MIT" in _declared(evidence), (name, evidence)
+
+    @pytest.mark.parametrize("name", ["LICENSE", "LICENCE.md", "COPYING"])
+    def test_and_is_not_called_a_reference(self, tmp_path, name):
+        evidence = _evidence(tmp_path, name, self.POINTER)
+
+        assert _referenced(evidence) == set(), (name, evidence)
+
+    def test_but_the_same_words_in_a_readme_still_credit(self, tmp_path):
+        evidence = _evidence(tmp_path, "README.md", self.POINTER)
+
+        assert "MIT" in _referenced(evidence), evidence
+
+
+class TestDocumentsWithoutAMarkdownSuffix:
+    """A suffix list that only proved itself on .md is a list of one."""
+
+    BULLETED_CREDIT = "Bundled dependencies:\n* Licensed under the MIT License.\n"
+
+    @pytest.mark.parametrize("name", [
+        "README", "README.rst", "README.txt", "README.rdoc", "README.textile",
+        "CHANGELOG", "INSTALL", "NEWS", "docs.org",
+    ])
+    def test_a_bulleted_credit_declares_nothing(self, tmp_path, name):
+        evidence = _evidence(tmp_path, name, self.BULLETED_CREDIT)
+
+        assert _declared(evidence) == set(), (name, evidence)
+
+    @pytest.mark.parametrize("name", ["widget.c", "widget.py", "widget.rs"])
+    def test_but_a_comment_marked_one_in_code_still_declares(self, tmp_path, name):
+        evidence = _evidence(
+            tmp_path, name, " * Licensed under the MIT License.\n",
+        )
+
+        assert "MIT" in _declared(evidence), (name, evidence)
+
+
+class TestTheCodePathKeepsItsWholeMarkers:
+    """Every bullet test uses a README, which takes the document openings, so
+    nothing pinned the decision on the path where the code openings apply."""
+
+    def test_a_double_hyphen_opens_a_comment_in_code(self, tmp_path):
+        evidence = _evidence(tmp_path, "widget.hs", "-- License: MIT\n")
+
+        assert "MIT" in _declared(evidence), evidence
+
+    def test_a_single_hyphen_does_not(self, tmp_path):
+        evidence = _evidence(tmp_path, "widget.hs", "- License: MIT\n")
+
+        assert _declared(evidence) == set(), evidence
+
+    def test_nor_does_a_single_hyphen_before_a_credit(self, tmp_path):
+        evidence = _evidence(tmp_path, "widget.hs", "- Licensed under the MIT License.\n")
+
+        assert _declared(evidence) == set(), evidence
+
+
+class TestWhatCountsAsTheProjectsOwn:
+    """get_own_licenses filters on the category, not on one match type."""
+
+    def _result(self, category, match_type):
+        from osslili.core.models import DetectedLicense, DetectionResult
+
+        result = DetectionResult(path="/repo")
+        result.licenses = [
+            DetectedLicense(spdx_id="Apache-2.0", name="Apache", confidence=1.0,
+                            detection_method="regex", source_file="/repo/README.md",
+                            category=category, match_type=match_type),
+        ]
+        return result
+
+    @pytest.mark.parametrize("match_type", ["prose_reference", "license_reference"])
+    def test_every_referenced_record_is_excluded(self, match_type):
+        result = self._result("referenced", match_type)
+
+        assert result.get_own_licenses() == []
+
+    def test_and_so_is_a_third_party_one(self):
+        result = self._result("third-party", "third_party_notice")
+
+        assert result.get_own_licenses() == []
+
+    def test_but_a_declared_one_is_kept(self):
+        result = self._result("declared", "license_file")
+
+        assert [lic.spdx_id for lic in result.get_own_licenses()] == ["Apache-2.0"]
+
+
+class TestTheSameTwoRulesOnTheCodePath:
+    """The document set and the code set are separate copies of the same
+    forms, so a test written against a README pins only one of them."""
+
+    def test_a_capture_stops_at_the_end_of_a_sentence(self, tmp_path):
+        """Capitalised, so the line does open a declaration. What must not
+        happen is the name running on into the next sentence: "BSD-2-Clause
+        License. The bundled CSS minifier is" was normalised to BSD-3-Clause,
+        a licence the file never names."""
+        evidence = _evidence(
+            tmp_path, "widget.c",
+            "/* Licensed under the BSD-2-Clause License. The bundled CSS\n"
+            "   minifier is licensed under the Apache License. */\n",
+        )
+        found = {spdx for spdx, _, _ in evidence}
+
+        assert "BSD-3-Clause" not in found, evidence
+        assert "BSD-2-Clause" in _declared(evidence), evidence
+
+    def test_a_wrapped_comment_does_not_open_a_declaration(self, tmp_path):
+        """The continuation line starts with a lower case verb."""
+        evidence = _evidence(
+            tmp_path, "widget.c",
+            "/* This bundles terser. terser is\n"
+            " * licensed under the BSD-2-Clause License. */\n",
+        )
+
+        assert _declared(evidence) == set(), evidence
+
+    def test_but_the_capitalised_form_still_does(self, tmp_path):
+        evidence = _evidence(
+            tmp_path, "widget.c", " * Licensed under the MIT License.\n",
+        )
+
+        assert "MIT" in _declared(evidence), evidence
