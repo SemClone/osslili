@@ -202,6 +202,31 @@ _COMMENT_OPENING = r'(?:[\s*#;%]|//|/\*|<!--|--|\(\*)*'
 # it continues is a credit. Without tracking what the previous sentence was
 # about there is no way to tell, and reading it as a declaration is the answer
 # that puts someone else's licence on the package.
+# A file whose subject is prose. It has no comment syntax, so an asterisk or
+# a hyphen opening a line is a bullet, and a quoted "license": "MIT" is the
+# document showing what a metadata file contains rather than declaring
+# anything. Only forms that are headers in prose as well count there.
+_DOCUMENT_SUFFIXES = (
+    '.md', '.markdown', '.mdown', '.rst', '.adoc', '.asciidoc',
+    '.txt', '.text', '.textile', '.org',
+)
+
+# The openings a document can have: indentation, and the markers that are
+# still comments in one. Not the asterisk or the double hyphen, which are a
+# bullet and a rule.
+_DOCUMENT_OPENING = r'(?:[\s#]|<!--)*'
+
+
+def _reads_as_a_document(file_path) -> bool:
+    """Whether this file's subject is prose rather than code."""
+    name = str(getattr(file_path, 'name', file_path)).lower()
+    if any(word in name for word in ('license', 'licence', 'copying', 'notice')):
+        # A licence file is not a document for this purpose, whatever it is
+        # suffixed with: LICENSE.txt holds the licence itself.
+        return False
+    return any(name.endswith(suffix) for suffix in _DOCUMENT_SUFFIXES)
+
+
 _SELF_REFERRING = (
     # optionally "Portions of ..."
     r'(?:portions\s+of\s+)?'
@@ -239,6 +264,7 @@ class LicenseDetector:
         # SPDX tag patterns
         self.spdx_tag_patterns = self._compile_spdx_patterns()
         self.prose_patterns = self._compile_prose_patterns()
+        self.document_tag_patterns = self._compile_document_tag_patterns()
         
         # Common license indicators in text
         self.license_indicators = [
@@ -417,7 +443,7 @@ class LicenseDetector:
             # was read as this file declaring MIT.
             re.compile(r'^' + _COMMENT_OPENING + r'SPDX-License-Identifier:\s*([^\n]+?)(?:\s*\*/)?(?:\s*-->)?$', re.IGNORECASE | re.MULTILINE),
             # Python METADATA: License-Expression: <license>
-            re.compile(r'License-Expression:\s*([^\s\n]+)', re.IGNORECASE),
+            re.compile(r'^' + _COMMENT_OPENING + r'License-Expression:\s*([^\s\n]+)', re.IGNORECASE | re.MULTILINE),
             # package.json style: "license": "MIT" or licenses array with "type": "MIT"
             re.compile(r'"license"\s*:\s*"([^"]+)"', re.IGNORECASE),
             # package.json licenses array: {"type": "MIT", ...}
@@ -429,7 +455,7 @@ class LicenseDetector:
             # General License: <license> (but more restrictive to avoid false positives)
             re.compile(r'^\s*License:\s*([A-Za-z0-9\-\.]+)', re.IGNORECASE | re.MULTILINE),
             # @license <license>
-            re.compile(r'@license\s+([A-Za-z0-9\-\.]+)', re.IGNORECASE),
+            re.compile(r'^' + _COMMENT_OPENING + r'@license\s+([A-Za-z0-9\-\.]+)', re.IGNORECASE | re.MULTILINE),
             # A line opening with "Licensed under <license>", which is how
             # Apache's boilerplate declares itself, in the licence text and in
             # every source header carrying it. Also the forms where the file
@@ -441,6 +467,23 @@ class LicenseDetector:
                 r'([A-Za-z0-9\-\.\s]+?)(?:\s+[Ll]icense)?(?:[,\n;]|$)',
                 re.IGNORECASE | re.MULTILINE,
             ),
+        ]
+
+    def _compile_document_tag_patterns(self) -> List[re.Pattern]:
+        """The declaration forms that mean something in a document.
+
+        A README has no comment syntax. An asterisk or a hyphen opening a line
+        is a bullet, so "- Licensed under the MIT License" under a
+        Dependencies heading is a credit rather than a header, and a quoted
+        \"license\": \"MIT\" is the document showing what a package file
+        contains. Those forms are dropped here and kept for code.
+        """
+        return [
+            re.compile(r'^' + _DOCUMENT_OPENING + r'SPDX-License-Identifier:\s*([^\n]+?)(?:\s*-->)?$', re.IGNORECASE | re.MULTILINE),
+            re.compile(r'^' + _DOCUMENT_OPENING + r'License-Expression:\s*([^\s\n]+)', re.IGNORECASE | re.MULTILINE),
+            re.compile(r'^' + _DOCUMENT_OPENING + r'License:\s*([A-Za-z0-9\-\.]+)', re.IGNORECASE | re.MULTILINE),
+            re.compile(r'^' + _DOCUMENT_OPENING + r'@license\s+([A-Za-z0-9\-\.]+)', re.IGNORECASE | re.MULTILINE),
+            re.compile(r'^' + _DOCUMENT_OPENING + r'(?:' + _SELF_REFERRING + r')?[Ll]icensed\s+under\s+(?:the\s+)?([A-Za-z0-9\-\.\s]+?)(?:\s+[Ll]icense)?(?:[,\n;]|$)', re.IGNORECASE | re.MULTILINE),
         ]
 
     def _compile_prose_patterns(self) -> List[re.Pattern]:
@@ -1165,9 +1208,16 @@ class LicenseDetector:
         # minification" was reported as the file declaring BSD-2-Clause, at
         # confidence 1.0. A credits section near the top of a short README is
         # exactly where that sits.
+        # A document has no comment syntax, so an asterisk opening a line is
+        # a bullet: "* Licensed under the MIT License" under a Dependencies
+        # heading is a credit rather than a header.
+        opening = (
+            _DOCUMENT_OPENING if _reads_as_a_document(file_path)
+            else _COMMENT_OPENING
+        )
         spdx_patterns = [
-            r'^' + _COMMENT_OPENING + r'SPDX-License-Identifier:\s*([^\s\n]+)',
-            r'^' + _COMMENT_OPENING + r'License:\s*([^\s\n]+)',
+            r'^' + opening + r'SPDX-License-Identifier:\s*([^\s\n]+)',
+            r'^' + opening + r'License:\s*([^\s\n]+)',
         ]
 
         for pattern in spdx_patterns:
@@ -1602,8 +1652,12 @@ class LicenseDetector:
         if any(name in file_name for name in ['spdx_licenses.py', 'license_detector.py']):
             return licenses
         
+        in_a_document = _reads_as_a_document(file_path)
+        tag_patterns = (
+            self.document_tag_patterns if in_a_document else self.spdx_tag_patterns
+        )
         for pattern, is_prose in (
-            [(p, False) for p in self.spdx_tag_patterns]
+            [(p, False) for p in tag_patterns]
             + [(p, True) for p in self.prose_patterns]
         ):
             matches = pattern.findall(content)

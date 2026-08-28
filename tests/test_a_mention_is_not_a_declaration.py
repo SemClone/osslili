@@ -20,6 +20,28 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
+FULL_MIT_TEXT = """MIT License
+
+Copyright (c) 2024 Example
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE."""
+
 APACHE_BOILERPLATE = (
     'Licensed under the Apache License, Version 2.0 (the "License");\n'
     "you may not use this file except in compliance with the License.\n"
@@ -157,14 +179,35 @@ class TestALicenceLineMustOpenTheLine:
         "License: MIT\n\nA parser.\n",
         "  License: MIT\n",
         "# License: MIT\n",
-        "// License: MIT\n",
-        " * License: MIT\n",
         "<!-- License: MIT -->\n",
     ])
     def test_but_a_line_of_its_own_still_does(self, tmp_path, text):
+        """In a document, opened the way a document opens a line."""
         evidence = _evidence(tmp_path, "README.md", text)
 
         assert "MIT" in _declared(evidence), evidence
+
+    @pytest.mark.parametrize("text", [
+        "// License: MIT\n",
+        " * License: MIT\n",
+        "/* License: MIT */\n",
+    ])
+    def test_and_a_comment_marked_one_does_in_code(self, tmp_path, text):
+        evidence = _evidence(tmp_path, "widget.c", text)
+
+        assert "MIT" in _declared(evidence), evidence
+
+    @pytest.mark.parametrize("text", [
+        "Dependencies:\n* Licensed under the MIT License.\n",
+        "Dependencies:\n- Licensed under the MIT License.\n",
+        "Dependencies:\n* License: MIT\n",
+    ])
+    def test_but_a_bullet_in_a_document_is_a_bullet(self, tmp_path, text):
+        """An asterisk opens a comment in C and a list item in Markdown, and
+        a README has no comment syntax to open."""
+        evidence = _evidence(tmp_path, "README.md", text)
+
+        assert _declared(evidence) == set(), evidence
 
 
 class TestADeclarationIsUntouched:
@@ -341,7 +384,7 @@ class TestEveryCommentStyleOpensAHeader:
         "# ", "// ", " * ", "<!-- ", "; ", "% ", "(* ", "-- ", "   ", "",
     ])
     def test_a_licence_line_is_read(self, tmp_path, prefix):
-        evidence = _evidence(tmp_path, "source.txt", prefix + "License: MIT\n")
+        evidence = _evidence(tmp_path, "widget.c", prefix + "License: MIT\n")
 
         assert "MIT" in _declared(evidence), (prefix, evidence)
 
@@ -349,7 +392,7 @@ class TestEveryCommentStyleOpensAHeader:
         "# ", "// ", " * ", "<!-- ", "; ", "% ", "(* ", "-- ", "   ", "",
     ])
     def test_and_so_is_an_identifier_line(self, tmp_path, prefix):
-        evidence = _evidence(tmp_path, "source.txt", prefix + "SPDX-License-Identifier: MIT\n")
+        evidence = _evidence(tmp_path, "widget.c", prefix + "SPDX-License-Identifier: MIT\n")
 
         assert "MIT" in _declared(evidence), (prefix, evidence)
 
@@ -422,14 +465,14 @@ class TestATagNamedInASentence:
     @pytest.mark.parametrize("prefix", ["", "// ", "# ", " * ", "<!-- ", "-- "])
     def test_but_a_header_still_does(self, tmp_path, prefix):
         evidence = _evidence(
-            tmp_path, "source.txt", prefix + "SPDX-License-Identifier: MIT\n",
+            tmp_path, "widget.c", prefix + "SPDX-License-Identifier: MIT\n",
         )
 
         assert "MIT" in _declared(evidence), (prefix, evidence)
 
     def test_an_expression_still_survives_the_anchor(self, tmp_path):
         evidence = _evidence(
-            tmp_path, "source.txt",
+            tmp_path, "widget.js",
             "// SPDX-License-Identifier: MIT OR Apache-2.0\n",
         )
 
@@ -459,3 +502,100 @@ class TestAMarkdownBulletIsNotAComment:
         evidence = _evidence(tmp_path, "main.hs", "-- License: MIT\n")
 
         assert "MIT" in _declared(evidence), evidence
+
+
+class TestADocumentQuotingAMetadataFile:
+    """A README showing what package.json contains is not package.json."""
+
+    @pytest.mark.parametrize("text", [
+        'This README documents package.json as {"license": "MIT"}\n',
+        'Set `"license": "MIT"` in your package.json.\n',
+        "Dependency metadata contains License-Expression: MIT\n",
+        "Dependency foo declares @license MIT\n",
+    ])
+    def test_it_declares_nothing(self, tmp_path, text):
+        evidence = _evidence(tmp_path, "README.md", text)
+
+        assert _declared(evidence) == set(), evidence
+
+    def test_but_the_metadata_file_itself_still_does(self, tmp_path):
+        evidence = _evidence(
+            tmp_path, "package.json",
+            json.dumps({"name": "x", "version": "1.0.0", "license": "MIT"}),
+        )
+
+        assert "MIT" in _declared(evidence), evidence
+
+    @pytest.mark.parametrize("name", ["LICENSE.txt", "LICENCE.md", "COPYING.txt"])
+    def test_and_a_licence_file_is_never_a_document(self, tmp_path, name):
+        """These carry a document suffix and hold the licence itself, so the
+        rules for prose must not apply to them."""
+        evidence = _evidence(tmp_path, name, FULL_MIT_TEXT)
+
+        assert "MIT" in _declared(evidence), (name, evidence)
+
+
+class TestTheDeclaredSetIsExact:
+    """Asserting that something was declared says nothing about what."""
+
+    def test_a_dual_licensed_header_reports_both(self, tmp_path):
+        evidence = _evidence(
+            tmp_path, "widget.rs", "// Dual licensed under MIT OR Apache-2.0\n",
+        )
+
+        assert _declared(evidence) == {"MIT", "Apache-2.0"}, evidence
+
+    def test_a_single_declaration_reports_one(self, tmp_path):
+        evidence = _evidence(
+            tmp_path, "widget.rs", "// This file is licensed under the MIT License.\n",
+        )
+
+        assert _declared(evidence) == {"MIT"}, evidence
+
+    def test_and_a_credit_names_the_credited_one(self, tmp_path):
+        evidence = _evidence(
+            tmp_path, "README.md",
+            "The bundled minifier is licensed under the Apache License, Version 2.0.\n",
+        )
+
+        assert _referenced(evidence) == {"Apache-2.0"}, evidence
+
+
+class TestTheSameRuleInCode:
+    """The document pattern set has its own anchored copies, so a test
+    written against a README says nothing about the set used for code."""
+
+    @pytest.mark.parametrize("line", [
+        "# the metadata of foo contains License-Expression: MIT",
+        "# dependency foo declares @license MIT",
+        "# see SPDX-License-Identifier: MIT in the vendored copy",
+    ])
+    def test_a_sentence_in_a_source_comment_declares_nothing(self, tmp_path, line):
+        evidence = _evidence(tmp_path, "widget.py", line + "\n")
+
+        assert _declared(evidence) == set(), (line, evidence)
+
+    @pytest.mark.parametrize("line", [
+        "# License-Expression: MIT",
+        "# @license MIT",
+        "# SPDX-License-Identifier: MIT",
+    ])
+    def test_but_the_header_forms_still_do(self, tmp_path, line):
+        evidence = _evidence(tmp_path, "widget.py", line + "\n")
+
+        assert "MIT" in _declared(evidence), (line, evidence)
+
+
+class TestALicenceFileKeepsCodeRules:
+    """A licence file is not a document however it is suffixed, so the
+    narrower openings a document uses must not apply to it."""
+
+    def test_an_asterisk_opened_header_is_read(self, tmp_path):
+        evidence = _evidence(tmp_path, "LICENSE.txt", " * License: MIT\n")
+
+        assert "MIT" in _declared(evidence), evidence
+
+    def test_but_the_same_line_in_a_readme_is_a_bullet(self, tmp_path):
+        evidence = _evidence(tmp_path, "README.md", " * License: MIT\n")
+
+        assert _declared(evidence) == set(), evidence
