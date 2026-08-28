@@ -176,7 +176,7 @@ class CopyrightExtractor:
         # in one can tell the package's own copyright from a vendored file's,
         # which the first file alone does not tell it.
         for copyright_info in copyrights:
-            copyright_info.file_count = len(said_in.get(copyright_info.statement, ())) or 1
+            copyright_info.file_count = len(said_in[copyright_info.statement])
 
         return copyrights
     

@@ -262,7 +262,9 @@ class TestEveryGroupOfFilesIsSorted:
         return root
 
     def test_the_author_files(self, tmp_path):
-        root = self._named(tmp_path, "z/AUTHORS", "a/AUTHORS")
+        root = self._named(
+            tmp_path, "z/AUTHORS", "m/AUTHORS", "a/AUTHORS", "b/AUTHORS",
+        )
 
         chosen = [
             p for p in _extractor()._find_copyright_files(root)
@@ -270,6 +272,20 @@ class TestEveryGroupOfFilesIsSorted:
         ]
 
         assert chosen == sorted(chosen), [str(p) for p in chosen]
+
+    def test_the_directories_walked_are_not_already_in_order(self, tmp_path):
+        """The same guard the README names get: two entries come back in
+        order often enough that a test using two proves nothing."""
+        import os
+
+        self._named(
+            tmp_path, "z/AUTHORS", "m/AUTHORS", "a/AUTHORS", "b/AUTHORS",
+        )
+        walked = [
+            name for _, dirs, _ in os.walk(tmp_path / "widget") for name in dirs
+        ]
+
+        assert walked != sorted(walked), walked
 
     def test_the_licence_files_at_the_root(self, tmp_path):
         root = self._named(
@@ -598,3 +614,144 @@ class TestWhatIdentifiesAFile:
         assert _the_file_itself(tmp_path / "one.txt") != _the_file_itself(
             tmp_path / "two.txt"
         )
+
+
+class TestWhichFileAStatementIsAttributedTo:
+    """Not merely a settled file: the right one.
+
+    The search reads author files first, then licence files, then READMEs,
+    then source, because that is the order in which a file is likely to carry
+    the package's own copyright. A statement is attributed to the first file
+    it was found in under that order.
+
+    Every other fixture here puts the shared statement in files of a single
+    group, where the order the files were chosen and their names in order are
+    the same thing, so none of them can tell the two apart.
+    """
+
+    def _in_a_licence_and_in_source(self, tmp_path):
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "AAA.c").write_text("// Copyright 2014 Acme Labs\nint x;\n")
+        (root / "LICENSE").write_text("Copyright 2014 Acme Labs\n")
+        return root
+
+    def test_the_licence_file_wins_over_an_earlier_name(self, tmp_path):
+        root = self._in_a_licence_and_in_source(tmp_path)
+
+        attributed = {
+            c.statement: Path(c.source_file).name
+            for c in _extractor().extract_copyrights(root)
+        }
+
+        assert attributed["Copyright 2014 Acme Labs"] == "LICENSE", attributed
+
+    def test_and_the_names_alone_would_have_chosen_the_other(self, tmp_path):
+        """Which is what makes the test above worth having."""
+        root = self._in_a_licence_and_in_source(tmp_path)
+
+        names = sorted(
+            p.name for p in _extractor()._find_copyright_files(root)
+        )
+
+        assert names[0] == "AAA.c", names
+
+    def test_an_author_file_wins_over_a_licence_file(self, tmp_path):
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "zz_AUTHORS").write_text("Copyright 2014 Acme Labs\n")
+        (root / "AUTHORS").write_text("Copyright 2014 Acme Labs\n")
+        (root / "LICENSE").write_text("Copyright 2014 Acme Labs\n")
+
+        attributed = {
+            c.statement: Path(c.source_file).name
+            for c in _extractor().extract_copyrights(root)
+        }
+
+        assert attributed["Copyright 2014 Acme Labs"] == "AUTHORS", attributed
+
+
+class TestTheListIsOrderedByConfidence:
+    """The sort is what puts the surest statement first, and the settled
+    order this file is about is only what it falls back on for a tie."""
+
+    def test_the_surest_comes_first(self, tmp_path):
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "AAA.c").write_text("// Copyright Apple Pie Ltd\nint x;\n")
+        (root / "BBB.c").write_text("// Copyright 2014 Zed Corp\nint y;\n")
+
+        found = _extractor().extract_copyrights(root)
+        confidences = [c.confidence for c in found]
+
+        assert confidences == sorted(confidences, reverse=True), [
+            (c.statement, c.confidence) for c in found
+        ]
+
+    def test_and_a_dated_statement_outranks_an_undated_one(self, tmp_path):
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "AAA.c").write_text("// Copyright Apple Pie Ltd\nint x;\n")
+        (root / "BBB.c").write_text("// Copyright 2014 Zed Corp\nint y;\n")
+
+        statements = [c.statement for c in _extractor().extract_copyrights(root)]
+
+        assert statements[0] == "Copyright 2014 Zed Corp", statements
+
+
+class TestAFileThatCannotBeRead:
+    """A thread that raises is logged and yields nothing, so that file is
+    missing from the results the walk reads back. The walk asks for what it
+    may not find, and the rest of the scan carries on."""
+
+    def test_the_others_are_still_reported(self, tmp_path, monkeypatch):
+        import osslili.extractors.copyright_extractor as module
+
+        root = _a_package(tmp_path)
+        extractor = _extractor()
+        real = extractor._extract_copyrights_from_file
+
+        def refuses_one(file_path):
+            if file_path.name == "f00.c":
+                raise OSError("cannot read it")
+            return real(file_path)
+
+        monkeypatch.setattr(extractor, "_extract_copyrights_from_file", refuses_one)
+        found = extractor.extract_copyrights(root)
+
+        assert {c.statement for c in found} == {SHARED, IN_ONE_FILE}, found
+
+    def test_and_the_statement_moves_to_the_next_file(self, tmp_path, monkeypatch):
+        import osslili.extractors.copyright_extractor as module
+
+        root = _a_package(tmp_path)
+        extractor = _extractor()
+        real = extractor._extract_copyrights_from_file
+
+        def refuses_one(file_path):
+            if file_path.name == "f00.c":
+                raise OSError("cannot read it")
+            return real(file_path)
+
+        monkeypatch.setattr(extractor, "_extract_copyrights_from_file", refuses_one)
+        attributed = {
+            c.statement: Path(c.source_file).name
+            for c in extractor.extract_copyrights(root)
+        }
+
+        assert attributed[SHARED] == "f01.c", attributed
+
+    def test_and_it_is_not_counted_among_the_files(self, tmp_path, monkeypatch):
+        root = _a_package(tmp_path)
+        extractor = _extractor()
+        real = extractor._extract_copyrights_from_file
+
+        def refuses_one(file_path):
+            if file_path.name == "f00.c":
+                raise OSError("cannot read it")
+            return real(file_path)
+
+        monkeypatch.setattr(extractor, "_extract_copyrights_from_file", refuses_one)
+        counts = {c.statement: c.file_count for c in extractor.extract_copyrights(root)}
+
+        assert counts[SHARED] == HOW_MANY - 1, counts
