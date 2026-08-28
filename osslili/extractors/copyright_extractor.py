@@ -115,12 +115,20 @@ class CopyrightExtractor:
         # package's own copyright first.
         for file_path in files_to_scan:
             for copyright_info in found_in.get(file_path, []):
-                # Which files said it, and not how many times it was matched.
-                # A header written "Copyright (c) 2014 ..." is found by the
-                # pattern for the word and again by the pattern for the sign,
-                # so counting the matches said a statement in twelve files
-                # was in twenty-four.
-                said_in.setdefault(copyright_info.statement, set()).add(file_path)
+                # Which files said it, and not how many times it was
+                # matched. A header written "Copyright (c) 2014 ..." is found
+                # by the pattern for the word and again by the pattern for
+                # the sign, so counting the matches said a statement in
+                # twelve files was in twenty-four.
+                #
+                # By name, because the metadata pass below records the same
+                # file as the string it puts in the record, and a set holding
+                # a path beside a string counted one setup.py as two files:
+                # once for the line written in it and once for the author it
+                # declares.
+                said_in.setdefault(copyright_info.statement, set()).add(
+                    str(file_path)
+                )
                 if copyright_info.statement in processed_statements:
                     continue
                 processed_statements.add(copyright_info.statement)

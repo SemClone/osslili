@@ -305,3 +305,79 @@ class TestEveryGroupOfFilesIsSorted:
         walked = [p.name for p in root.glob("README*")]
 
         assert walked != sorted(walked), walked
+
+
+class TestOneFileIsOneFile:
+    """A setup.py is read twice over: once as a source file, for the lines
+    written in it, and once as metadata, for the author it declares. The two
+    passes hold the file's name in different forms, and a set that mixed a
+    path with a string counted the one file as two."""
+
+    def _a_setup_py_that_says_it_both_ways(self, tmp_path):
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "setup.py").write_text(
+            "# Copyright Acme Labs\n"
+            "from setuptools import setup\n"
+            'setup(name="widget", author="Acme Labs")\n'
+        )
+        return root
+
+    def test_it_is_counted_once(self, tmp_path):
+        root = self._a_setup_py_that_says_it_both_ways(tmp_path)
+
+        counts = {
+            c.statement: c.file_count
+            for c in _extractor().extract_copyrights(root)
+        }
+
+        assert counts["Copyright Acme Labs"] == 1, counts
+
+    def test_and_reported_once(self, tmp_path):
+        root = self._a_setup_py_that_says_it_both_ways(tmp_path)
+
+        statements = [c.statement for c in _extractor().extract_copyrights(root)]
+
+        assert statements.count("Copyright Acme Labs") == 1, statements
+
+
+class TestAStatementIsReportedOnce:
+    """However many times it is found, and wherever it is found. Two records
+    saying the same thing are not two copyrights."""
+
+    def test_a_line_matched_by_two_patterns_is_one_record(self, tmp_path):
+        """"Copyright (c) 2014 ..." is found by the pattern for the word and
+        again by the pattern for the sign."""
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "widget.c").write_text(
+            "// Copyright (c) 2014 Manu Martinez-Almeida\nint x;\n"
+        )
+
+        statements = [c.statement for c in _extractor().extract_copyrights(root)]
+
+        assert len(statements) == len(set(statements)), statements
+        assert len(statements) == 1, statements
+
+    def test_the_same_statement_in_many_files_is_one_record(self, tmp_path):
+        root = _a_package(tmp_path)
+
+        statements = [c.statement for c in _extractor().extract_copyrights(root)]
+
+        assert statements.count(SHARED) == 1, statements
+
+    def test_and_metadata_does_not_repeat_what_a_file_already_said(self, tmp_path):
+        import json as _json
+
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "package.json").write_text(
+            _json.dumps({"name": "widget", "version": "1.0.0", "author": "Acme Labs"})
+        )
+        (root / "setup.py").write_text(
+            'from setuptools import setup\nsetup(name="widget", author="Acme Labs")\n'
+        )
+
+        statements = [c.statement for c in _extractor().extract_copyrights(root)]
+
+        assert statements.count("Copyright Acme Labs") == 1, statements
