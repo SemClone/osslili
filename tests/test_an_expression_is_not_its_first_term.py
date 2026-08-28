@@ -326,3 +326,131 @@ class TestTheExpressionHeaderTakesAnExpression:
         found = self._all_tags(tmp_path, "License-Expression: MIT\n")
 
         assert found == {"MIT"}, found
+
+
+class TestEveryLineBasedFormIsTrimmed:
+    """The trimming was applied where the header line is read and not where
+    the same forms are read a second time, so widening the capture carried
+    the trailing text into the other path instead."""
+
+    def _tags(self, tmp_path, name, text):
+        target = tmp_path / name
+        target.write_text(text)
+        command = Path(sys.executable).parent / "osslili"
+        if not command.exists():
+            pytest.skip("the osslili console script is not installed beside this interpreter")
+        result = subprocess.run(
+            [str(command), "-f", "evidence", str(target)],
+            capture_output=True, text=True, cwd=REPO_ROOT,
+        )
+        assert result.returncode == 0, result.stderr
+        lines = result.stdout.splitlines()
+        start = next((i for i, line in enumerate(lines) if line.strip().startswith("{")), -1)
+        if start < 0:
+            return set()
+        data = json.loads("\n".join(lines[start:]))
+        return {
+            item.get("detected_license")
+            for scan in data.get("scan_results", [])
+            for item in scan.get("license_evidence", [])
+            if item.get("match_type") in (
+                "header_tag", "spdx_identifier", "package_metadata",
+            )
+        }
+
+    @pytest.mark.parametrize("line,expected", [
+        ("License-Expression: MIT and BSD-compatible", {"MIT"}),
+        ("License-Expression: BSD-2-Clause (see LICENSE)", {"BSD-2-Clause"}),
+        ("License-Expression: MIT OR Apache-2.0", {"MIT", "Apache-2.0"}),
+        ("License-Expression: MIT", {"MIT"}),
+    ])
+    def test_the_python_metadata_form(self, tmp_path, line, expected):
+        found = self._tags(tmp_path, "METADATA", line + "\n")
+
+        assert found == expected, (line, found)
+
+    def test_and_it_invents_no_licence(self, tmp_path):
+        found = self._tags(
+            tmp_path, "METADATA", "License-Expression: BSD-2-Clause (see LICENSE)\n",
+        )
+
+        assert "BSD-3-Clause" not in found, found
+
+
+class TestAMetadataValueIsNotTrimmed:
+    """A JSON or TOML value is already bounded by its quotes, so the rule for
+    lines must not be applied to it."""
+
+    def _tags(self, tmp_path, name, text):
+        return TestEveryLineBasedFormIsTrimmed._tags(
+            TestEveryLineBasedFormIsTrimmed(), tmp_path, name, text,
+        )
+
+    @pytest.mark.parametrize("value,expected", [
+        ("MIT OR Apache-2.0", {"MIT", "Apache-2.0"}),
+        ("MIT", {"MIT"}),
+        ("BSD-3-Clause", {"BSD-3-Clause"}),
+        # Names rather than identifiers, which is what a metadata value often
+        # carries. Trimming these to their first word would leave "The" and
+        # "Apache", and the first of those is nothing at all.
+        ("The MIT License", {"MIT"}),
+        ("Apache License 2.0", {"Apache-2.0"}),
+    ])
+    def test_package_json_reads_its_value_whole(self, tmp_path, value, expected):
+        found = self._tags(
+            tmp_path, "package.json",
+            json.dumps({"name": "x", "version": "1.0.0", "license": value}),
+        )
+
+        assert expected <= found, (value, found)
+
+
+class TestWhichPatternsCountAsALine:
+    """Whether a capture is trimmed is decided by whether its pattern is
+    anchored to the start of a line. That distinction is hard to see from
+    outside, because the metadata files each have their own parser as well,
+    so it is asserted here on the patterns themselves.
+    """
+
+    def _detector(self):
+        from osslili.core.models import Config
+        from osslili.detectors.license_detector import LicenseDetector
+
+        return LicenseDetector(Config())
+
+    def test_the_header_forms_are_anchored(self):
+        anchored = [
+            p.pattern for p in self._detector().spdx_tag_patterns
+            if p.pattern.startswith("^")
+        ]
+        joined = " ".join(anchored)
+
+        for form in ("SPDX-License-Identifier", "License-Expression",
+                     "License:", "@license"):
+            assert form in joined, (form, anchored)
+
+    def test_and_the_metadata_values_are_not(self):
+        """A JSON or TOML value is bounded by its quotes, so there is nothing
+        after it to trim, and trimming would take "The MIT License" down to
+        "The"."""
+        loose = [
+            p.pattern for p in self._detector().spdx_tag_patterns
+            if not p.pattern.startswith("^")
+        ]
+        joined = " ".join(loose)
+
+        assert '"license"' in joined, loose
+        assert '"type"' in joined, loose
+
+    def test_the_trimming_takes_the_expression_only(self):
+        from osslili.detectors.license_detector import _expression_at_the_front
+
+        assert _expression_at_the_front("MIT OR Apache-2.0") == "MIT OR Apache-2.0"
+        assert _expression_at_the_front("BSD-2-Clause (see LICENSE)") == "BSD-2-Clause"
+        assert _expression_at_the_front("MIT and BSD-compatible") == "MIT"
+
+    def test_and_would_ruin_a_licence_name(self):
+        """Which is why the metadata values are left alone."""
+        from osslili.detectors.license_detector import _expression_at_the_front
+
+        assert _expression_at_the_front("The MIT License") == "The"

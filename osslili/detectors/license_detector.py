@@ -1739,16 +1739,27 @@ class LicenseDetector:
         tag_patterns = (
             self.document_tag_patterns if in_a_document else self.spdx_tag_patterns
         )
-        for pattern, is_prose in (
-            [(p, False) for p in tag_patterns]
-            + [(p, True) for p in self.prose_patterns]
+        # Which patterns read to the end of a line, and so may pick up
+        # whatever follows the expression on it. The metadata forms do not:
+        # a JSON or TOML value is already bounded by its quotes.
+        for pattern, is_prose, reads_a_line in (
+            [(p, False, p.pattern.startswith('^')) for p in tag_patterns]
+            + [(p, True, False) for p in self.prose_patterns]
         ):
             matches = pattern.findall(content)
             
             for match in matches:
                 # Clean up the match
                 license_id = match.strip()
-                
+
+                # A pattern that reads to the end of a line reads whatever
+                # else is on it: a closing comment marker, or a note such as
+                # "(see LICENSE)". Handed whole to the parser that became
+                # "BSD-2-Clause see LICENSE", which the normaliser read as
+                # plain BSD and answered BSD-3-Clause.
+                if reads_a_line:
+                    license_id = _expression_at_the_front(license_id)
+
                 # Skip obvious false positives
                 if self._is_false_positive_license(license_id):
                     continue
