@@ -257,7 +257,12 @@ _LICENCE_NAME = r'([A-Za-z0-9\-\.\s]+?)'
 # allowed only one matched nothing at all, which threw the whole line away
 # and left the file with no licence. Space is allowed inside the brackets,
 # "( MIT OR Apache-2.0 )", for the same reason.
-_TERM = r'(?:\(\s*)*[A-Za-z0-9.\-+]+(?:\s*\))*'
+# The colon belongs to one shape only, "DocumentRef-x:LicenseRef-y", which
+# names a licence held in another document. Leaving it out cut the term at
+# the colon, and the operator after it was never reached, so
+# "DocumentRef-upstream:LicenseRef-foo OR MIT" lost the MIT as well.
+_IDENTIFIER = r'(?:DocumentRef-[A-Za-z0-9.\-]+:)?[A-Za-z0-9.\-+]+'
+_TERM = r'(?:\(\s*)*' + _IDENTIFIER + r'(?:\s*\))*'
 
 
 def _expression(operators: str) -> "re.Pattern":
@@ -1403,7 +1408,7 @@ class LicenseDetector:
 
         for pattern in spdx_patterns:
             names_a_licence = (
-                self._is_valid_spdx_id
+                self._names_a_licence
                 if any(form in pattern for form in _EXPRESSION_FORMS) else None
             )
             matches = re.finditer(pattern, header_content, re.IGNORECASE | re.MULTILINE)
@@ -1874,7 +1879,7 @@ class LicenseDetector:
                 if reads_a_line:
                     license_id = _expression_at_the_front(
                         license_id,
-                        self._is_valid_spdx_id if holds_an_expression else None,
+                        self._names_a_licence if holds_an_expression else None,
                     )
 
                 # Skip obvious false positives
@@ -2349,6 +2354,27 @@ class LicenseDetector:
         if hasattr(self.spdx_data, 'licenses') and self.spdx_data.licenses:
             return license_id in self.spdx_data.licenses
         return False
+
+    def _names_a_licence(self, term: str) -> bool:
+        """Whether this term of an expression is a licence.
+
+        Asking the SPDX list alone was too strict, because the deprecated
+        forms this detector resolves itself are not in it: "GFDL-1.3+" is a
+        licence, and calling it a word refused the expression around it, so
+        "GFDL-1.3+ or MIT" lost the MIT.
+
+        A reference to a licence held elsewhere, "LicenseRef-x" or
+        "DocumentRef-x:LicenseRef-y", names one too. Nothing can be looked up
+        about it, which is the point of the form.
+        """
+        if not term:
+            return False
+        if 'LicenseRef-' in term:
+            return True
+        return (
+            self._is_valid_spdx_id(term)
+            or self._is_valid_spdx_id(self._to_modern_spdx_id(term))
+        )
 
     def _to_modern_spdx_id(self, license_id: str) -> str:
         """Map a deprecated bare GNU-family id to its modern SPDX replacement.

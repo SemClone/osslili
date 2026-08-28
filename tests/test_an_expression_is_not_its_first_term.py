@@ -788,3 +788,63 @@ class TestAPlusThatResolvesToNothing:
         detector = LicenseDetector(Config())
 
         assert detector._to_modern_spdx_id(value) == expected, value
+
+
+class TestATermThatIsNotInTheList:
+    """The rule that decides whether a lower-case operator is an operator
+    asks whether each term is a licence, and the SPDX list alone is too
+    narrow an answer: the deprecated forms this detector resolves itself are
+    not in it, and a reference to a licence held elsewhere never can be."""
+
+    def test_a_deprecated_form_is_a_licence(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.c", "// SPDX-License-Identifier: GFDL-1.3+ or MIT\n",
+        )
+
+        assert found == {"GFDL-1.3-or-later", "MIT"}, found
+
+    @pytest.mark.parametrize("reference", [
+        "LicenseRef-foo",
+        "DocumentRef-upstream:LicenseRef-foo",
+    ])
+    def test_a_reference_to_a_licence_elsewhere_is_one(self, tmp_path, reference):
+        found = _reported(
+            tmp_path, "widget.c",
+            f"// SPDX-License-Identifier: {reference} or MIT\n",
+        )
+
+        assert "MIT" in found, (reference, found)
+
+    @pytest.mark.parametrize("reference", [
+        "LicenseRef-foo",
+        "DocumentRef-upstream:LicenseRef-foo",
+    ])
+    def test_and_the_upper_case_spelling_agrees(self, tmp_path, reference):
+        found = _reported(
+            tmp_path, "widget.c",
+            f"// SPDX-License-Identifier: {reference} OR MIT\n",
+        )
+
+        assert "MIT" in found, (reference, found)
+
+    def test_a_description_is_still_not_a_licence(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GFDL-1.3+ and BSD-compatible\n",
+        )
+
+        assert found == {"GFDL-1.3-or-later"}, found
+
+
+class TestTheLowerCaseSpellingOfWith:
+    """WITH is an operator like the others, and reading it only in upper case
+    stopped the expression at the exception, losing the choice after it."""
+
+    def test_a_choice_after_a_lower_case_with(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GPL-2.0-only with"
+            " Classpath-exception-2.0 or MIT\n",
+        )
+
+        assert found == {"GPL-2.0-only", "MIT"}, found
