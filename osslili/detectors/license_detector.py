@@ -265,8 +265,22 @@ _IDENTIFIER = r'(?:DocumentRef-[A-Za-z0-9.\-]+:)?[A-Za-z0-9.\-+]+'
 _TERM = r'(?:\(\s*)*' + _IDENTIFIER + r'(?:\s*\))*'
 
 
-def _expression(operators: str) -> "re.Pattern":
-    return re.compile(_TERM + r'(?:\s+(?:' + operators + r')\s+' + _TERM + r')*')
+def _expression(joiner: str) -> "re.Pattern":
+    return re.compile(_TERM + r'(?:' + joiner + _TERM + r')*')
+
+
+_UPPER_CASE = r'\s+(?:OR|AND|WITH)\s+'
+# A comma joins a list of licences, "GPL-2.0, BSD-3-Clause", and is read like
+# a lower-case operator: only where the terms either side of it are licences,
+# because "BSD-2-Clause, see LICENSE" is a sentence.
+_ANY_CASE = (
+    r'(?:\s+(?:[Oo][Rr]|[Aa][Nn][Dd]|[Ww][Ii][Tt][Hh])\s+|\s*,\s*)'
+)
+
+
+# One term and no operator, which is what is left when the terms of a longer
+# reading are not all licences.
+_JUST_A_TERM = re.compile(_TERM)
 
 
 # Whether the operators must be upper case depends on the field, because the
@@ -281,8 +295,8 @@ def _expression(operators: str) -> "re.Pattern":
 # "License:" and "@license" hold free text, and there the same words are
 # ordinary English. "License: MIT and BSD-compatible" read "and" as an
 # operator and reported BSD-3-Clause, which the file does not name.
-_EXPRESSION = _expression('OR|AND|WITH')
-_EXPRESSION_IN_ANY_CASE = _expression('[Oo][Rr]|[Aa][Nn][Dd]|[Ww][Ii][Tt][Hh]')
+_EXPRESSION = _expression(_UPPER_CASE)
+_EXPRESSION_IN_ANY_CASE = _expression(_ANY_CASE)
 
 
 # The header forms, whose capture runs to the end of a line and so may pick
@@ -322,11 +336,19 @@ def _reads_a_line(pattern) -> bool:
 
 
 def _holds_an_expression(pattern) -> bool:
-    """Whether this pattern's field may hold nothing but an expression."""
-    return any(form in pattern.pattern for form in _EXPRESSION_FORMS)
+    """Whether this pattern's field may hold nothing but an expression.
+
+    Takes the pattern itself or its source, because the two readers of a
+    header line hold one each, and asking the question two ways in two places
+    let them drift: one called this and the other spelled it out again, so a
+    free-text form reached only by the second was read as though it held an
+    expression.
+    """
+    source = pattern if isinstance(pattern, str) else pattern.pattern
+    return any(form in source for form in _EXPRESSION_FORMS)
 
 
-_TERMS = re.compile(r'\s+(?:[Oo][Rr]|[Aa][Nn][Dd])\s+')
+_TERMS = re.compile(r'\s+(?:[Oo][Rr]|[Aa][Nn][Dd])\s+|\s*,\s*')
 _AN_EXCEPTION = re.compile(r'\s+[Ww][Ii][Tt][Hh]\s+.*$')
 
 
@@ -346,41 +368,56 @@ def _every_term_names_a_licence(expression: str, names_a_licence) -> bool:
         _AN_EXCEPTION.sub('', term).strip(' ()')
         for term in _TERMS.split(expression)
     ]
-    return all(terms) and all(names_a_licence(term) for term in terms)
+    return all(names_a_licence(term) for term in terms)
 
 
-def _expression_at_the_front(text: str, names_a_licence=None) -> str:
+def _expression_at_the_front(
+    text: str, names_a_licence, holds_an_expression: bool = False,
+) -> str:
     """The SPDX expression this line opens with, and nothing after it.
 
     Brackets around a whole expression need no special handling: each term of
     the pattern above allows any number, so both "(MIT AND BSD-3-Clause)" and
     the nested "((GPL-2.0 WITH Linux-syscall-note) OR MIT)" match through.
 
-    Operators are upper case, because that is what SPDX defines them as, and
-    because in a sentence the same words are ordinary English: "License: MIT
-    and BSD-compatible" read "and" as an operator and reported BSD-3-Clause,
-    which the file does not name.
+    Three readings are tried, longest first, and the first whose every term
+    is a licence is the answer. What separates an expression from a sentence
+    is not the spelling of the word between the terms but the terms
+    themselves, and each reading is only as good as they are.
 
-    A field defined to hold an expression and nothing else passes
-    `names_a_licence`, and then a lower-case operator is read too, but only
-    where every term either side of it is itself a licence. That is the whole
-    difference between "SPDX-License-Identifier: MIT or Apache-2.0", which
-    names two, and the sentence above, which names one and a description of
-    one.
+    The longest reading is offered to a field defined to hold an expression
+    and nothing else, where the operators may be spelled in any case and a
+    comma may stand in for one. "SPDX-License-Identifier: MIT or Apache-2.0"
+    names two licences, and so does "GPL-2.0, BSD-3-Clause".
+
+    Then the upper-case reading, which any field may have, because upper case
+    is what SPDX defines. It is still held to the same test: "License: MIT
+    AND BSD-compatible" is a sentence about MIT, and taking the AND at its
+    word reported BSD-3-Clause, which the file does not name.
+
+    Last, one term and no operator, which is what a sentence leaves behind.
+
+    A name written with a space in it, "Apache 2.0 or MIT", is not an SPDX
+    identifier and no reading here can span it; the first licence is
+    reported and the rest of the line is not. Admitting spaces into a term
+    is how prose gets in, which is the fault this whole function exists to
+    prevent.
     """
     text = text.strip()
-    match = _EXPRESSION.match(text)
-    strict = match.group(0) if match else ''
-    if names_a_licence is None:
-        return strict
+    readings = [_EXPRESSION_IN_ANY_CASE] if holds_an_expression else []
+    readings.append(_EXPRESSION)
 
-    match = _EXPRESSION_IN_ANY_CASE.match(text)
-    lenient = match.group(0) if match else ''
-    if len(lenient) > len(strict) and _every_term_names_a_licence(
-        lenient, names_a_licence
-    ):
-        return lenient
-    return strict
+    for reading in readings:
+        match = reading.match(text)
+        if match and _every_term_names_a_licence(match.group(0), names_a_licence):
+            return match.group(0)
+
+    # One term and no operator. Not held to the test, because it is the last
+    # reading and there is no second term for it to invent: what a loose name
+    # like "Apache" resolves to is the normaliser's business, and refusing it
+    # here left a file whose licence line names one licence with none.
+    match = _JUST_A_TERM.match(text)
+    return match.group(0) if match else ''
 
 
 _SELF_REFERRING = (
@@ -1407,16 +1444,15 @@ class LicenseDetector:
         ]
 
         for pattern in spdx_patterns:
-            names_a_licence = (
-                self._names_a_licence
-                if any(form in pattern for form in _EXPRESSION_FORMS) else None
-            )
+            holds_an_expression = _holds_an_expression(pattern)
             matches = re.finditer(pattern, header_content, re.IGNORECASE | re.MULTILINE)
             for match in matches:
                 expression = match.group(1).strip()
                 # The expression, and not whatever follows it on the line:
                 # a closing comment marker, or a note like "(see LICENSE)".
-                expression = _expression_at_the_front(expression, names_a_licence)
+                expression = _expression_at_the_front(
+                    expression, self._names_a_licence, holds_an_expression,
+                )
 
                 for license_id in self._parse_license_expression(expression):
 
@@ -1878,8 +1914,7 @@ class LicenseDetector:
                 # plain BSD and answered BSD-3-Clause.
                 if reads_a_line:
                     license_id = _expression_at_the_front(
-                        license_id,
-                        self._names_a_licence if holds_an_expression else None,
+                        license_id, self._names_a_licence, holds_an_expression,
                     )
 
                 # Skip obvious false positives
@@ -2351,9 +2386,13 @@ class LicenseDetector:
     
     def _is_valid_spdx_id(self, license_id: str) -> bool:
         """Check if a license ID exists in SPDX data."""
+        return license_id in self._known_spdx_ids()
+
+    def _known_spdx_ids(self):
+        """Every identifier the SPDX list holds, or nothing if it has none."""
         if hasattr(self.spdx_data, 'licenses') and self.spdx_data.licenses:
-            return license_id in self.spdx_data.licenses
-        return False
+            return self.spdx_data.licenses
+        return ()
 
     def _names_a_licence(self, term: str) -> bool:
         """Whether this term of an expression is a licence.
@@ -2371,9 +2410,18 @@ class LicenseDetector:
             return False
         if 'LicenseRef-' in term:
             return True
-        return (
-            self._is_valid_spdx_id(term)
-            or self._is_valid_spdx_id(self._to_modern_spdx_id(term))
+        if self._is_valid_spdx_id(term) or self._is_valid_spdx_id(
+            self._to_modern_spdx_id(term)
+        ):
+            return True
+        # The tag itself is matched without regard to case, and the licence
+        # named in it may be written the way its authors write it: the SPDX
+        # id is CECILL-2.1 and the licence is called CeCILL. Asking the list
+        # case-sensitively refused the expression around such a term, so
+        # "EUPL-1.2 or CeCILL-2.1" lost the CeCILL.
+        folded = term.casefold()
+        return any(
+            known.casefold() == folded for known in self._known_spdx_ids()
         )
 
     def _to_modern_spdx_id(self, license_id: str) -> str:

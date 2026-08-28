@@ -447,15 +447,34 @@ class TestWhichPatternsCountAsALine:
     def test_the_trimming_takes_the_expression_only(self):
         from osslili.detectors.license_detector import _expression_at_the_front
 
-        assert _expression_at_the_front("MIT OR Apache-2.0") == "MIT OR Apache-2.0"
-        assert _expression_at_the_front("BSD-2-Clause (see LICENSE)") == "BSD-2-Clause"
-        assert _expression_at_the_front("MIT and BSD-compatible") == "MIT"
+        names = self._detector()._names_a_licence
+
+        assert _expression_at_the_front("MIT OR Apache-2.0", names) == "MIT OR Apache-2.0"
+        assert _expression_at_the_front("BSD-2-Clause (see LICENSE)", names) == "BSD-2-Clause"
+        assert _expression_at_the_front("MIT and BSD-compatible", names) == "MIT"
+
+    def test_a_field_that_holds_an_expression_reads_more_of_the_line(self):
+        """The lower-case operator and the comma are offered only there."""
+        from osslili.detectors.license_detector import _expression_at_the_front
+
+        names = self._detector()._names_a_licence
+
+        assert _expression_at_the_front("MIT or Apache-2.0", names) == "MIT"
+        assert _expression_at_the_front(
+            "MIT or Apache-2.0", names, True,
+        ) == "MIT or Apache-2.0"
+        assert _expression_at_the_front("MIT, Apache-2.0", names) == "MIT"
+        assert _expression_at_the_front(
+            "MIT, Apache-2.0", names, True,
+        ) == "MIT, Apache-2.0"
 
     def test_and_would_ruin_a_licence_name(self):
         """Which is why the metadata values are left alone."""
         from osslili.detectors.license_detector import _expression_at_the_front
 
-        assert _expression_at_the_front("The MIT License") == "The"
+        names = self._detector()._names_a_licence
+
+        assert _expression_at_the_front("The MIT License", names) == "The"
 
 
 class TestTheAnnotationFormTakesAnExpression:
@@ -682,15 +701,18 @@ class TestALowerCaseOperatorIsReadWhereBothSidesAreLicences:
 
         assert found == {"MIT", "Apache-2.0"}, found
 
-    def test_an_upper_case_operator_is_still_taken_at_its_word(self, tmp_path):
-        """Written in upper case the word is an operator whatever it joins,
-        which is what it means, and this branch does not change that. What
-        the second term then normalises to is a separate matter."""
-        found = _reported(
-            tmp_path, "widget.c", "// SPDX-License-Identifier: MIT AND BSD-compatible\n",
-        )
+    @pytest.mark.parametrize("line", [
+        "// SPDX-License-Identifier: MIT AND BSD-compatible\n",
+        "// License: MIT AND BSD-compatible\n",
+    ])
+    def test_an_upper_case_operator_is_held_to_the_same_test(self, tmp_path, line):
+        """Upper case is what SPDX defines, but the case of the word was
+        never what separated an expression from a sentence. "MIT AND
+        BSD-compatible" is a sentence about MIT, and taking the AND at its
+        word reported BSD-3-Clause, which the file does not name."""
+        found = _reported(tmp_path, "widget.c", line)
 
-        assert len(found) == 2 and "MIT" in found, found
+        assert found == {"MIT"}, (line, found)
 
 
 class TestAnExceptionIsNotATermOfTheExpression:
@@ -848,3 +870,109 @@ class TestTheLowerCaseSpellingOfWith:
         )
 
         assert found == {"GPL-2.0-only", "MIT"}, found
+
+
+class TestBothReadersOfALineAgree:
+    """A header line is read in two places: one reader looks at the top of a
+    file, the other at any line of it. Both decide whether a lower-case
+    operator counts, and while they spelled that decision out separately they
+    could disagree, so a free-text form reached only by the second was read
+    as though it held an expression."""
+
+    def test_a_free_text_form_below_the_header_is_still_prose(self, tmp_path):
+        found = _reported(tmp_path, "widget.js", "// @license MIT and Apache-2.0\n")
+
+        assert found == {"MIT"}, found
+
+    def test_and_an_expression_form_below_it_is_still_an_expression(self, tmp_path):
+        body = "// widget\n" * 60
+        found = _reported(
+            tmp_path, "widget.c",
+            body + "// SPDX-License-Identifier: MIT or Apache-2.0\n",
+        )
+
+        assert found == {"MIT", "Apache-2.0"}, found
+
+    def test_the_upper_case_operator_reaches_both(self, tmp_path):
+        found = _reported(tmp_path, "widget.js", "// @license MIT AND Apache-2.0\n")
+
+        assert found == {"MIT", "Apache-2.0"}, found
+
+
+class TestACommaJoinsAList:
+    """A comma stands in for an operator, "GPL-2.0, BSD-3-Clause", and the
+    grammar had none, so the line was cut at the first licence. It is read
+    like a lower-case operator, and for the same reason: "BSD-2-Clause, see
+    LICENSE" is a sentence."""
+
+    def test_both_licences_are_reported(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: GPL-2.0, BSD-3-Clause\n",
+        )
+
+        assert found == {"GPL-2.0-only", "BSD-3-Clause"}, found
+
+    def test_a_note_after_one_is_not_a_licence(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c", "// License: BSD-2-Clause, see LICENSE\n",
+        )
+
+        assert found == {"BSD-2-Clause"}, found
+
+
+class TestATermIsALicenceWhateverItsCase:
+    """The tag itself is matched without regard to case, and the licence in
+    it may be written the way its authors write it. Asking the SPDX list
+    case-sensitively refused the expression around such a term."""
+
+    @pytest.mark.parametrize("line,expected", [
+        ("// SPDX-License-Identifier: EUPL-1.2 or CeCILL-2.1\n",
+         {"EUPL-1.2", "CECILL-2.1"}),
+        ("// spdx-license-identifier: mit or apache-2.0\n",
+         {"MIT", "Apache-2.0"}),
+    ])
+    def test_every_term_survives(self, tmp_path, line, expected):
+        found = _header_records(tmp_path, "widget.c", line)
+
+        assert found == expected, (line, found)
+
+    def test_a_description_is_still_not_a_licence(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c",
+            "// SPDX-License-Identifier: MIT or bsd-compatible\n",
+        )
+
+        assert found == {"MIT"}, found
+
+
+class TestTheHeaderReaderIsPinnedOnItsOwn:
+    """Two readers answer for a header line, and every test that compares
+    the union of what they report lets one mask the other: the reader at the
+    top of the file can lose a term and the reader of any line put it back
+    under a different match type, so the assertion still holds and the fault
+    is invisible. These look at the header reader's records alone."""
+
+    def test_a_lower_case_operator_reaches_the_header_reader(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c", "// SPDX-License-Identifier: MIT or Apache-2.0\n",
+        )
+
+        assert found == {"MIT", "Apache-2.0"}, found
+
+    def test_and_a_sentence_does_not(self, tmp_path):
+        found = _header_records(
+            tmp_path, "widget.c", "// License: MIT and BSD-compatible\n",
+        )
+
+        assert found == {"MIT"}, found
+
+    def test_a_name_written_with_a_space_reports_the_first_licence(self, tmp_path):
+        """Not an SPDX identifier, so no reading can span it. The first
+        licence is reported and the rest of the line is not, because
+        admitting a space into a term is how prose gets in."""
+        found = _header_records(
+            tmp_path, "widget.c", "// SPDX-License-Identifier: Apache 2.0 or MIT\n",
+        )
+
+        assert found == {"Apache-2.0"}, found
