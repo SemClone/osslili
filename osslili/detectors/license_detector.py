@@ -252,12 +252,16 @@ _LICENCE_NAME = r'([A-Za-z0-9\-\.\s]+?)'
 # whole to the parser became "BSD-2-Clause see LICENSE", which the normaliser
 # then read as plain BSD and reported as BSD-3-Clause.
 _EXPRESSION = re.compile(
-    r'\(?[A-Za-z0-9.\-+]+\)?'
+    # Any number of brackets, not one: the kernel's own dual licence tag,
+    # "((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause)", opens with two,
+    # and a term that allowed only one matched nothing at all, which threw
+    # the whole line away and left the file with no licence.
+    r'\(*[A-Za-z0-9.\-+]+\)*'
     # Upper case, because that is what SPDX defines them as. Accepting the
     # words in any case made prose into an expression: "License: MIT and
     # BSD-compatible" read "and" as an operator and reported BSD-3-Clause,
     # which the file does not name.
-    r'(?:\s+(?:OR|AND|WITH)\s+\(?[A-Za-z0-9.\-+]+\)?)*'
+    r'(?:\s+(?:OR|AND|WITH)\s+\(*[A-Za-z0-9.\-+]+\)*)*'
 )
 
 
@@ -265,12 +269,17 @@ _EXPRESSION = re.compile(
 # up a closing comment marker or a note to the reader. A quoted value is not
 # among them however it is anchored: what follows it on the line is outside
 # the quotes and was never captured.
+#
+# "Licensed under the ..." is not among them either. Its capture is a licence
+# name in prose, not an expression, and trimming it to the expression at the
+# front cut the name at its first space: "Licensed under the MIT No
+# Attribution License" became MIT, asserting an attribution obligation the
+# licensor had waived, and the longer names lost their identifier outright.
 _LINE_FORMS = (
     'SPDX-License-Identifier',
     'License-Expression',
     'License:',
     '@license',
-    'Licensed',
 )
 
 
@@ -288,7 +297,8 @@ def _expression_at_the_front(text: str) -> str:
     """The SPDX expression this line opens with, and nothing after it.
 
     Brackets around a whole expression need no special handling: each term of
-    the pattern above allows one, so "(MIT AND BSD-3-Clause)" matches through.
+    the pattern above allows any number, so both "(MIT AND BSD-3-Clause)" and
+    the nested "((GPL-2.0 WITH Linux-syscall-note) OR MIT)" match through.
     """
     match = _EXPRESSION.match(text.strip())
     return match.group(0) if match else ''

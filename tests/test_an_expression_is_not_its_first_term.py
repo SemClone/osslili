@@ -26,11 +26,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 def _reported(tmp_path, name, text):
     target = tmp_path / name
     target.write_text(text)
-    command = Path(sys.executable).parent / "osslili"
-    if not command.exists():
-        pytest.skip("the osslili console script is not installed beside this interpreter")
     result = subprocess.run(
-        [str(command), "-f", "evidence", str(target)],
+        [sys.executable, "-m", "osslili", "-f", "evidence", str(target)],
         capture_output=True, text=True, cwd=REPO_ROOT,
     )
     assert result.returncode == 0, result.stderr
@@ -137,11 +134,8 @@ def _header_records(tmp_path, name, text):
     """
     target = tmp_path / name
     target.write_text(text)
-    command = Path(sys.executable).parent / "osslili"
-    if not command.exists():
-        pytest.skip("the osslili console script is not installed beside this interpreter")
     result = subprocess.run(
-        [str(command), "-f", "evidence", str(target)],
+        [sys.executable, "-m", "osslili", "-f", "evidence", str(target)],
         capture_output=True, text=True, cwd=REPO_ROOT,
     )
     assert result.returncode == 0, result.stderr
@@ -297,11 +291,8 @@ class TestTheExpressionHeaderTakesAnExpression:
     def _all_tags(self, tmp_path, text):
         target = tmp_path / "METADATA"
         target.write_text(text)
-        command = Path(sys.executable).parent / "osslili"
-        if not command.exists():
-            pytest.skip("the osslili console script is not installed beside this interpreter")
         result = subprocess.run(
-            [str(command), "-f", "evidence", str(target)],
+            [sys.executable, "-m", "osslili", "-f", "evidence", str(target)],
             capture_output=True, text=True, cwd=REPO_ROOT,
         )
         assert result.returncode == 0, result.stderr
@@ -336,11 +327,8 @@ class TestEveryLineBasedFormIsTrimmed:
     def _tags(self, tmp_path, name, text):
         target = tmp_path / name
         target.write_text(text)
-        command = Path(sys.executable).parent / "osslili"
-        if not command.exists():
-            pytest.skip("the osslili console script is not installed beside this interpreter")
         result = subprocess.run(
-            [str(command), "-f", "evidence", str(target)],
+            [sys.executable, "-m", "osslili", "-f", "evidence", str(target)],
             capture_output=True, text=True, cwd=REPO_ROOT,
         )
         assert result.returncode == 0, result.stderr
@@ -515,3 +503,75 @@ class TestTheDeprecatedPlusFormInAWithExpression:
         )
 
         assert found == {"GPL-2.0-or-later"}, found
+
+
+class TestBracketsAroundPartOfTheExpression:
+    """The kernel's own dual licence tag nests brackets:
+
+        SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR MIT)
+
+    A term that allowed a single bracket matched nothing at the first
+    character, so the trim returned the empty string and the whole line was
+    thrown away, leaving a file with no licence at all.
+    """
+
+    def test_a_nested_expression_is_read(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.h",
+            "/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note)"
+            " OR MIT) */\n",
+        )
+
+        assert "MIT" in found, found
+
+    def test_and_the_line_is_not_thrown_away(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.h",
+            "/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note)"
+            " OR MIT) */\n",
+        )
+
+        assert found, "the licence on line 1 was discarded"
+
+    def test_a_doubled_bracket_keeps_both_terms(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.h",
+            "/* SPDX-License-Identifier: ((MIT OR Apache-2.0)) */\n",
+        )
+
+        assert found == {"MIT", "Apache-2.0"}, found
+
+
+class TestALicenceNameIsNotAnExpression:
+    """"Licensed under the ..." carries a licence name in prose, not an SPDX
+    expression. Trimming its capture to the expression at the front cut the
+    name at its first space: "the MIT No Attribution License" became MIT,
+    asserting an attribution obligation the licensor had waived, and the
+    longer names lost their identifier outright.
+    """
+
+    @pytest.mark.parametrize("name,expected", [
+        ("MIT No Attribution License", "MIT-0"),
+        ("Eclipse Public License 2.0", "EPL-2.0"),
+        ("European Union Public License 1.2", "EUPL-1.2"),
+        ("Creative Commons Attribution 4.0 International License", "CC-BY-4.0"),
+    ])
+    def test_the_whole_name_is_read(self, tmp_path, name, expected):
+        found = _reported(tmp_path, "widget.c", f"// Licensed under the {name}\n")
+
+        assert expected in found, (name, found)
+
+    def test_and_no_attribution_is_not_turned_into_attribution(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.c",
+            "// Licensed under the MIT No Attribution License\n",
+        )
+
+        assert "MIT" not in found, found
+
+    def test_an_expression_after_the_words_still_parses(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.c", "// Licensed under the MIT OR Apache-2.0\n",
+        )
+
+        assert {"MIT", "Apache-2.0"} <= found, found
