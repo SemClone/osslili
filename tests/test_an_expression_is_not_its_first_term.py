@@ -638,3 +638,56 @@ class TestThePlusIsAGrantNotAQuantifier:
         detector = LicenseDetector(Config())
 
         assert detector._is_false_positive_license(value) is is_false_positive, value
+
+
+class TestALowerCaseOperatorIsReadWhereBothSidesAreLicences:
+    """SPDX writes its operators in upper case, and a reader that insisted on
+    it dropped the second term of "SPDX-License-Identifier: MIT or
+    Apache-2.0", which names two licences.
+
+    Reading them in any case everywhere is worse: in a sentence the same
+    words are ordinary English, and "MIT and BSD-compatible" reported
+    BSD-3-Clause, a licence the file does not name. What separates the two is
+    not the case of the operator but whether each side of it is a licence.
+    """
+
+    @pytest.mark.parametrize("tag", [
+        "SPDX-License-Identifier:",
+        "License-Expression:",
+    ])
+    def test_a_field_that_holds_only_an_expression_reads_it(self, tmp_path, tag):
+        found = _reported(tmp_path, "widget.c", f"// {tag} MIT or Apache-2.0\n")
+
+        assert found == {"MIT", "Apache-2.0"}, (tag, found)
+
+    @pytest.mark.parametrize("tag", [
+        "SPDX-License-Identifier:",
+        "License-Expression:",
+    ])
+    def test_but_not_when_a_side_is_a_description(self, tmp_path, tag):
+        found = _reported(tmp_path, "widget.c", f"// {tag} MIT and BSD-compatible\n")
+
+        assert found == {"MIT"}, (tag, found)
+
+    def test_a_free_text_field_still_refuses_the_lower_case_word(self, tmp_path):
+        """"License:" holds prose, so "and" there is English whatever it joins."""
+        found = _reported(tmp_path, "widget.c", "// License: MIT and Apache-2.0\n")
+
+        assert found == {"MIT"}, found
+
+    def test_brackets_and_a_lower_case_operator_together(self, tmp_path):
+        found = _reported(
+            tmp_path, "widget.c", "// SPDX-License-Identifier: (MIT or Apache-2.0)\n",
+        )
+
+        assert found == {"MIT", "Apache-2.0"}, found
+
+    def test_an_upper_case_operator_is_still_taken_at_its_word(self, tmp_path):
+        """Written in upper case the word is an operator whatever it joins,
+        which is what it means, and this branch does not change that. What
+        the second term then normalises to is a separate matter."""
+        found = _reported(
+            tmp_path, "widget.c", "// SPDX-License-Identifier: MIT AND BSD-compatible\n",
+        )
+
+        assert len(found) == 2 and "MIT" in found, found
