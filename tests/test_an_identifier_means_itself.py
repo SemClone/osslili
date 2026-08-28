@@ -15,6 +15,8 @@ from pathlib import Path
 
 import pytest
 
+from osslili.utils.license_normalizer import LicenseNormalizer
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 BUNDLED = REPO_ROOT / "osslili" / "data" / "spdx_licenses.json"
 
@@ -80,6 +82,13 @@ class _BundledData:
     "GPL-2.0-only", "GPL-2.0-or-later", "GPL-3.0-only", "GPL-3.0-or-later",
     "AGPL-3.0-only", "AGPL-3.0-or-later",
     "Apache-2.0", "Apache-1.1", "MIT", "ISC", "0BSD", "Zlib", "MPL-2.0",
+    # The Creative Commons family, where the terms that were dropped are the
+    # ones a licensor most relies on: CC-BY-NC-SA-3.0 came back CC-BY-3.0,
+    # which permits the commercial use the licensor withheld.
+    "CC-BY-4.0", "CC-BY-SA-4.0", "CC-BY-NC-4.0", "CC-BY-ND-4.0",
+    "CC-BY-NC-SA-3.0", "CC-BY-NC-ND-4.0", "CC0-1.0",
+    # A licence whose whole point is the exception in its name.
+    "GPL-2.0-with-classpath-exception",
 ])
 class TestAStatedIdentifierIsReportedBack:
     def test_it_is(self, tmp_path, identifier):
@@ -94,18 +103,28 @@ class TestEveryIdentifierInTheBundledList:
     them, so the next family to be given a shortcut is caught here."""
 
     def test_normalising_one_never_produces_a_different_one(self):
-        from osslili.utils.license_normalizer import LicenseNormalizer
-
-        class Data:
-            licenses = _bundled_identifiers()
-
         normalizer = LicenseNormalizer()
-        changed = {
-            identifier: normalizer.normalize_license_id(identifier, Data())
-            for identifier in Data.licenses
-        }
+        data = _BundledData()
         wrong = {
-            given: got for given, got in changed.items() if got != given
+            identifier: normalizer.normalize_license_id(identifier, data)
+            for identifier in data.licenses
+            if normalizer.normalize_license_id(identifier, data) != identifier
+        }
+
+        assert wrong == {}, dict(list(wrong.items())[:20])
+
+    def test_nor_does_writing_it_in_lower_case(self):
+        """Every identifier, not the handful listed above. An exact-case
+        lookup can be a dictionary hit that never reaches the case-insensitive
+        path, so testing only exact case left that path pinned by seventeen
+        families, and the ones it omitted stayed broken: cc-by-nc-sa-3.0 came
+        back CC-BY-3.0, without the NonCommercial or the ShareAlike."""
+        normalizer = LicenseNormalizer()
+        data = _BundledData()
+        wrong = {
+            identifier: normalizer.normalize_license_id(identifier.lower(), data)
+            for identifier in data.licenses
+            if normalizer.normalize_license_id(identifier.lower(), data) != identifier
         }
 
         assert wrong == {}, dict(list(wrong.items())[:20])
