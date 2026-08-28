@@ -187,16 +187,30 @@ def _bounded_pattern(variation: str) -> str:
 # and comment markers. Semicolons open a comment in Lisp and in ini files,
 # percent signs in TeX and R, parentheses with a star in ML and Pascal, and a
 # header written in one of those is as much a declaration as one in C.
-_COMMENT_OPENING = r'[\s*#/<!;%()-]*'
+#
+# Written as whole markers rather than a set of characters, because a set
+# containing a hyphen also accepted a Markdown bullet, and "- Licensed under
+# the MIT License" under a Dependencies heading is a credit, not a header.
+_COMMENT_OPENING = r'(?:[\s*#;%]|//|/\*|<!--|--|\(\*)*'
 
 # Ways a file refers to itself before saying what it is licensed under.
 # "This file is licensed under the MIT License" and "Dual licensed under MIT
 # OR Apache-2.0" are the file stating its own licence, not crediting anything.
+#
+# A bare "Also" is not among them. It continues whatever sentence came before,
+# and after "the bundled parser is licensed under the BSD License" the thing
+# it continues is a credit. Without tracking what the previous sentence was
+# about there is no way to tell, and reading it as a declaration is the answer
+# that puts someone else's licence on the package.
 _SELF_REFERRING = (
+    # optionally "Portions of ..."
+    r'(?:portions\s+of\s+)?'
     r'(?:this\s+(?:file|project|software|package|library|module|work|code|'
     r'program|distribution)|the\s+(?:software|code|project|program)|'
-    r'dual|also|source\s+code)\s*'
+    r'dual|source\s+code)\s*'
     r'(?:is|are|was|may\s+be|can\s+be)?\s*'
+    # "is dual licensed", "are jointly licensed"
+    r'(?:dual|jointly|multi)?\s*'
 )
 
 
@@ -398,7 +412,10 @@ class LicenseDetector:
             # SPDX-License-Identifier: <license>
             # Match complex expressions including parentheses, AND, OR, WITH
             # Stop at newline or end of comment markers
-            re.compile(r'SPDX-License-Identifier:\s*([^\n]+?)(?:\s*\*/)?(?:\s*-->)?$', re.IGNORECASE | re.MULTILINE),
+            # Anchored, because the identifier is a header. Unanchored, the
+            # sentence "dependency foo declares SPDX-License-Identifier: MIT"
+            # was read as this file declaring MIT.
+            re.compile(r'^' + _COMMENT_OPENING + r'SPDX-License-Identifier:\s*([^\n]+?)(?:\s*\*/)?(?:\s*-->)?$', re.IGNORECASE | re.MULTILINE),
             # Python METADATA: License-Expression: <license>
             re.compile(r'License-Expression:\s*([^\s\n]+)', re.IGNORECASE),
             # package.json style: "license": "MIT" or licenses array with "type": "MIT"

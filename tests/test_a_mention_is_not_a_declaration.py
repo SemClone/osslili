@@ -300,7 +300,8 @@ class TestAFileThatNamesItself:
         " * This software is licensed under the MIT License.",
         "This package is licensed under the MIT License.",
         "Dual licensed under MIT OR Apache-2.0",
-        "Also licensed under MIT",
+        "This software is dual licensed under the MIT License.",
+        "Portions of this software are licensed under the MIT License.",
         "The software is licensed under the MIT License.",
     ])
     def test_it_declares(self, tmp_path, line):
@@ -308,6 +309,20 @@ class TestAFileThatNamesItself:
 
         assert _declared(evidence), (line, evidence)
         assert _referenced(evidence) == set(), (line, evidence)
+
+    def test_a_bare_also_continues_whatever_came_before(self, tmp_path):
+        """"Also licensed under the MIT License" carries no subject of its
+        own. After "the bundled parser is licensed under the BSD License" the
+        sentence it continues is a credit, and there is no way to tell from
+        the line itself. Reading it as a declaration is the answer that puts
+        someone else's licence on the package, so it is read as a reference."""
+        evidence = _evidence(
+            tmp_path, "README.md",
+            "The bundled parser is licensed under the BSD License.\n"
+            "Also licensed under the MIT License.\n",
+        )
+
+        assert _declared(evidence) == set(), evidence
 
     @pytest.mark.parametrize("line", [
         "The bundled minifier is licensed under the Apache License, Version 2.0.",
@@ -390,3 +405,57 @@ class TestTheCreditDoesNotBecomeThePackageLicence:
 
         assert [lic.spdx_id for lic in result.get_own_licenses()] == ["MIT"]
         assert result.get_primary_license().spdx_id == "MIT"
+
+
+class TestATagNamedInASentence:
+    """The identifier is a header. Unanchored, a sentence about someone
+    else's tag was read as this file's own."""
+
+    def test_a_sentence_about_another_tag_does_not_declare(self, tmp_path):
+        evidence = _evidence(
+            tmp_path, "README.md",
+            "Dependency foo declares SPDX-License-Identifier: MIT\n",
+        )
+
+        assert _declared(evidence) == set(), evidence
+
+    @pytest.mark.parametrize("prefix", ["", "// ", "# ", " * ", "<!-- ", "-- "])
+    def test_but_a_header_still_does(self, tmp_path, prefix):
+        evidence = _evidence(
+            tmp_path, "source.txt", prefix + "SPDX-License-Identifier: MIT\n",
+        )
+
+        assert "MIT" in _declared(evidence), (prefix, evidence)
+
+    def test_an_expression_still_survives_the_anchor(self, tmp_path):
+        evidence = _evidence(
+            tmp_path, "source.txt",
+            "// SPDX-License-Identifier: MIT OR Apache-2.0\n",
+        )
+
+        assert _declared(evidence) == {"MIT", "Apache-2.0"}, evidence
+
+
+class TestAMarkdownBulletIsNotAComment:
+    """A set of characters containing a hyphen accepted a bullet, so a credit
+    under a Dependencies heading was read as a header."""
+
+    def test_a_bulleted_credit_does_not_declare(self, tmp_path):
+        evidence = _evidence(
+            tmp_path, "README.md",
+            "Dependencies:\n- Licensed under the MIT License.\n",
+        )
+
+        assert _declared(evidence) == set(), evidence
+
+    def test_a_bulleted_licence_line_does_not_either(self, tmp_path):
+        evidence = _evidence(
+            tmp_path, "README.md", "Dependencies:\n- License: MIT\n",
+        )
+
+        assert _declared(evidence) == set(), evidence
+
+    def test_but_a_double_hyphen_comment_still_does(self, tmp_path):
+        evidence = _evidence(tmp_path, "main.hs", "-- License: MIT\n")
+
+        assert "MIT" in _declared(evidence), evidence
