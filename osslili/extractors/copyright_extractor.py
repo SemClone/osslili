@@ -16,6 +16,26 @@ from ..utils.file_scanner import SafeFileScanner
 logger = logging.getLogger(__name__)
 
 
+def _the_file_itself(path) -> str:
+    """One name for one file, whichever way it was reached.
+
+    A file is reached more than once: a setup.py is read as source for the
+    lines in it and again as metadata for the author it declares, and a
+    LICENSE that is a symbolic link to LICENSE.txt is reached by both names.
+    Counting the names counted the file twice, so the count is taken of what
+    the names resolve to.
+
+    A path that cannot be resolved is its own name, which is the most that
+    can be said about it.
+    """
+    if not path:
+        return ""
+    try:
+        return str(Path(path).resolve())
+    except OSError:
+        return str(path)
+
+
 class CopyrightExtractor:
     """Extract copyright information from source code."""
     
@@ -114,21 +134,14 @@ class CopyrightExtractor:
         # order this extractor means: the files most likely to carry the
         # package's own copyright first.
         for file_path in files_to_scan:
+            name = _the_file_itself(file_path)
             for copyright_info in found_in.get(file_path, []):
                 # Which files said it, and not how many times it was
                 # matched. A header written "Copyright (c) 2014 ..." is found
                 # by the pattern for the word and again by the pattern for
                 # the sign, so counting the matches said a statement in
                 # twelve files was in twenty-four.
-                #
-                # By name, because the metadata pass below records the same
-                # file as the string it puts in the record, and a set holding
-                # a path beside a string counted one setup.py as two files:
-                # once for the line written in it and once for the author it
-                # declares.
-                said_in.setdefault(copyright_info.statement, set()).add(
-                    str(file_path)
-                )
+                said_in.setdefault(copyright_info.statement, set()).add(name)
                 if copyright_info.statement in processed_statements:
                     continue
                 processed_statements.add(copyright_info.statement)
@@ -143,7 +156,9 @@ class CopyrightExtractor:
         # statement before they were read left it at one.
         metadata_copyrights = self._extract_from_metadata(path)
         for mc in metadata_copyrights:
-            said_in.setdefault(mc.statement, set()).add(mc.source_file)
+            said_in.setdefault(mc.statement, set()).add(
+                _the_file_itself(mc.source_file)
+            )
             if mc.statement not in processed_statements:
                 processed_statements.add(mc.statement)
                 copyrights.append(mc)

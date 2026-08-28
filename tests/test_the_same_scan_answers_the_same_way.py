@@ -381,3 +381,76 @@ class TestAStatementIsReportedOnce:
         statements = [c.statement for c in _extractor().extract_copyrights(root)]
 
         assert statements.count("Copyright Acme Labs") == 1, statements
+
+
+class TestOneFileReachedByTwoNames:
+    """A LICENSE that is a symbolic link to LICENSE.txt is reached by both
+    names, and counting the names counted the one file twice."""
+
+    def test_a_symbolic_link_is_not_a_second_file(self, tmp_path):
+        import os
+
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "LICENSE.txt").write_text("Copyright Acme Labs\n")
+        os.symlink("LICENSE.txt", root / "LICENSE")
+
+        counts = {
+            c.statement: c.file_count
+            for c in _extractor().extract_copyrights(root)
+        }
+
+        assert counts["Copyright Acme Labs"] == 1, counts
+
+    def test_and_two_real_files_still_are_two(self, tmp_path):
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "LICENSE.txt").write_text("Copyright Acme Labs\n")
+        (root / "NOTICE.txt").write_text("Copyright Acme Labs\n")
+
+        counts = {
+            c.statement: c.file_count
+            for c in _extractor().extract_copyrights(root)
+        }
+
+        assert counts["Copyright Acme Labs"] == 2, counts
+
+
+class TestTheFilesAreReadOnMoreThanOneThread:
+    """The race this file exists for is in the threaded path, and that path
+    is taken only above a threshold. Raise the threshold and every assertion
+    here still passes, on the single-threaded path, having tested nothing
+    about the fault."""
+
+    def test_a_directory_of_thirty_files_uses_the_pool(self, tmp_path, monkeypatch):
+        import osslili.extractors.copyright_extractor as module
+
+        root = _a_package(tmp_path)
+        used = []
+        real = module.ThreadPoolExecutor
+
+        def watched(*args, **kwargs):
+            used.append(True)
+            return real(*args, **kwargs)
+
+        monkeypatch.setattr(module, "ThreadPoolExecutor", watched)
+        _extractor().extract_copyrights(root)
+
+        assert used, "the files were read on one thread, so nothing raced"
+
+
+class TestTheCountIsInTheRecord:
+    def test_a_record_says_one_file_by_default(self):
+        from osslili.core.models import CopyrightInfo
+
+        record = CopyrightInfo(holder="ACME", statement="Copyright ACME")
+
+        assert record.file_count == 1
+
+    def test_and_carries_it_into_the_dictionary(self):
+        from osslili.core.models import CopyrightInfo
+
+        record = CopyrightInfo(holder="ACME", statement="Copyright ACME")
+        record.file_count = 7
+
+        assert record.to_dict()["file_count"] == 7
