@@ -217,13 +217,9 @@ _DOCUMENT_SUFFIXES = (
 _DOCUMENT_OPENING = r'(?:[\s#]|<!--)*'
 
 
-def _reads_as_a_document(file_path) -> bool:
-    """Whether this file's subject is prose rather than code."""
+def _has_a_document_suffix(file_path) -> bool:
+    """Whether the name says this file's subject is prose."""
     name = str(getattr(file_path, 'name', file_path)).lower()
-    if any(word in name for word in ('license', 'licence', 'copying', 'notice')):
-        # A licence file is not a document for this purpose, whatever it is
-        # suffixed with: LICENSE.txt holds the licence itself.
-        return False
     return any(name.endswith(suffix) for suffix in _DOCUMENT_SUFFIXES)
 
 
@@ -231,7 +227,9 @@ _SELF_REFERRING = (
     # optionally "Portions of ..."
     r'(?:portions\s+of\s+)?'
     r'(?:this\s+(?:file|project|software|package|library|module|work|code|'
-    r'program|distribution)|the\s+(?:software|code|project|program)|'
+    r'program|distribution|repository|repo|crate|gem|plugin|extension|tool|'
+    r'application|app|component|utility)|'
+    r'the\s+(?:software|code|project|program|repository|library)|'
     r'dual|source\s+code)\s*'
     r'(?:is|are|was|may\s+be|can\s+be)?\s*'
     # "is dual licensed", "are jointly licensed"
@@ -468,6 +466,18 @@ class LicenseDetector:
                 re.IGNORECASE | re.MULTILINE,
             ),
         ]
+
+    def _reads_as_a_document(self, file_path) -> bool:
+        """Whether this file's subject is prose rather than code.
+
+        A licence file is not a document however it is suffixed, since
+        LICENSE.txt and LICENCE.md hold the licence itself. Which files those
+        are is asked of _is_license_file rather than decided again here, so
+        there is one answer to that question rather than two that can drift.
+        """
+        if not _has_a_document_suffix(file_path):
+            return False
+        return not self._is_license_file(Path(str(file_path)))
 
     def _compile_document_tag_patterns(self) -> List[re.Pattern]:
         """The declaration forms that mean something in a document.
@@ -1212,7 +1222,7 @@ class LicenseDetector:
         # a bullet: "* Licensed under the MIT License" under a Dependencies
         # heading is a credit rather than a header.
         opening = (
-            _DOCUMENT_OPENING if _reads_as_a_document(file_path)
+            _DOCUMENT_OPENING if self._reads_as_a_document(file_path)
             else _COMMENT_OPENING
         )
         spdx_patterns = [
@@ -1652,7 +1662,7 @@ class LicenseDetector:
         if any(name in file_name for name in ['spdx_licenses.py', 'license_detector.py']):
             return licenses
         
-        in_a_document = _reads_as_a_document(file_path)
+        in_a_document = self._reads_as_a_document(file_path)
         tag_patterns = (
             self.document_tag_patterns if in_a_document else self.spdx_tag_patterns
         )

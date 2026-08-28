@@ -599,3 +599,47 @@ class TestALicenceFileKeepsCodeRules:
         evidence = _evidence(tmp_path, "README.md", " * License: MIT\n")
 
         assert _declared(evidence) == set(), evidence
+
+
+class TestTheWordsAProjectCallsItself:
+    """A project names itself in whatever word fits: repository, crate, gem,
+    plugin. Each one missing from the set is a declaration read as a credit."""
+
+    @pytest.mark.parametrize("subject", [
+        "This repository", "This repo", "This crate", "This gem",
+        "This plugin", "This extension", "This tool", "This application",
+        "This app", "This component", "This utility", "This library",
+        "This module", "The repository", "The library",
+    ])
+    def test_it_declares(self, tmp_path, subject):
+        evidence = _evidence(
+            tmp_path, "README.md", f"{subject} is licensed under the MIT License.\n",
+        )
+
+        assert "MIT" in _declared(evidence), (subject, evidence)
+        assert _referenced(evidence) == set(), (subject, evidence)
+
+    @pytest.mark.parametrize("subject", [
+        "The bundled minifier", "Its parser", "terser",
+    ])
+    def test_but_naming_something_else_still_credits(self, tmp_path, subject):
+        evidence = _evidence(
+            tmp_path, "README.md",
+            f"{subject} is licensed under the Apache License, Version 2.0.\n",
+        )
+
+        assert "Apache-2.0" in _referenced(evidence), (subject, evidence)
+
+
+class TestOneAnswerToWhatALicenceFileIs:
+    """Whether a file is a licence file is asked of _is_license_file rather
+    than decided again, so the two cannot drift apart."""
+
+    def test_the_document_rule_uses_the_detectors_own_answer(self):
+        import inspect
+
+        from osslili.detectors.license_detector import LicenseDetector
+
+        source = inspect.getsource(LicenseDetector._reads_as_a_document)
+
+        assert "_is_license_file" in source
