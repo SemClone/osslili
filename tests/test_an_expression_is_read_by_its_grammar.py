@@ -115,7 +115,6 @@ class TestANameWrittenInWords:
         assert named == ["MIT", "Apache License 2.0"], named
 
     @pytest.mark.parametrize("written", [
-        "GPLv2 or later",
         "GPL-2.0 or later",
         "LGPL-2.1 or later",
     ])
@@ -124,6 +123,17 @@ class TestANameWrittenInWords:
         the "or" as an operator, and keeping the pieces reports the licence
         without the permission, which is the opposite of what it grants."""
         assert detector._parse_license_expression(written) == [written]
+
+    def test_a_licence_whose_grant_cannot_be_kept_is_not_reported(self, detector):
+        """"GPLv2" is not an identifier, so the grant will not go back on it,
+        and the GNU family says which grant it means in the name itself.
+        Reporting GPL-2.0-only there gives the one permission the line does
+        not, so the piece is dropped, and with nothing left the line goes
+        back whole for a reader that may do better with it."""
+        named = detector._parse_license_expression("GPLv2 or later")
+
+        assert named == ["GPLv2 or later"], named
+        assert "GPLv2" not in named
 
     def test_a_term_the_list_does_not_hold_is_still_a_term(self, detector):
         """Absence from the list is not the same as being words. A deprecated
@@ -222,3 +232,30 @@ class TestAWordThatOnlyNamesALicenceInCompany:
     ])
     def test_the_company_it_keeps(self, detector, written, expected):
         assert detector._normalize_license_id(written) == expected
+
+
+class TestALineNamingTwoLicencesAndAGrant:
+    """The grant speaks about the licence it was written after, and the line
+    names another beside it. Handing the whole line to the reader of prose
+    names answered with one family and lost the other."""
+
+    @pytest.mark.parametrize("written,expected", [
+        ("MIT or GPL-2.0 or later", ["MIT", "GPL-2.0+"]),
+        ("MIT or LGPL-2.1 or later", ["MIT", "LGPL-2.1+"]),
+        ("MIT or GPL-2.0 or any later version", ["MIT", "GPL-2.0+"]),
+    ])
+    def test_both_are_named_and_the_grant_kept(self, detector, written, expected):
+        assert detector._parse_license_expression(written) == expected
+
+    def test_the_grant_goes_on_the_one_before_it(self, detector):
+        """Not on the first, and not on all of them."""
+        named = detector._parse_license_expression("GPL-2.0 or MIT or later")
+
+        assert named == ["GPL-2.0", "MIT"], named
+
+    def test_and_a_licence_with_no_or_later_form_keeps_its_name(self, detector):
+        """SPDX writes one for the GNU family and nowhere else, so a plus on
+        anything else names nothing and would lose the licence."""
+        named = detector._parse_license_expression("MIT or Apache-2.0 or above")
+
+        assert named == ["MIT", "Apache-2.0"], named

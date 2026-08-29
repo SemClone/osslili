@@ -137,6 +137,52 @@ _A_GRANT_IN_WORDS = re.compile(
 _LICENSING = None
 
 
+def _with_the_grant_put_back(
+    text: str, named: list, the_grant_can_be_written_on, tells_the_grants_apart,
+) -> list:
+    """The licences named, with an or-later grant on the one it follows.
+
+    The parser reads the "or" before the grant as an operator and leaves the
+    words after it standing alone, so which licence they speak about is only
+    in where they were written. It is the one before them.
+    """
+    grant = _A_GRANT_IN_WORDS.search(text)
+    if not grant:
+        return named
+
+    before = [
+        (text.lower().rfind(key.lower(), 0, grant.start()), position)
+        for position, key in enumerate(named)
+    ]
+    found = [pair for pair in before if pair[0] >= 0]
+    if not found:
+        return named
+
+    _, position = max(found)
+    spoken_about = named[position]
+    if spoken_about.endswith('+'):
+        return named
+
+    if the_grant_can_be_written_on(spoken_about):
+        return [
+            key + '+' if index == position else key
+            for index, key in enumerate(named)
+        ]
+
+    # The grant will not go on it. Where the licence tells an only grant from
+    # an or-later one, reporting it without the grant says the opposite of
+    # what was written, and saying nothing about it is better than that:
+    # "GPLv2 or later" came back as GPL-2.0-only, which is the one permission
+    # the line does not give.
+    if tells_the_grants_apart(spoken_about):
+        return [key for index, key in enumerate(named) if index != position]
+
+    # Where it does not, there is nothing to lose. SPDX writes no or-later
+    # form for Apache, so "Apache 2.0 or above" is as near as it can be said,
+    # and dropping it lost the Apache that was there.
+    return named
+
+
 def _in_the_order_written(licensing, parsed):
     """The licences an expression names, once each, in the written order."""
     named = []
@@ -2653,24 +2699,63 @@ class LicenseDetector:
         # deprecated "GFDL-1.3+", a "DocumentRef-x:LicenseRef-y" naming a
         # licence held elsewhere, and a "BSD-compatible" that describes one
         # are all absent from it and all written the way a term is written.
+        named = [
+            key for key in _in_the_order_written(licensing, parsed)
+            if not _A_GRANT_IN_WORDS.fullmatch(key.strip())
+        ]
         if any(_A_GRANT_IN_WORDS.fullmatch(str(key).strip())
                for key in licensing.unknown_license_keys(parsed)):
-            whole = self._normalize_license_id(text)
-            if self._looks_like_valid_license(whole) or self._is_valid_spdx_id(whole):
+            # Only where one licence is named. A line naming two of them says
+            # something the reader of prose names cannot: it answers with one
+            # family, so "MIT or GPL-2.0 or later" came back as the GPL alone
+            # and the MIT was gone. With two, the pieces keep both names and
+            # lose only the grant, which is what happened before this branch.
+            #
+            # And only where something can be made of the line whole, asked
+            # the way the answer will be asked for when it is reported. A
+            # looser question passed "LGPL-v2+", which is nothing, and a line
+            # plainly naming two licences came back with none at all.
+            if len(named) == 1 and self._is_emittable_license_id(
+                self._to_modern_spdx_id(self._normalize_license_id(text))
+            ):
                 return [text]
-            # Unless nothing can be made of it whole, in which case the pieces
-            # are better than nothing: "Apache 2.0 or above" is not a grant
-            # SPDX writes, and dropping the line lost the Apache.
+            # Otherwise the pieces are kept, and the grant is put back on
+            # the licence it was written after, because that is the one it
+            # speaks about: "MIT or GPL-2.0 or later" offers MIT, or the GPL
+            # at that version or a later one, and reporting the GPL alone
+            # says the opposite of the second half.
+            named = _with_the_grant_put_back(
+                text, named, self._the_grant_can_be_written_on,
+                self._tells_an_only_grant_from_an_or_later_one,
+            )
 
         # A name written in words was read whole by the parser, so it can be
         # handed on beside the identifiers it was written with. One name in
         # words does not make the rest of the line unreadable: "MIT or Apache
         # License 2.0" names MIT as surely as it names the other, and giving
         # the line back whole lost it.
-        return [
-            key for key in _in_the_order_written(licensing, parsed)
-            if not _A_GRANT_IN_WORDS.fullmatch(key.strip())
-        ] or [text]
+        return named or [text]
+
+    def _tells_an_only_grant_from_an_or_later_one(self, written: str) -> bool:
+        """Whether this licence has two grants to choose between.
+
+        The GNU family does, and says which in the identifier itself. For the
+        rest there is one identifier and nothing to get wrong.
+        """
+        return self._to_modern_spdx_id(
+            self._normalize_license_id(written)
+        ).endswith('-only')
+
+    def _the_grant_can_be_written_on(self, written: str) -> bool:
+        """Whether a plus on this licence says or-later, or says nothing.
+
+        Asking only whether the result resolves was too easy to satisfy:
+        "MIT+" resolves, by dropping the plus, and the grant it was meant to
+        carry went with it. The plus has to make the or-later identifier.
+        """
+        return self._to_modern_spdx_id(
+            self._normalize_license_id(written + '+')
+        ).endswith('-or-later')
 
     def _as_an_expression(self, licensing, text: str):
         """The expression this string holds, or nothing if it holds none.
