@@ -105,6 +105,20 @@ _GNU_OR_LATER_RE = re.compile(
 # A generic "General Public License" match that is really part of the Lesser or
 # Affero name. Those have their own identifiers, so the generic GPL path must
 # not claim them.
+# The SPDX expression parser, built once and shared. Building it reads the
+# whole licence list, which is slow enough to matter in a scan.
+_SPDX_LICENSING = None
+
+
+def _spdx_licensing():
+    global _SPDX_LICENSING
+    if _SPDX_LICENSING is None:
+        from license_expression import get_spdx_licensing
+
+        _SPDX_LICENSING = get_spdx_licensing()
+    return _SPDX_LICENSING
+
+
 _GNU_VARIANT_PREFIX_RE = re.compile(r'(?:Lesser|Library|Affero)\s+$', re.IGNORECASE)
 
 # Ceiling on a regex match reached through the full-text cascade, i.e. after
@@ -2548,79 +2562,55 @@ class LicenseDetector:
         return license_text
     
     def _parse_license_expression(self, expression: str) -> List[str]:
-        """Parse SPDX license expression including complex formats."""
-        # Don't split if it contains "or later" or "or-later" (common suffix)
-        expression_lower = expression.lower()
-        if 'or later' in expression_lower or 'or-later' in expression_lower:
-            # Check if this is really a suffix or an OR expression
-            # GPL-2.0-or-later is a suffix, but "MIT OR Apache" is an expression
-            #
-            # An AND or a WITH makes it an expression too, whatever the
-            # suffix. Returning "GPL-2.0-or-later WITH Classpath-exception-2.0"
-            # whole left the normaliser to read it, and it reduced the lot to
-            # the base word gpl and answered GPL-2.0, which the emission
-            # boundary then modernised to GPL-2.0-only: the opposite of what
-            # the file grants.
-            joined = re.search(r'\s+(?:OR(?!\s+later)|AND|WITH)\s+', expression,
-                               re.IGNORECASE)
-            if not joined:
-                return [expression.strip()]
+        """The licences an SPDX expression names, in the order written.
 
-        # Collect all licenses found in the expression
-        licenses = []
+        Read by the SPDX expression parser rather than by taking the string
+        apart here. An expression has a grammar: terms joined by OR, AND and
+        WITH, nested in brackets, with a deprecated "or later" plus. Reading
+        it with patterns meant every shape had to be thought of separately,
+        and each one that was missed reported a licence the file does not
+        grant or dropped one it does.
 
-        # First handle WITH exceptions specially (keep them together)
-        # e.g., "GPL-3.0 WITH Classpath-exception-2.0"
-        # The operand may carry the deprecated "+" form, GPL-2.0+, which is
-        # handled everywhere else. Leaving it out took the plus off and
-        # reported GPL-2.0, modernised later to GPL-2.0-only: the opposite of
-        # what the file grants.
-        with_pattern = r'([A-Za-z0-9\-\.+]+)\s+WITH\s+([A-Za-z0-9\-\.]+)'
-        with_matches = re.findall(with_pattern, expression, re.IGNORECASE)
+        The parser also answers with modern identifiers, so a deprecated
+        spelling is resolved here rather than by each caller afterwards.
 
-        # Keep track of what we've processed
-        processed = set()
+        A string that is not an expression is returned as it came, because
+        this is asked about metadata values and header lines that may hold
+        anything, and refusing them would lose a licence that the tiers
+        after this one can still make sense of.
+        """
+        if not expression or not expression.strip():
+            return []
 
-        for base_license, exception in with_matches:
-            # Add both the base license and the exception
-            licenses.append(base_license.strip())
-            licenses.append(exception.strip())
-            processed.add(f"{base_license} WITH {exception}")
+        text = expression.strip()
 
-        # Replace WITH expressions with placeholder to avoid re-processing
-        temp_expression = expression
-        for match in re.finditer(with_pattern, expression, re.IGNORECASE):
-            temp_expression = temp_expression.replace(match.group(), '__WITH__')
+        # A comma is not an SPDX operator, and metadata writes lists with one:
+        # "MIT, Apache-2.0". Each part is read as an expression of its own, so
+        # a list that mixes the two still gives up every term.
+        if ',' in text:
+            named = []
+            for part in text.split(','):
+                for key in self._parse_license_expression(part):
+                    if key not in named:
+                        named.append(key)
+            return named or [text]
 
-        # Remove parentheses but keep track of the structure
-        # For now, just flatten everything
-        temp_expression = temp_expression.replace('(', '').replace(')', '')
+        try:
+            parsed = _spdx_licensing().parse(text, validate=False, strict=False)
+        except Exception:
+            return [text]
+        if parsed is None:
+            return [text]
 
-        # Split on AND/OR operators, and on the comma that stands in for one.
-        # A comma was handled only where the expression had no operator at
-        # all, so a list that mixed the two lost a term: "MIT, Apache-2.0 OR
-        # BSD-3-Clause" reported the two after the comma and not the one
-        # before it.
-        parts = re.split(r'\s*,\s*|\s+(?:AND|OR)\s+', temp_expression,
-                         flags=re.IGNORECASE)
+        # In the order the expression writes them, because the caller reports
+        # them in that order and a set does not have one.
+        named = []
+        for key in _spdx_licensing().license_keys(parsed):
+            key = str(key)
+            if key not in named:
+                named.append(key)
+        return named or [text]
 
-        for part in parts:
-            part = part.strip()
-            if part and part != '__WITH__' and part not in processed:
-                # This might be a license ID
-                licenses.append(part)
-
-        # Remove duplicates while preserving order
-        seen = set()
-        result = []
-        for lic in licenses:
-            if lic not in seen:
-                seen.add(lic)
-                result.append(lic)
-
-        return result if result else [expression.strip()]
-    
-    
     def _detect_license_from_text(self, text: str, file_path: Path) -> Optional[DetectedLicense]:
         """
         Detect license from text using four-tier detection.
