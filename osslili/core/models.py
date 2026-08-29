@@ -8,7 +8,6 @@ from enum import Enum
 
 
 # Scanning modes are presets over the individual scan targets (issue #79).
-SCAN_MODES = ("default", "deep", "license-files", "lightweight")
 
 
 class DetectionMethod(Enum):
@@ -207,40 +206,9 @@ class Config:
 
     # Full license text comparison (exact hash, Dice-Sørensen, TLSH). Disabling
     # it leaves the cheap detectors (SPDX tags, keywords, references) in place,
-    # which is what a lightweight all-files scan wants.
+    # for a caller that wants every file read but not compared against every
+    # licence text.
     text_similarity_matching: bool = True
-
-    def apply_scan_mode(self, mode: str):
-        """Apply a scanning mode preset (one of SCAN_MODES).
-
-        Presets only set what the mode itself defines, so explicit scan target
-        overrides applied afterwards still win.
-        """
-        if mode not in SCAN_MODES:
-            raise ValueError(
-                f"Unknown scan mode: {mode!r} (expected one of {', '.join(SCAN_MODES)})"
-            )
-
-        if mode == "default":
-            self.license_files_only = True
-            self.strict_license_files = False
-            self.deep_scan = False
-        elif mode == "deep":
-            self.license_files_only = False
-            self.strict_license_files = False
-            self.deep_scan = True
-        elif mode == "license-files":
-            self.license_files_only = True
-            self.strict_license_files = True
-            self.deep_scan = False
-        elif mode == "lightweight":
-            # All files, cheap detection only, package metadata disregarded:
-            # for scanners whose declared licenses come from elsewhere.
-            self.license_files_only = False
-            self.strict_license_files = False
-            self.deep_scan = True
-            self.scan_package_metadata = False
-            self.text_similarity_matching = False
 
     def scan_targets(self) -> ScanTargets:
         """Resolve the scan targets this configuration selects."""

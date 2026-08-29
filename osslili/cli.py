@@ -12,7 +12,7 @@ import yaml
 from colorama import init, Fore, Style
 
 from . import __version__
-from .core.models import SCAN_MODES, Config
+from .core.models import Config
 from .core.generator import LicenseCopyrightDetector
 from .utils.logging import setup_logging
 
@@ -60,31 +60,16 @@ def load_config(config_path: Optional[str]) -> Config:
         return Config()
 
 
-def resolve_scan_mode(scan_mode: Optional[str], deep: bool,
-                      license_files_only: bool) -> Optional[str]:
-    """Resolve the scanning mode from --scan-mode and its legacy flag aliases.
+def refuse_contradictory_scanning(deep: bool, license_files_only: bool) -> None:
+    """--deep and --license-files-only ask for opposite scans.
 
-    Returns None when no mode was requested, leaving the configured default in
-    place. Contradictory requests are a usage error rather than a silent pick.
+    Taken together they used to resolve silently to deep, which answers a
+    question the caller did not ask.
     """
-    aliases = []
-    if deep:
-        aliases.append(('deep', '--deep'))
-    if license_files_only:
-        aliases.append(('license-files', '--license-files-only'))
-
-    if len(aliases) > 1:
+    if deep and license_files_only:
         raise click.UsageError(
-            f"{aliases[0][1]} and {aliases[1][1]} select different scanning modes; use one"
+            "--deep and --license-files-only select different scans; use one"
         )
-    if scan_mode and aliases and scan_mode != aliases[0][0]:
-        raise click.UsageError(
-            f"--scan-mode {scan_mode} conflicts with {aliases[0][1]}; use one"
-        )
-
-    if scan_mode:
-        return scan_mode
-    return aliases[0][0] if aliases else None
 
 
 def detect_input_type(input_path: str) -> str:
@@ -165,15 +150,7 @@ def detect_input_type(input_path: str) -> str:
 @click.option(
     '--license-files-only',
     is_flag=True,
-    help='Strictly scan only LICENSE files (excludes metadata and README). Alias for --scan-mode license-files.'
-)
-@click.option(
-    '--scan-mode', '--mode', 'scan_mode',
-    type=click.Choice(SCAN_MODES),
-    default=None,
-    help='Scanning mode preset: default (license files, metadata, docs), deep (all files), '
-         'license-files (LICENSE files only), lightweight (all files, no package metadata, '
-         'no full text comparison)'
+    help='Strictly scan only LICENSE files (excludes metadata and README)'
 )
 @click.option(
     '--license-files/--no-license-files', 'scan_license_files',
@@ -199,8 +176,7 @@ def detect_input_type(input_path: str) -> str:
 @click.option(
     '--source-files/--no-source-files', 'scan_source_files',
     default=None,
-    help='Scan all other readable files for embedded licenses (default: enabled in deep '
-         'and lightweight modes only)'
+    help='Scan all other readable files for embedded licenses (default: --deep only)'
 )
 @click.option(
     '--text-similarity/--no-text-similarity', 'text_similarity',
@@ -231,7 +207,7 @@ def detect_input_type(input_path: str) -> str:
 @click.option(
     '--deep',
     is_flag=True,
-    help='Enable comprehensive scan of all source files (slower, more thorough). Alias for --scan-mode deep.'
+    help='Enable comprehensive scan of all source files (slower, more thorough).'
 )
 @click.version_option(version=__version__, prog_name='osslili')
 def main(
@@ -248,7 +224,6 @@ def main(
     evidence_detail: str,
     skip_content_detection: bool,
     license_files_only: bool,
-    scan_mode: Optional[str],
     scan_license_files: Optional[bool],
     scan_notice_files: Optional[bool],
     scan_package_metadata: Optional[bool],
@@ -269,11 +244,10 @@ def main(
     - A local file to analyze
 
     By default, scans LICENSE files, package metadata (package.json, setup.py, etc.),
-    and README files for fast results. Use --deep for comprehensive source code scanning,
-    or --scan-mode lightweight to scan all files with cheap detection and no package
-    metadata. Modes are presets over the individual scan targets (--license-files,
-    --notice-files, --package-metadata, --documentation, --source-files), each of which
-    can be turned on or off on top of the selected mode.
+    and README files for fast results. Use --deep for comprehensive source code
+    scanning. Each category can be turned on or off on its own: --license-files,
+    --notice-files, --package-metadata, --documentation, --source-files, and
+    --text-similarity for the full licence text comparison.
 
     The tool performs:
     - SPDX license identification using regex and fuzzy hashing
@@ -302,13 +276,15 @@ def main(
     if fast:
         cfg.fast_mode = True
         cfg.apply_fast_mode()
-    # Scanning mode preset. --deep and --license-files-only are aliases for the
-    # corresponding modes, kept for compatibility.
-    mode = resolve_scan_mode(scan_mode, deep=deep, license_files_only=license_files_only)
-    if mode:
-        cfg.apply_scan_mode(mode)
+    refuse_contradictory_scanning(deep=deep, license_files_only=license_files_only)
+    if deep:
+        cfg.deep_scan = True
+        cfg.license_files_only = False
+    elif license_files_only:
+        cfg.license_files_only = True
+        cfg.strict_license_files = True
 
-    # Individual scan targets override whatever the mode selected
+    # Individual scan targets override what the scan would otherwise read
     if scan_license_files is not None:
         cfg.scan_license_files = scan_license_files
     if scan_notice_files is not None:

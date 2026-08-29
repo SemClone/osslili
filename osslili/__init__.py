@@ -17,7 +17,6 @@ __version__ = "1.7.5"
 
 from .core.generator import LicenseCopyrightDetector
 from .core.models import (
-    SCAN_MODES,
     DetectionResult,
     DetectedLicense,
     CopyrightInfo,
@@ -32,5 +31,4 @@ __all__ = [
     "CopyrightInfo",
     "Config",
     "ScanTargets",
-    "SCAN_MODES",
 ]

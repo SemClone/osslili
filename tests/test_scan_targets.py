@@ -13,7 +13,7 @@ import pytest
 from click.testing import CliRunner
 
 from osslili.cli import main
-from osslili.core.models import SCAN_MODES, Config, ScanTargets
+from osslili.core.models import Config, ScanTargets
 from osslili.core.generator import LicenseCopyrightDetector
 from osslili.detectors.license_detector import LicenseDetector
 
@@ -88,6 +88,29 @@ def source_files(licenses) -> set:
 # --------------------------------------------------------------------------
 
 
+# The scans the flags select, named here for the tests rather than in the tool.
+# They were presets once; the tool now offers the targets and lets a caller say
+# which it wants, so these are the combinations worth asserting about.
+def _a_config(scan):
+    config = Config()
+    if scan == "default":
+        config.license_files_only = True
+    elif scan == "deep":
+        config.license_files_only = False
+        config.deep_scan = True
+    elif scan == "license-files":
+        config.license_files_only = True
+        config.strict_license_files = True
+    elif scan == "all-files-no-metadata":
+        config.license_files_only = False
+        config.deep_scan = True
+        config.scan_package_metadata = False
+        config.text_similarity_matching = False
+    else:
+        raise AssertionError(scan)
+    return config
+
+
 def test_default_targets_exclude_source_files():
     targets = Config().scan_targets()
     assert targets == ScanTargets(
@@ -137,7 +160,7 @@ def test_default_config_keeps_text_similarity_matching():
             ),
         ),
         (
-            "lightweight",
+            "all-files-no-metadata",
             ScanTargets(
                 license_files=True,
                 notice_files=True,
@@ -148,31 +171,29 @@ def test_default_config_keeps_text_similarity_matching():
         ),
     ],
 )
-def test_scan_mode_presets(mode, expected):
-    config = Config()
-    config.apply_scan_mode(mode)
+def test_the_targets_each_scan_selects(mode, expected):
+    config = _a_config(mode)
     assert config.scan_targets() == expected
 
 
-def test_lightweight_mode_disables_text_similarity_matching():
-    config = Config()
-    config.apply_scan_mode("lightweight")
+def test_an_all_files_scan_without_metadata_disables_text_similarity_matching():
+    config = _a_config("all-files-no-metadata")
     assert config.text_similarity_matching is False
 
 
-@pytest.mark.parametrize("mode", [m for m in SCAN_MODES if m != "lightweight"])
-def test_other_modes_keep_text_similarity_matching(mode):
-    config = Config()
-    config.apply_scan_mode(mode)
+@pytest.mark.parametrize("mode", ["default", "deep", "license-files"])
+def test_every_other_scan_keeps_text_similarity_matching(mode):
+    config = _a_config(mode)
     assert config.text_similarity_matching is True
 
 
-def test_unknown_scan_mode_is_rejected():
-    with pytest.raises(ValueError, match="Unknown scan mode"):
-        Config().apply_scan_mode("thorough")
+def test_comparing_licence_text_is_on_unless_it_is_turned_off():
+    """It is the tier that identifies a licence nobody tagged, so it is not
+    something a caller loses without asking."""
+    assert Config().text_similarity_matching is True
 
 
-def test_legacy_mode_flags_still_resolve_to_targets():
+def test_the_flags_still_resolve_to_targets():
     assert Config(deep_scan=True).scan_targets().source_files is True
     assert Config(license_files_only=False).scan_targets().source_files is True
     strict = Config(strict_license_files=True).scan_targets()
@@ -180,16 +201,14 @@ def test_legacy_mode_flags_still_resolve_to_targets():
 
 
 def test_explicit_target_overrides_win_over_the_mode():
-    config = Config()
-    config.apply_scan_mode("deep")
+    config = _a_config("deep")
     config.scan_package_metadata = False
     targets = config.scan_targets()
     assert targets.package_metadata is False
     assert targets.source_files is True
 
-    # ... and the other way around: metadata back on in lightweight mode.
-    config = Config()
-    config.apply_scan_mode("lightweight")
+    # ... and the other way around: metadata back on in an all-files scan without metadata.
+    config = _a_config("all-files-no-metadata")
     config.scan_package_metadata = True
     assert config.scan_targets().package_metadata is True
 
@@ -206,15 +225,13 @@ def test_default_mode_scans_license_metadata_and_documentation(project):
 
 
 def test_deep_mode_scans_source_files_and_metadata(project):
-    config = Config()
-    config.apply_scan_mode("deep")
+    config = _a_config("deep")
     scanned = scanned_files(config, project)
     assert {"LICENSE", "package.json", "README.md", "app.py"} <= scanned
 
 
 def test_disabling_package_metadata_keeps_every_other_file(project):
-    config = Config()
-    config.apply_scan_mode("deep")
+    config = _a_config("deep")
     config.scan_package_metadata = False
     scanned = scanned_files(config, project)
     assert "package.json" not in scanned
@@ -223,9 +240,8 @@ def test_disabling_package_metadata_keeps_every_other_file(project):
     assert {"LICENSE", "README.md", "app.py"} <= scanned
 
 
-def test_lightweight_mode_scans_all_files_without_metadata(project):
-    config = Config()
-    config.apply_scan_mode("lightweight")
+def test_an_all_files_scan_without_metadata_scans_all_files_without_metadata(project):
+    config = _a_config("all-files-no-metadata")
     scanned = scanned_files(config, project)
     assert "package.json" not in scanned
     assert {"LICENSE", "README.md", "app.py"} <= scanned
@@ -256,8 +272,7 @@ def test_disabling_license_files_keeps_notice_files(project):
 
 
 def test_license_files_mode_scans_license_files_only(project):
-    config = Config()
-    config.apply_scan_mode("license-files")
+    config = _a_config("license-files")
     scanned = scanned_files(config, project)
     assert "package.json" not in scanned
     assert "README.md" not in scanned
@@ -291,9 +306,8 @@ def test_disabling_package_metadata_applies_to_single_file_scans(project):
     assert licenses == []
 
 
-def test_lightweight_mode_detects_source_tags_without_metadata(project):
-    config = Config()
-    config.apply_scan_mode("lightweight")
+def test_an_all_files_scan_without_metadata_detects_source_tags_without_metadata(project):
+    config = _a_config("all-files-no-metadata")
     licenses = LicenseDetector(config).detect_licenses(project)
     spdx_ids = {l.spdx_id for l in licenses}
     assert "BSD-3-Clause" in spdx_ids  # SPDX tag in src/app.py
@@ -342,9 +356,13 @@ def test_cli_no_package_metadata_excludes_metadata_evidence(project):
     assert "package.json" not in result.output
 
 
-def test_cli_scan_mode_lightweight_excludes_metadata_evidence(project):
+def test_cli_all_files_without_metadata_excludes_metadata_evidence(project):
+    """What issue #79 asked for, said in flags: read everything, and leave
+    the metadata to whoever already read it."""
     result = CliRunner().invoke(
-        main, [str(project), "--scan-mode", "lightweight", "-f", "evidence"]
+        main,
+        [str(project), "--deep", "--no-package-metadata", "--no-text-similarity",
+         "-f", "evidence"],
     )
     assert result.exit_code == 0, result.output
     assert "package.json" not in result.output
@@ -356,23 +374,12 @@ def test_cli_default_run_includes_metadata_evidence(project):
     assert "package.json" in result.output
 
 
-def test_cli_rejects_conflicting_mode_flags(project):
-    result = CliRunner().invoke(main, [str(project), "--scan-mode", "deep", "--license-files-only"])
-    assert result.exit_code == 2
-    assert "--scan-mode" in result.output
-
-
 def test_cli_rejects_deep_together_with_license_files_only(project):
+    """They ask for opposite scans. Taken together they used to resolve
+    silently to deep, which answers a question the caller did not ask."""
     result = CliRunner().invoke(main, [str(project), "--deep", "--license-files-only"])
     assert result.exit_code == 2
-
-
-def test_cli_scan_mode_deep_matches_the_deep_flag(project):
-    mode_run = CliRunner().invoke(main, [str(project), "--scan-mode", "deep"])
-    flag_run = CliRunner().invoke(main, [str(project), "--deep"])
-    assert mode_run.exit_code == 0, mode_run.output
-    assert flag_run.exit_code == 0, flag_run.output
-    assert _evidence_summary(mode_run.output) == _evidence_summary(flag_run.output)
+    assert "--deep" in result.output and "--license-files-only" in result.output
 
 
 def _evidence_summary(output: str) -> dict:

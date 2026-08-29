@@ -2884,9 +2884,9 @@ class LicenseDetector:
             Detected license or None
         """
         # Tiers 0 to 2 compare the text against every SPDX licence text,
-        # which is the expensive part of a content scan. A lightweight scan
-        # skips them and relies on tags, keywords and references instead
-        # (issue #79).
+        # which is the expensive part of a content scan. A caller that does
+        # not want that cost turns it off and relies on tags, keywords and
+        # references instead (issue #79).
         if self.config.text_similarity_matching:
             # Tier 0: Exact hash matching (SHA-256 and MD5)
             detected = self._tier0_exact_hash(text, file_path)
