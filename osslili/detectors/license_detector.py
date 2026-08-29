@@ -113,13 +113,12 @@ _GNU_OR_LATER_RE = re.compile(
 _GNU_VARIANT_PREFIX_RE = re.compile(r'(?:Lesser|Library|Affero)\s+$', re.IGNORECASE)
 
 
-# What tells a name written in words from an identifier.
-_A_SPACE_IN_IT = re.compile(r'\s')
-
-# The word an or-later grant is written with when it is not written with a
-# plus. "GPLv2 or later" parses to two terms, neither with a space in it, so
-# the rule above cannot see that a name has been taken apart.
-_A_WORD_MEANING_LATER = frozenset({'later', 'above', 'greater'})
+# What is left of an or-later grant once the "or" before it has been read as
+# an operator. It is written as one word and as several, "or later" and "or
+# any later version", so a list of words could not see the longer spellings.
+_A_GRANT_IN_WORDS = re.compile(
+    r'(?:any\s+)?later(?:\s+versions?)?|above|greater|newer', re.IGNORECASE,
+)
 
 
 # The SPDX expression grammar, over osslili's own licence list.
@@ -2607,8 +2606,9 @@ class LicenseDetector:
         and each one that was missed reported a licence the file does not
         grant or dropped one it does.
 
-        The parser also answers with modern identifiers, so a deprecated
-        spelling is resolved here rather than by each caller afterwards.
+        The vocabulary is osslili's own list, so a deprecated spelling comes
+        back as it was written and is modernised where every other reader
+        modernises. Only the grammar comes from outside.
 
         A string that is not an expression is returned as it came, because
         this is asked about metadata values and header lines that may hold
@@ -2638,45 +2638,57 @@ class LicenseDetector:
             return named or [text]
 
         licensing = _licensing(self.spdx_data)
-        try:
-            parsed = licensing.parse(text, validate=False, strict=False)
-        except Exception:
-            return [text]
+        parsed = self._as_an_expression(licensing, text)
         if parsed is None:
             return [text]
 
-        # What the parser could not place. A term the list does not hold is
-        # not on its own a sign of trouble: a deprecated "GFDL-1.3+", a
-        # "DocumentRef-x:LicenseRef-y" naming a licence held elsewhere, and a
-        # "BSD-compatible" that describes one are all absent from it and all
-        # written the way a term is written.
+        # The word the grant is written with, standing on its own where the
+        # parser read the "or" before it as an operator. "GPLv2 or later" is
+        # one name and one grant, and keeping the pieces reports the licence
+        # without the permission, which is the opposite of what it says. There
+        # is no piece worth keeping, so the line goes back whole for the
+        # reader that knows names written in words.
         #
-        # A term with a space in it is different. That is not an identifier,
-        # so a name has been taken apart rather than read: "GNU General Public
-        # License v2.0 or later" has a lower-case "or" in the middle of it,
-        # and the parser left two fragments, neither of them a licence, with
-        # the or-later grant gone. So is a term that is only the word the
-        # grant is written with, which has no space to be found by.
-        unknown = {str(key) for key in licensing.unknown_license_keys(parsed)}
+        # A term the list does not hold is not on its own a sign of this: a
+        # deprecated "GFDL-1.3+", a "DocumentRef-x:LicenseRef-y" naming a
+        # licence held elsewhere, and a "BSD-compatible" that describes one
+        # are all absent from it and all written the way a term is written.
+        if any(_A_GRANT_IN_WORDS.fullmatch(str(key).strip())
+               for key in licensing.unknown_license_keys(parsed)):
+            whole = self._normalize_license_id(text)
+            if self._looks_like_valid_license(whole) or self._is_valid_spdx_id(whole):
+                return [text]
+            # Unless nothing can be made of it whole, in which case the pieces
+            # are better than nothing: "Apache 2.0 or above" is not a grant
+            # SPDX writes, and dropping the line lost the Apache.
 
-        # The word the grant is written with, left standing on its own. "GPLv2
-        # or later" is one name and one grant, and the parser read the "or" as
-        # an operator: keeping the two pieces reports GPLv2 alone, which is
-        # the opposite permission. There is no piece to keep here, so the line
-        # goes back whole for the reader that knows names written in words.
-        if any(key.lower() in _A_WORD_MEANING_LATER for key in unknown):
-            return [text]
-
-        # A name with a space in it was read whole by the parser, so it can be
+        # A name written in words was read whole by the parser, so it can be
         # handed on beside the identifiers it was written with. One name in
         # words does not make the rest of the line unreadable: "MIT or Apache
         # License 2.0" names MIT as surely as it names the other, and giving
         # the line back whole lost it.
-        return _in_the_order_written(licensing, parsed) or [text]
+        return [
+            key for key in _in_the_order_written(licensing, parsed)
+            if not _A_GRANT_IN_WORDS.fullmatch(key.strip())
+        ] or [text]
 
-        # In the order the expression writes them, because the caller reports
-        # them in that order and a set does not have one.
-        return [str(key) for key in _in_the_order_written(licensing, parsed)] or [text]
+    def _as_an_expression(self, licensing, text: str):
+        """The expression this string holds, or nothing if it holds none.
+
+        A label in front of it is not part of it. "Dual license: GPL-2.0 or
+        MIT" makes the parser refuse the whole line, and handing that to the
+        reader of prose names got the GPL out of it and lost the MIT.
+        """
+        for attempt in (text, text.split(':', 1)[-1].strip() if ':' in text else None):
+            if not attempt:
+                continue
+            try:
+                parsed = licensing.parse(attempt, validate=False, strict=False)
+            except Exception:
+                continue
+            if parsed is not None:
+                return parsed
+        return None
 
     def _detect_license_from_text(self, text: str, file_path: Path) -> Optional[DetectedLicense]:
         """

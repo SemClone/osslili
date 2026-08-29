@@ -17,6 +17,14 @@ logger = logging.getLogger(__name__)
 _THE_OR_LATER_FAMILIES = frozenset({'GPL', 'LGPL', 'AGPL'})
 
 
+# Words that name a GNU licence only when the GNU name is beside them.
+_ONLY_BESIDE_THE_GNU_NAME = frozenset({'affero', 'lesser', 'library'})
+
+
+def _a_gnu_name(lookup_key: str) -> bool:
+    return 'gpl' in lookup_key or 'general public' in lookup_key
+
+
 # The deprecated grant, written either way: a plus that ends the string, or
 # the words that mean the same.
 _OR_LATER_IN_WORDS = re.compile(
@@ -218,9 +226,6 @@ class LicenseNormalizer:
         """
         for name, family in (
             ('agpl', 'AGPL'),
-            # Written out, these names contain no "agpl" or "lgpl" at all,
-            # while they do contain "gpl": "Affero GPLv3", "Lesser GPLv2.1",
-            # and the older "Library General Public License".
             ('affero', 'AGPL'),
             ('lgpl', 'LGPL'),
             ('lesser', 'LGPL'),
@@ -228,8 +233,17 @@ class LicenseNormalizer:
             ('gpl', 'GPL'),
             ('apache', 'Apache'),
         ):
-            if name in lookup_key:
-                return family
+            if name not in lookup_key:
+                continue
+            # Written out, these names contain no "agpl" or "lgpl" at all,
+            # while they do contain "gpl": "Affero GPLv3", "Lesser GPLv2.1",
+            # and the older "Library General Public License". They only name
+            # a licence next to the GNU name, though. "zlib library 1.2" is
+            # not the Lesser GPL, and claiming it there took the string away
+            # from the steps that would have answered Zlib.
+            if name in _ONLY_BESIDE_THE_GNU_NAME and not _a_gnu_name(lookup_key):
+                continue
+            return family
         if 'cc' in lookup_key and 'by' in lookup_key:
             return 'CC-BY'
         return None

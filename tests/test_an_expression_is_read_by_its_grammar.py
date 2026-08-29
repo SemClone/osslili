@@ -141,8 +141,84 @@ class TestSomethingThatIsNotAnExpressionAtAll:
     def test_nothing_names_nothing(self, detector, written):
         assert detector._parse_license_expression(written) == []
 
-    def test_a_string_the_parser_refuses_comes_back_whole(self, detector):
-        """For the tiers after this one to make sense of."""
-        written = "Dual license: GPL-2.0 or MIT"
+    @pytest.mark.parametrize("written", [
+        "See the file COPYING for details",
+        "Proprietary - all rights reserved",
+    ])
+    def test_a_string_the_parser_refuses_comes_back_whole(self, detector, written):
+        """For the tiers after this one to make sense of. What it must not do
+        is hand back a line that does hold an expression: doing that for
+        "Dual license: GPL-2.0 or MIT" got the GPL out of it and lost the
+        MIT, which the class above covers."""
+        assert detector._parse_license_expression(written) == [written]
+
+
+class TestTheGrantWrittenAsAPhrase:
+    """"or later" is written as one word and as several. A list of words
+    could not see the longer spellings, so "GPL-2.0 or any later version"
+    kept the GPL-2.0 alone and reported the opposite permission."""
+
+    @pytest.mark.parametrize("written", [
+        "GPL-2.0 or later",
+        "GPL-2.0 or any later version",
+        "GPL-2.0 or greater",
+        "GPL-2.0 or above",
+        "LGPL-2.1 or any later version",
+    ])
+    def test_the_grant_stays_with_its_licence(self, detector, written):
+        assert detector._parse_license_expression(written) == [written]
+
+    @pytest.mark.parametrize("written,expected", [
+        ("GPL-2.0 or later", "GPL-2.0-or-later"),
+        ("GPL-2.0 or any later version", "GPL-2.0-or-later"),
+        ("LGPL-2.1 or later", "LGPL-2.1-or-later"),
+    ])
+    def test_and_is_read_as_the_grant_it_is(self, detector, written, expected):
+        """Which is the point of keeping it: the licence alone means the
+        opposite."""
+        assert detector._normalize_license_id(written).rstrip('+') + (
+            '-or-later' if detector._normalize_license_id(written).endswith('+') else ''
+        ) == expected
+
+    def test_a_grant_no_one_writes_that_way_keeps_the_licence(self, detector):
+        """SPDX has no or-later form for Apache, so nothing can be made of
+        the line whole, and the pieces are better than nothing."""
+        assert detector._parse_license_expression("Apache 2.0 or above") == [
+            "Apache 2.0",
+        ]
+
+
+class TestALabelInFrontOfAnExpression:
+    """"Dual license: GPL-2.0 or MIT" makes the parser refuse the whole line.
+    Handing that to the reader of prose names got the GPL out of it and lost
+    the MIT."""
+
+    @pytest.mark.parametrize("written,expected", [
+        ("Dual license: GPL-2.0 or MIT", ["GPL-2.0", "MIT"]),
+        ("License: MIT OR Apache-2.0", ["MIT", "Apache-2.0"]),
+    ])
+    def test_the_expression_after_it_is_read(self, detector, written, expected):
+        assert detector._parse_license_expression(written) == expected
+
+    def test_and_something_with_no_expression_in_it_still_comes_back_whole(
+        self, detector
+    ):
+        written = "See the file COPYING for details"
 
         assert detector._parse_license_expression(written) == [written]
+
+
+class TestAWordThatOnlyNamesALicenceInCompany:
+    """"Affero", "Lesser" and "Library" name a GNU licence next to the GNU
+    name and not otherwise. Claiming them anywhere took a string away from
+    the steps that would have read it."""
+
+    @pytest.mark.parametrize("written,expected", [
+        ("zlib library 1.2", "Zlib"),
+        ("lesser gplv2.1", "LGPL-v2"),
+        ("library gplv2", "LGPL-v2"),
+        ("affero gplv3", "AGPL-v3"),
+        ("library general public license 2", "LGPL-v2"),
+    ])
+    def test_the_company_it_keeps(self, detector, written, expected):
+        assert detector._normalize_license_id(written) == expected
