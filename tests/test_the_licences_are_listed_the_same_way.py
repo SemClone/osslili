@@ -326,3 +326,71 @@ class TestTheFilesAreReadOnMoreThanOneThread:
         asked_for = self._workers_used(tmp_path, monkeypatch)
 
         assert all(workers > 1 for workers in asked_for), asked_for
+
+
+class TestWhatMakesTwoRecordsDifferent:
+    """A record is kept once per licence, confidence and file. Each of those
+    three carries a distinction, and dropping any of them from the key throws
+    away evidence: two files stating the same licence, two licences offered
+    by one file, and two readings of one file at different confidences."""
+
+    def test_two_files_stating_the_same_licence_are_two_records(self, tmp_path):
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "a.c").write_text("// SPDX-License-Identifier: MIT\nint x;\n")
+        (root / "b.c").write_text("// SPDX-License-Identifier: MIT\nint y;\n")
+
+        files = sorted(
+            Path(lic.source_file).name
+            for lic in _detector().detect_licenses(root)
+            if lic.spdx_id == "MIT"
+        )
+
+        assert files == ["a.c", "b.c"], files
+
+    def test_two_licences_from_one_file_are_two_records(self, tmp_path):
+        """A choice the licensor offered. Both terms come from package.json
+        at the same confidence, so only the identifier tells them apart."""
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "package.json").write_text(
+            '{"name": "widget", "license": "MIT OR Apache-2.0"}\n'
+        )
+
+        found = {lic.spdx_id for lic in _detector().detect_licenses(root)}
+
+        assert {"MIT", "Apache-2.0"} <= found, found
+
+
+class TestABundledNoticeStaysThirdParty:
+    """A licence found in a bundled third-party notice is a dependency's, not
+    the package's own, and several construction paths hard-code the declared
+    category. It is re-tagged at the one exit point, after the merge this
+    branch rewrote, and nothing was asserting that it still happens."""
+
+    def test_the_category_survives_the_merge(self, tmp_path):
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "third_party_notice.c").write_text(
+            "// SPDX-License-Identifier: Apache-2.0\nint x;\n"
+        )
+
+        categories = {
+            lic.spdx_id: lic.category for lic in _detector().detect_licenses(root)
+        }
+
+        assert categories.get("Apache-2.0") == "third-party", categories
+
+    def test_and_an_ordinary_file_is_not_third_party(self, tmp_path):
+        """Which is what makes the test above worth having."""
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "widget.c").write_text(
+            "// SPDX-License-Identifier: Apache-2.0\nint x;\n"
+        )
+
+        categories = {
+            lic.spdx_id: lic.category for lic in _detector().detect_licenses(root)
+        }
+
+        assert categories.get("Apache-2.0") == "declared", categories
