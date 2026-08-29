@@ -9,6 +9,12 @@ from typing import List, Optional
 
 from .models import Config, CopyrightInfo, DetectedLicense, DetectionResult
 from .input_processor import InputProcessor
+# At the top, not where it is first needed. Built lazily, a detector that
+# could not be imported was caught by the guard around reading one path and
+# reported as a path with no licence in it, and the scan finished at exit 0
+# saying the file carries nothing. A tool for reading licences must not
+# answer that when the truth is that it could not look.
+from ..detectors.license_detector import LicenseDetector
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +50,6 @@ class LicenseCopyrightDetector:
     def license_detector(self):
         """Lazy load license detector."""
         if self._license_detector is None:
-            from ..detectors.license_detector import LicenseDetector
 
             self._license_detector = LicenseDetector(self.config)
         return self._license_detector
@@ -175,7 +180,6 @@ class LicenseCopyrightDetector:
             return result
 
         try:
-            from ..detectors.license_detector import LicenseDetector
 
             detector = LicenseDetector(self.config)
 

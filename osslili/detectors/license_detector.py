@@ -10,6 +10,11 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import List, Optional, Set
 from concurrent.futures import ThreadPoolExecutor, as_completed
+# At the top, not where it is used. Every reader of a file catches
+# Exception and carries on, so an import failing down there was reported
+# as a file with no licence in it, at exit 0: the worst thing a tool for
+# reading licences can say.
+from license_expression import LicenseSymbol, Licensing
 
 from fuzzywuzzy import fuzz
 
@@ -105,53 +110,52 @@ _GNU_OR_LATER_RE = re.compile(
 # A generic "General Public License" match that is really part of the Lesser or
 # Affero name. Those have their own identifiers, so the generic GPL path must
 # not claim them.
+_GNU_VARIANT_PREFIX_RE = re.compile(r'(?:Lesser|Library|Affero)\s+$', re.IGNORECASE)
+
+
+# What tells a name written in words from an identifier.
+_A_SPACE_IN_IT = re.compile(r'\s')
+
+# The word an or-later grant is written with when it is not written with a
+# plus. "GPLv2 or later" parses to two terms, neither with a space in it, so
+# the rule above cannot see that a name has been taken apart.
+_A_WORD_MEANING_LATER = frozenset({'later', 'above', 'greater'})
+
+
 # The SPDX expression grammar, over osslili's own licence list.
 #
-# The library ships a licensing built from ScanCode's view of SPDX, and using
-# it swapped one vocabulary for another: 23 of the 703 identifiers osslili
-# ships came back as something else, "Net-SNMP" came back as a name osslili
-# does not know and so was reported as no licence at all, and "bzip2-1.0.5"
-# came back as bzip2-1.0.6, which is a different text of the licence. It also
-# meant a routine upgrade of the library could change what a scan reports.
+# The library ships a licensing built from another tool's view of SPDX, and
+# using it swapped one vocabulary for another: 23 of the 703 identifiers
+# osslili ships came back as something else, "Net-SNMP" came back as a name
+# osslili does not know and so was reported as no licence at all, and
+# "bzip2-1.0.5" came back as bzip2-1.0.6, which is a different text of the
+# licence. It also meant a routine upgrade of the library could change what a
+# scan reports.
 #
 # Built from the shipped list instead, only the grammar comes from outside,
 # which is the part worth borrowing. Deprecated spellings then come back as
 # they were written and are modernised where every other reader modernises.
-# What tells a name written in words from an identifier.
-_A_SPACE_IN_IT = re.compile(r'\s')
-
 _LICENSING = None
+
+
+def _in_the_order_written(licensing, parsed):
+    """The licences an expression names, once each, in the written order."""
+    named = []
+    for key in licensing.license_keys(parsed):
+        key = str(key)
+        if key not in named:
+            named.append(key)
+    return named
 
 
 def _licensing(spdx_data):
     global _LICENSING
     if _LICENSING is None:
-        from license_expression import LicenseSymbol, Licensing, get_spdx_licensing
-
-        # osslili ships no exceptions, and what follows WITH is one, so they
-        # are borrowed. Only the ones SPDX itself lists: the library also
-        # carries names of its own under LicenseRef-scancode-, which are not
-        # part of the standard and have no place in what osslili reports.
-        licences = sorted(spdx_data.licenses)
-        already = set(licences)
-        exceptions = sorted(
-            str(symbol.key)
-            for symbol in get_spdx_licensing().known_symbols.values()
-            if getattr(symbol, 'is_exception', False)
-            and not str(symbol.key).startswith('LicenseRef-')
-            # A few deprecated identifiers name a licence and an exception
-            # together, "GPL-2.0-with-classpath-exception", and are on the
-            # licence list already. One name can only be one thing here.
-            and str(symbol.key) not in already
-        )
         _LICENSING = Licensing(
-            [LicenseSymbol(key) for key in licences]
-            + [LicenseSymbol(key, is_exception=True) for key in exceptions]
+            [LicenseSymbol(key) for key in sorted(spdx_data.licenses)]
         )
     return _LICENSING
 
-
-_GNU_VARIANT_PREFIX_RE = re.compile(r'(?:Lesser|Library|Affero)\s+$', re.IGNORECASE)
 
 # Ceiling on a regex match reached through the full-text cascade, i.e. after
 # every tier that compares actual text has declined. Set below the keyword tier
@@ -2620,8 +2624,14 @@ class LicenseDetector:
         # "MIT, Apache-2.0". Each part is read as an expression of its own, so
         # a list that mixes the two still gives up every term.
         if ',' in text:
+            # Brackets around the whole list belong to the list, not to a
+            # part of it: splitting "(MIT, BSD-3-Clause)" left "(MIT", which
+            # is nothing, and the first licence went with it.
+            inside = text
+            while inside.startswith('(') and inside.endswith(')'):
+                inside = inside[1:-1].strip()
             named = []
-            for part in text.split(','):
+            for part in inside.split(','):
                 for key in self._parse_license_expression(part):
                     if key not in named:
                         named.append(key)
@@ -2635,30 +2645,38 @@ class LicenseDetector:
         if parsed is None:
             return [text]
 
-        # A term with a space in it is not an identifier, so this was a
-        # licence written out in words and the words have been taken apart:
-        # "GNU General Public License v2.0 or later" has a lower-case "or" in
-        # the middle of it, so the parser read an operator and left two
-        # fragments, neither of them a licence, and the or-later grant went
-        # with them. Handed back whole, the reader that knows prose names can
-        # still make sense of it.
+        # What the parser could not place. A term the list does not hold is
+        # not on its own a sign of trouble: a deprecated "GFDL-1.3+", a
+        # "DocumentRef-x:LicenseRef-y" naming a licence held elsewhere, and a
+        # "BSD-compatible" that describes one are all absent from it and all
+        # written the way a term is written.
         #
-        # A term the list does not hold is not enough on its own to say that.
-        # A deprecated "GFDL-1.3+", a "DocumentRef-x:LicenseRef-y" naming a
-        # licence held elsewhere, and a "BSD-compatible" that describes one
-        # are all absent from the list and all written as a term is written.
-        if any(_A_SPACE_IN_IT.search(str(key))
-               for key in licensing.unknown_license_keys(parsed)):
+        # A term with a space in it is different. That is not an identifier,
+        # so a name has been taken apart rather than read: "GNU General Public
+        # License v2.0 or later" has a lower-case "or" in the middle of it,
+        # and the parser left two fragments, neither of them a licence, with
+        # the or-later grant gone. So is a term that is only the word the
+        # grant is written with, which has no space to be found by.
+        unknown = {str(key) for key in licensing.unknown_license_keys(parsed)}
+
+        # The word the grant is written with, left standing on its own. "GPLv2
+        # or later" is one name and one grant, and the parser read the "or" as
+        # an operator: keeping the two pieces reports GPLv2 alone, which is
+        # the opposite permission. There is no piece to keep here, so the line
+        # goes back whole for the reader that knows names written in words.
+        if any(key.lower() in _A_WORD_MEANING_LATER for key in unknown):
             return [text]
+
+        # A name with a space in it was read whole by the parser, so it can be
+        # handed on beside the identifiers it was written with. One name in
+        # words does not make the rest of the line unreadable: "MIT or Apache
+        # License 2.0" names MIT as surely as it names the other, and giving
+        # the line back whole lost it.
+        return _in_the_order_written(licensing, parsed) or [text]
 
         # In the order the expression writes them, because the caller reports
         # them in that order and a set does not have one.
-        named = []
-        for key in licensing.license_keys(parsed):
-            key = str(key)
-            if key not in named:
-                named.append(key)
-        return named or [text]
+        return [str(key) for key in _in_the_order_written(licensing, parsed)] or [text]
 
     def _detect_license_from_text(self, text: str, file_path: Path) -> Optional[DetectedLicense]:
         """

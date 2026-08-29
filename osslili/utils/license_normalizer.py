@@ -4,6 +4,7 @@ License ID normalization utility with external configuration.
 
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -14,6 +15,14 @@ logger = logging.getLogger(__name__)
 # anything else says nothing that resolves, and carrying it through produced
 # an identifier no lookup could find.
 _THE_OR_LATER_FAMILIES = frozenset({'GPL', 'LGPL', 'AGPL'})
+
+
+# The deprecated grant, written either way: a plus that ends the string, or
+# the words that mean the same.
+_OR_LATER_IN_WORDS = re.compile(
+    r'\+\s*$|\b(?:or|and)[\s-]+(?:later|above|greater|any\s+later\s+version)\b',
+    re.IGNORECASE,
+)
 
 
 class LicenseNormalizer:
@@ -184,9 +193,13 @@ class LicenseNormalizer:
                     # as an identifier no lookup could find, was recorded once
                     # at a guess and again once the plus was dropped, and one
                     # licence was reported twice.
+                    # The grant is written two ways, "GPL-2.0+" and "GPL-2.0
+                    # or later", and only the first was read. The second came
+                    # back as the bare version and was modernised to the -only
+                    # grant, which is the opposite of what it says.
                     or_later = (
                         '+' if family in _THE_OR_LATER_FAMILIES
-                        and lookup_key.rstrip().endswith('+') else ''
+                        and _OR_LATER_IN_WORDS.search(lookup_key) else ''
                     )
                     return f"{family}-{version}{or_later}"
 
