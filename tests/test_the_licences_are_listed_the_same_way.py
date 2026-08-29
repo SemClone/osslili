@@ -394,3 +394,69 @@ class TestABundledNoticeStaysThirdParty:
         }
 
         assert categories.get("Apache-2.0") == "declared", categories
+
+
+class TestWhatDecidesTheOrderOfEqualEvidence:
+    """The sort by confidence is stable, so two records of equal confidence
+    keep the order they were read in, which is the order the files were
+    chosen: licence files before source files.
+
+    Every other fixture here either has one file per confidence or puts the
+    files in one group, where the order they were chosen and their names in
+    order are the same thing, so none of them can tell the two apart.
+    """
+
+    def _a_licence_file_and_an_earlier_name(self, tmp_path):
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "license.txt").write_text(
+            "// SPDX-License-Identifier: Apache-2.0\n"
+        )
+        (root / "a.c").write_text("// SPDX-License-Identifier: MIT\nint x;\n")
+        return root
+
+    def test_the_licence_file_is_read_first(self, tmp_path):
+        root = self._a_licence_file_and_an_earlier_name(tmp_path)
+
+        order = [
+            (lic.spdx_id, Path(lic.source_file).name)
+            for lic in _detector().detect_licenses(root)
+        ]
+
+        assert order[0] == ("Apache-2.0", "license.txt"), order
+
+    def test_both_are_equally_sure(self, tmp_path):
+        """Which is what leaves the order to the fallback, and so is what
+        makes the test above worth having."""
+        root = self._a_licence_file_and_an_earlier_name(tmp_path)
+
+        confidences = {lic.confidence for lic in _detector().detect_licenses(root)}
+
+        assert confidences == {1.0}, confidences
+
+    def test_source_files_keep_the_order_they_were_walked_in(self, tmp_path):
+        """The case above cannot tell a reversed reading from a right one,
+        because a licence file is walked twice, once as a licence file and
+        again as a source file, so it comes first either way."""
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "a.c").write_text("// SPDX-License-Identifier: MIT\nint x;\n")
+        (root / "b.c").write_text("// SPDX-License-Identifier: Apache-2.0\nint y;\n")
+        (root / "c.c").write_text("// SPDX-License-Identifier: BSD-3-Clause\nint z;\n")
+
+        order = []
+        for lic in _detector().detect_licenses(root):
+            name = Path(lic.source_file).name
+            if name not in order:
+                order.append(name)
+
+        assert order == ["a.c", "b.c", "c.c"], order
+
+    def test_and_the_names_alone_would_have_chosen_the_other(self, tmp_path):
+        root = self._a_licence_file_and_an_earlier_name(tmp_path)
+
+        names = sorted(
+            {Path(lic.source_file).name for lic in _detector().detect_licenses(root)}
+        )
+
+        assert names[0] == "a.c", names
