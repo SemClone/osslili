@@ -48,6 +48,7 @@ dependencies = [
     "click>=8.0.0",
     "colorama>=0.4.0",
     "fuzzywuzzy>=0.18.0",
+    "license-expression>=30.0.0",
 ]
 
 [project.optional-dependencies]
