@@ -959,28 +959,41 @@ class LicenseDetector:
             return []
     
     def _find_files_to_scan(self, directory: Path, targets: ScanTargets) -> List[Path]:
-        """Collect the files to scan for the enabled scan targets (issue #79)."""
-        files: Set[Path] = set()
+        """Collect the files to scan for the enabled scan targets (issue #79).
+
+        In the order the categories mean, licence files before the rest,
+        because two pieces of evidence of equal confidence keep the order
+        they were read in and the licence file is the one that says what the
+        package is under (issue #122). Sorted within each category, because a
+        directory walk returns what the filesystem gives it and two machines
+        need not agree.
+        """
+        files: List[Path] = []
+        already: Set[Path] = set()
+
+        def take(found):
+            for file_path in sorted(found):
+                if file_path not in already:
+                    already.add(file_path)
+                    files.append(file_path)
 
         if targets.license_files or targets.notice_files:
-            for file_path in self._find_license_files(directory):
-                if self._is_third_party_notice_file(file_path):
-                    if targets.notice_files:
-                        files.add(file_path)
-                elif targets.license_files:
-                    files.add(file_path)
+            take(
+                file_path for file_path in self._find_license_files(directory)
+                if self._is_enabled_scan_target(file_path, targets)
+            )
 
         if targets.source_files:
             # A content scan enumerates every readable file, which sweeps up the
             # other categories too, so disabled ones are filtered back out.
-            files.update(
+            take(
                 file_path for file_path in self._find_source_files(directory)
                 if self._is_enabled_scan_target(file_path, targets)
             )
         elif targets.package_metadata or targets.documentation:
             # Documentation extensions also cover notice files such as
             # THIRD_PARTY_NOTICES.txt, so filter by category here too.
-            files.update(
+            take(
                 file_path for file_path in self._find_metadata_and_documentation_files(
                     directory,
                     include_metadata=targets.package_metadata,
@@ -989,9 +1002,7 @@ class LicenseDetector:
                 if self._is_enabled_scan_target(file_path, targets)
             )
 
-        # Sorted so that a scan reads files - and therefore reports evidence -
-        # in a stable order regardless of how the categories were collected.
-        return sorted(files)
+        return files
 
     def _is_enabled_scan_target(self, file_path: Path, targets: ScanTargets) -> bool:
         """Whether a file's scan target category is enabled.

@@ -88,7 +88,7 @@ class TestTheOrderIsSettled:
 
     @pytest.mark.parametrize("finder", [
         "_find_license_files",
-        "_find_metadata_and_readme_files",
+        "_find_metadata_and_documentation_files",
         "_find_source_files",
     ])
     def test_the_files_are_chosen_in_a_settled_order(self, tmp_path, finder):
@@ -102,7 +102,7 @@ class TestTheOrderIsSettled:
 
     @pytest.mark.parametrize("finder", [
         "_find_license_files",
-        "_find_metadata_and_readme_files",
+        "_find_metadata_and_documentation_files",
     ])
     def test_and_alike_in_every_process(self, tmp_path, finder):
         """Which is what makes the test above worth having, and asserting it
