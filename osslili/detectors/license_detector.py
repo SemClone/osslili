@@ -810,7 +810,7 @@ class LicenseDetector:
         licenses.sort(key=lambda x: x.confidence, reverse=True)
 
         return licenses
-    
+
     def _detect_from_each(self, files_to_scan: List[Path], single_file_mode: bool):
         """Every file paired with what it yielded, in no particular order.
 
