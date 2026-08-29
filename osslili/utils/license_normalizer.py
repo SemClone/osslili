@@ -4,10 +4,33 @@ License ID normalization utility with external configuration.
 
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
+
+
+# The families SPDX wrote the deprecated "or later" form for. A plus on
+# anything else says nothing that resolves, and carrying it through produced
+# an identifier no lookup could find.
+_THE_OR_LATER_FAMILIES = frozenset({'GPL', 'LGPL', 'AGPL'})
+
+
+# Words that name a GNU licence only when the GNU name is beside them.
+_ONLY_BESIDE_THE_GNU_NAME = frozenset({'affero', 'lesser', 'library'})
+
+
+def _a_gnu_name(lookup_key: str) -> bool:
+    return 'gpl' in lookup_key or 'general public' in lookup_key
+
+
+# The deprecated grant, written either way: a plus that ends the string, or
+# the words that mean the same.
+_OR_LATER_IN_WORDS = re.compile(
+    r'\+\s*$|\b(?:or|and)[\s-]+(?:later|above|greater|any\s+later\s+version)\b',
+    re.IGNORECASE,
+)
 
 
 class LicenseNormalizer:
@@ -164,16 +187,65 @@ class LicenseNormalizer:
         for version, patterns in self.version_patterns.items():
             for pattern in patterns:
                 if pattern in lookup_key:
-                    # Try to determine the base license type
-                    if 'gpl' in lookup_key and 'lgpl' not in lookup_key:
-                        return f"GPL-{version}"
-                    elif 'lgpl' in lookup_key:
-                        return f"LGPL-{version}"
-                    elif 'apache' in lookup_key:
-                        return f"Apache-{version}"
-                    elif 'cc' in lookup_key and 'by' in lookup_key:
-                        return f"CC-BY-{version}"
+                    family = self._gnu_or_other_family(lookup_key)
+                    if not family:
+                        continue
+                    # A plus that ends the string is the deprecated "or later"
+                    # form and is the whole of what it says: that a later
+                    # version may be used. Dropping it here left the
+                    # modernisation downstream with nothing to read and
+                    # reported the -only grant, the opposite of the licence.
+                    #
+                    # Kept only for the family SPDX wrote it for. Elsewhere
+                    # the plus resolves to nothing, so "Apache-2.0+" came back
+                    # as an identifier no lookup could find, was recorded once
+                    # at a guess and again once the plus was dropped, and one
+                    # licence was reported twice.
+                    # The grant is written two ways, "GPL-2.0+" and "GPL-2.0
+                    # or later", and only the first was read. The second came
+                    # back as the bare version and was modernised to the -only
+                    # grant, which is the opposite of what it says.
+                    or_later = (
+                        '+' if family in _THE_OR_LATER_FAMILIES
+                        and _OR_LATER_IN_WORDS.search(lookup_key) else ''
+                    )
+                    return f"{family}-{version}{or_later}"
 
+        return None
+
+    @staticmethod
+    def _gnu_or_other_family(lookup_key: str) -> Optional[str]:
+        """Which licence family this string names.
+
+        The GNU names contain one another: "agpl" contains "gpl", and so does
+        "lgpl". Asking whether "gpl" is in the string, with only "lgpl" ruled
+        out, answered GPL for an AGPL string. That is a different licence,
+        not a different spelling: the Affero terms oblige whoever runs the
+        software over a network to offer its source, and the GPL does not.
+        The longest name is asked for first.
+        """
+        for name, family in (
+            ('agpl', 'AGPL'),
+            ('affero', 'AGPL'),
+            ('lgpl', 'LGPL'),
+            ('lesser', 'LGPL'),
+            ('library', 'LGPL'),
+            ('gpl', 'GPL'),
+            ('apache', 'Apache'),
+        ):
+            if name not in lookup_key:
+                continue
+            # Written out, these names contain no "agpl" or "lgpl" at all,
+            # while they do contain "gpl": "Affero GPLv3", "Lesser GPLv2.1",
+            # and the older "Library General Public License". They only name
+            # a licence next to the GNU name, though. "zlib library 1.2" is
+            # not the Lesser GPL, and claiming it there took the string away
+            # from the steps that would have answered Zlib.
+            if name in _ONLY_BESIDE_THE_GNU_NAME and not _a_gnu_name(lookup_key):
+                continue
+            return family
+        if 'cc' in lookup_key and 'by' in lookup_key:
+            return 'CC-BY'
         return None
 
     def _extract_base_license(self, lookup_key: str) -> str:

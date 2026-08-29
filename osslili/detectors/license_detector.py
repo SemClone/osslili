@@ -10,6 +10,11 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import List, Optional, Set
 from concurrent.futures import ThreadPoolExecutor, as_completed
+# At the top, not where it is used. Every reader of a file catches
+# Exception and carries on, so an import failing down there was reported
+# as a file with no licence in it, at exit 0: the worst thing a tool for
+# reading licences can say.
+from license_expression import LicenseSymbol, Licensing
 
 from fuzzywuzzy import fuzz
 
@@ -106,6 +111,113 @@ _GNU_OR_LATER_RE = re.compile(
 # Affero name. Those have their own identifiers, so the generic GPL path must
 # not claim them.
 _GNU_VARIANT_PREFIX_RE = re.compile(r'(?:Lesser|Library|Affero)\s+$', re.IGNORECASE)
+
+
+# A licence joined by AND is one the work is under as well, not instead.
+_AN_AND_IN_IT = re.compile(r'\bAND\b', re.IGNORECASE)
+
+# What is left of an or-later grant once the "or" before it has been read as
+# an operator. It is written as one word and as several, "or later" and "or
+# any later version", so a list of words could not see the longer spellings.
+_A_GRANT_IN_WORDS = re.compile(
+    r'(?:any\s+)?later(?:\s+versions?)?|above|greater|newer', re.IGNORECASE,
+)
+
+
+# The SPDX expression grammar, over osslili's own licence list.
+#
+# The library ships a licensing built from another tool's view of SPDX, and
+# using it swapped one vocabulary for another: 23 of the 703 identifiers
+# osslili ships came back as something else, "Net-SNMP" came back as a name
+# osslili does not know and so was reported as no licence at all, and
+# "bzip2-1.0.5" came back as bzip2-1.0.6, which is a different text of the
+# licence. It also meant a routine upgrade of the library could change what a
+# scan reports.
+#
+# Built from the shipped list instead, only the grammar comes from outside,
+# which is the part worth borrowing. Deprecated spellings then come back as
+# they were written and are modernised where every other reader modernises.
+_LICENSING = None
+
+
+def _with_the_grant_put_back(
+    text: str, named: list, the_grant_can_be_written_on, tells_the_grants_apart,
+) -> list:
+    """The licences named, with an or-later grant on the one it follows.
+
+    The parser reads the "or" before the grant as an operator and leaves the
+    words after it standing alone, so which licence they speak about is only
+    in where they were written. It is the one before them.
+    """
+    grant = _A_GRANT_IN_WORDS.search(text)
+    if not grant:
+        return named
+
+    # Each name matched whole. The GNU names contain one another, and
+    # "gpl-2.0" is found inside "lgpl-2.0" at a later place than the LGPL
+    # itself, so the grant landed on the licence that was not written there
+    # and the one that was kept the wrong permission.
+    found = []
+    for position, key in enumerate(named):
+        written = [
+            match.start() for match in re.finditer(
+                r'(?<![\w.\-])' + re.escape(key) + r'(?![\w.\-])',
+                text[:grant.start()], re.IGNORECASE,
+            )
+        ]
+        if written:
+            found.append((written[-1], position))
+    if not found:
+        return named
+
+    _, position = max(found)
+    spoken_about = named[position]
+    if spoken_about.endswith('+'):
+        return named
+
+    if the_grant_can_be_written_on(spoken_about):
+        return [
+            key + '+' if index == position else key
+            for index, key in enumerate(named)
+        ]
+
+    # The grant will not go on it. Where the licence tells an only grant from
+    # an or-later one, reporting it without the grant says the opposite of
+    # what was written, and saying nothing about it is better than that:
+    # "GPLv2 or later" came back as GPL-2.0-only, which is the one permission
+    # the line does not give.
+    #
+    # Only where the licences are alternatives, though. A term of an AND is
+    # a licence the work is under as well, and leaving it out says the work
+    # is under fewer terms than it is: "MIT AND GPLv2 or later" came back as
+    # MIT, and whoever read that would not know about the copyleft.
+    if tells_the_grants_apart(spoken_about) and not _AN_AND_IN_IT.search(text):
+        return [key for index, key in enumerate(named) if index != position]
+
+    # Where it does not, there is nothing to lose. SPDX writes no or-later
+    # form for Apache, so "Apache 2.0 or above" is as near as it can be said,
+    # and dropping it lost the Apache that was there.
+    return named
+
+
+def _in_the_order_written(licensing, parsed):
+    """The licences an expression names, once each, in the written order."""
+    named = []
+    for key in licensing.license_keys(parsed):
+        key = str(key)
+        if key not in named:
+            named.append(key)
+    return named
+
+
+def _licensing(spdx_data):
+    global _LICENSING
+    if _LICENSING is None:
+        _LICENSING = Licensing(
+            [LicenseSymbol(key) for key in sorted(spdx_data.licenses)]
+        )
+    return _LICENSING
+
 
 # Ceiling on a regex match reached through the full-text cascade, i.e. after
 # every tier that compares actual text has declined. Set below the keyword tier
@@ -2548,79 +2660,135 @@ class LicenseDetector:
         return license_text
     
     def _parse_license_expression(self, expression: str) -> List[str]:
-        """Parse SPDX license expression including complex formats."""
-        # Don't split if it contains "or later" or "or-later" (common suffix)
-        expression_lower = expression.lower()
-        if 'or later' in expression_lower or 'or-later' in expression_lower:
-            # Check if this is really a suffix or an OR expression
-            # GPL-2.0-or-later is a suffix, but "MIT OR Apache" is an expression
+        """The licences an SPDX expression names, in the order written.
+
+        Read by the SPDX expression parser rather than by taking the string
+        apart here. An expression has a grammar: terms joined by OR, AND and
+        WITH, nested in brackets, with a deprecated "or later" plus. Reading
+        it with patterns meant every shape had to be thought of separately,
+        and each one that was missed reported a licence the file does not
+        grant or dropped one it does.
+
+        The vocabulary is osslili's own list, so a deprecated spelling comes
+        back as it was written and is modernised where every other reader
+        modernises. Only the grammar comes from outside.
+
+        A string that is not an expression is returned as it came, because
+        this is asked about metadata values and header lines that may hold
+        anything, and refusing them would lose a licence that the tiers
+        after this one can still make sense of.
+        """
+        if not expression or not expression.strip():
+            return []
+
+        text = expression.strip()
+
+        # A comma is not an SPDX operator, and metadata writes lists with one:
+        # "MIT, Apache-2.0". Each part is read as an expression of its own, so
+        # a list that mixes the two still gives up every term.
+        licensing = _licensing(self.spdx_data)
+        parsed = self._as_an_expression(licensing, text)
+        if parsed is None:
+            return [text]
+
+        # The word the grant is written with, standing on its own where the
+        # parser read the "or" before it as an operator. "GPLv2 or later" is
+        # one name and one grant, and keeping the pieces reports the licence
+        # without the permission, which is the opposite of what it says. There
+        # is no piece worth keeping, so the line goes back whole for the
+        # reader that knows names written in words.
+        #
+        # A term the list does not hold is not on its own a sign of this: a
+        # deprecated "GFDL-1.3+", a "DocumentRef-x:LicenseRef-y" naming a
+        # licence held elsewhere, and a "BSD-compatible" that describes one
+        # are all absent from it and all written the way a term is written.
+        named = [
+            key for key in _in_the_order_written(licensing, parsed)
+            if not _A_GRANT_IN_WORDS.fullmatch(key.strip())
+        ]
+        if any(_A_GRANT_IN_WORDS.fullmatch(str(key).strip())
+               for key in licensing.unknown_license_keys(parsed)):
+            # Only where one licence is named. A line naming two of them says
+            # something the reader of prose names cannot: it answers with one
+            # family, so "MIT or GPL-2.0 or later" came back as the GPL alone
+            # and the MIT was gone. With two, the pieces keep both names and
+            # lose only the grant, which is what happened before this branch.
             #
-            # An AND or a WITH makes it an expression too, whatever the
-            # suffix. Returning "GPL-2.0-or-later WITH Classpath-exception-2.0"
-            # whole left the normaliser to read it, and it reduced the lot to
-            # the base word gpl and answered GPL-2.0, which the emission
-            # boundary then modernised to GPL-2.0-only: the opposite of what
-            # the file grants.
-            joined = re.search(r'\s+(?:OR(?!\s+later)|AND|WITH)\s+', expression,
-                               re.IGNORECASE)
-            if not joined:
-                return [expression.strip()]
+            # And only where something can be made of the line whole, asked
+            # the way the answer will be asked for when it is reported. A
+            # looser question passed "LGPL-v2+", which is nothing, and a line
+            # plainly naming two licences came back with none at all.
+            if len(named) == 1 and self._is_emittable_license_id(
+                self._to_modern_spdx_id(self._normalize_license_id(text))
+            ):
+                return [text]
+            # Otherwise the pieces are kept, and the grant is put back on
+            # the licence it was written after, because that is the one it
+            # speaks about: "MIT or GPL-2.0 or later" offers MIT, or the GPL
+            # at that version or a later one, and reporting the GPL alone
+            # says the opposite of the second half.
+            named = _with_the_grant_put_back(
+                text, named, self._the_grant_can_be_written_on,
+                self._tells_an_only_grant_from_an_or_later_one,
+            )
 
-        # Collect all licenses found in the expression
-        licenses = []
+        # A name written in words was read whole by the parser, so it can be
+        # handed on beside the identifiers it was written with. One name in
+        # words does not make the rest of the line unreadable: "MIT or Apache
+        # License 2.0" names MIT as surely as it names the other, and giving
+        # the line back whole lost it.
+        return named or [text]
 
-        # First handle WITH exceptions specially (keep them together)
-        # e.g., "GPL-3.0 WITH Classpath-exception-2.0"
-        # The operand may carry the deprecated "+" form, GPL-2.0+, which is
-        # handled everywhere else. Leaving it out took the plus off and
-        # reported GPL-2.0, modernised later to GPL-2.0-only: the opposite of
-        # what the file grants.
-        with_pattern = r'([A-Za-z0-9\-\.+]+)\s+WITH\s+([A-Za-z0-9\-\.]+)'
-        with_matches = re.findall(with_pattern, expression, re.IGNORECASE)
+    def _tells_an_only_grant_from_an_or_later_one(self, written: str) -> bool:
+        """Whether this licence has two grants to choose between.
 
-        # Keep track of what we've processed
-        processed = set()
+        The GNU family does, and says which in the identifier itself. For the
+        rest there is one identifier and nothing to get wrong.
+        """
+        return self._to_modern_spdx_id(
+            self._normalize_license_id(written)
+        ).endswith('-only')
 
-        for base_license, exception in with_matches:
-            # Add both the base license and the exception
-            licenses.append(base_license.strip())
-            licenses.append(exception.strip())
-            processed.add(f"{base_license} WITH {exception}")
+    def _the_grant_can_be_written_on(self, written: str) -> bool:
+        """Whether a plus on this licence says or-later, or says nothing.
 
-        # Replace WITH expressions with placeholder to avoid re-processing
-        temp_expression = expression
-        for match in re.finditer(with_pattern, expression, re.IGNORECASE):
-            temp_expression = temp_expression.replace(match.group(), '__WITH__')
+        Asking only whether the result resolves was too easy to satisfy:
+        "MIT+" resolves, by dropping the plus, and the grant it was meant to
+        carry went with it. The plus has to make the or-later identifier.
+        """
+        return self._to_modern_spdx_id(
+            self._normalize_license_id(written + '+')
+        ).endswith('-or-later')
 
-        # Remove parentheses but keep track of the structure
-        # For now, just flatten everything
-        temp_expression = temp_expression.replace('(', '').replace(')', '')
+    def _as_an_expression(self, licensing, text: str):
+        """The expression this string holds, or nothing if it holds none.
 
-        # Split on AND/OR operators, and on the comma that stands in for one.
-        # A comma was handled only where the expression had no operator at
-        # all, so a list that mixed the two lost a term: "MIT, Apache-2.0 OR
-        # BSD-3-Clause" reported the two after the comma and not the one
-        # before it.
-        parts = re.split(r'\s*,\s*|\s+(?:AND|OR)\s+', temp_expression,
-                         flags=re.IGNORECASE)
+        A label in front of it is not part of it. "Dual license: GPL-2.0 or
+        MIT" makes the parser refuse the whole line, and handing that to the
+        reader of prose names got the GPL out of it and lost the MIT.
+        """
+        # A comma is not an SPDX operator, and metadata writes lists with
+        # one: "MIT, Apache-2.0". It says what OR says, so it is read that
+        # way rather than by cutting the line up, which cut through the
+        # brackets of "(MIT, BSD-3-Clause) OR Apache-2.0" and left two pieces
+        # that are each nothing.
+        as_or = text.replace(',', ' OR ') if ',' in text else None
+        for attempt in (
+            text,
+            as_or,
+            text.split(':', 1)[-1].strip() if ':' in text else None,
+            as_or.split(':', 1)[-1].strip() if as_or and ':' in as_or else None,
+        ):
+            if not attempt:
+                continue
+            try:
+                parsed = licensing.parse(attempt, validate=False, strict=False)
+            except Exception:
+                continue
+            if parsed is not None:
+                return parsed
+        return None
 
-        for part in parts:
-            part = part.strip()
-            if part and part != '__WITH__' and part not in processed:
-                # This might be a license ID
-                licenses.append(part)
-
-        # Remove duplicates while preserving order
-        seen = set()
-        result = []
-        for lic in licenses:
-            if lic not in seen:
-                seen.add(lic)
-                result.append(lic)
-
-        return result if result else [expression.strip()]
-    
-    
     def _detect_license_from_text(self, text: str, file_path: Path) -> Optional[DetectedLicense]:
         """
         Detect license from text using four-tier detection.
