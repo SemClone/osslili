@@ -100,15 +100,41 @@ class TestTheOrderIsSettled:
 
         assert found == sorted(found), (finder, [str(p) for p in found])
 
-    @pytest.mark.parametrize("names", [LICENCE_FILES, DOCUMENT_FILES])
-    def test_the_names_used_here_are_not_already_in_order(self, tmp_path, names):
-        """Which is what makes the test above worth having. With one or two
-        entries a set comes back in order often enough to prove nothing."""
+    @pytest.mark.parametrize("finder", [
+        "_find_license_files",
+        "_find_metadata_and_readme_files",
+    ])
+    def test_and_alike_in_every_process(self, tmp_path, finder):
+        """Which is what makes the test above worth having, and asserting it
+        this way rather than by checking that these names are not already in
+        order: that would itself be an assertion about arbitrary set order,
+        and roughly one hash seed in two hundred would fail it."""
         root = _a_package(tmp_path)
 
-        walked = [p.name for p in {root / name for name in names}]
+        def once(seed):
+            import os
 
-        assert walked != sorted(walked), walked
+            program = (
+                "import sys, warnings; warnings.filterwarnings('ignore');"
+                "sys.path.insert(0, %r);"
+                "from pathlib import Path;"
+                "from osslili.core.models import Config;"
+                "from osslili.detectors.license_detector import LicenseDetector;"
+                "c = Config(); c.deep_scan = True; c.license_files_only = False;"
+                "print([p.name for p in getattr(LicenseDetector(c), %r)(Path(%r))])"
+                % (str(REPO_ROOT), finder, str(root))
+            )
+            result = subprocess.run(
+                [sys.executable, "-c", program],
+                capture_output=True, text=True, cwd=REPO_ROOT,
+                env=dict(os.environ, PYTHONHASHSEED=str(seed)),
+            )
+            assert result.returncode == 0, result.stderr
+            return result.stdout.strip()
+
+        answers = {once(seed) for seed in (1, 97, 126, 300)}
+
+        assert len(answers) == 1, answers
 
     def test_across_processes_too(self, tmp_path):
         """Within one process a set iterates the same way twice. What differs
@@ -159,6 +185,9 @@ class TestNothingIsLost:
         found = {lic.spdx_id for lic in detector.detect_licenses(root)}
 
         assert "MIT" in found, found
+        # And the file really did fail, otherwise the assertion above holds
+        # whether or not anything was refused.
+        assert "Apache-2.0" not in found, found
 
 
 class TestOneBodyReadsThemBoth:
@@ -194,3 +223,106 @@ class TestOneBodyReadsThemBoth:
 
             assert "GPL-2.0-only" in found, (threads, found)
             assert "GPL-2.0" not in found, (threads, found)
+
+
+class TestWhatTheOneBodyDoes:
+    """Merging the two readings put the whole contract in one place. Each
+    part of it is asserted here, because a body nothing checks is a body that
+    can quietly lose a piece."""
+
+    def _a_licence_stated_twice(self, tmp_path):
+        """A LICENSE whose text matches, and a package.json that declares it.
+        The licence file yields two records at different confidences, from
+        the text match and from the filename."""
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "LICENSE").write_text(MIT_TEXT)
+        (root / "package.json").write_text('{"name": "widget", "license": "MIT"}\n')
+        return root
+
+    def test_the_surest_evidence_comes_first(self, tmp_path):
+        root = self._a_licence_stated_twice(tmp_path)
+
+        confidences = [lic.confidence for lic in _detector().detect_licenses(root)]
+
+        assert confidences == sorted(confidences, reverse=True), confidences
+
+    def test_two_readings_of_one_file_are_both_kept(self, tmp_path):
+        """They differ in confidence and in how they were found, so they are
+        two pieces of evidence about the same file and not a repeat."""
+        root = self._a_licence_stated_twice(tmp_path)
+
+        from_the_licence_file = [
+            (lic.spdx_id, round(lic.confidence, 2))
+            for lic in _detector().detect_licenses(root)
+            if lic.source_file and Path(lic.source_file).name == "LICENSE"
+        ]
+
+        assert len(from_the_licence_file) == len(set(from_the_licence_file)) >= 2, (
+            from_the_licence_file
+        )
+
+    def test_and_the_same_reading_twice_is_not(self, tmp_path):
+        root = self._a_licence_stated_twice(tmp_path)
+
+        records = [
+            (lic.spdx_id, round(lic.confidence, 2), lic.source_file)
+            for lic in _detector().detect_licenses(root)
+        ]
+
+        assert len(records) == len(set(records)), records
+
+    def test_an_identifier_outside_the_spdx_list_is_not_emitted(self, tmp_path):
+        """"MIT-or-later" is not an SPDX id. SPDX writes the or-later form
+        only for the GNU family, and a string that merely looks like an
+        identifier must never reach an SBOM."""
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "bad.c").write_text(
+            "// SPDX-License-Identifier: MIT-or-later\nint x;\n"
+        )
+
+        found = {lic.spdx_id for lic in _detector().detect_licenses(root)}
+
+        assert "MIT-or-later" not in found, found
+
+    def test_a_deprecated_identifier_is_modernised(self, tmp_path):
+        root = tmp_path / "widget"
+        root.mkdir()
+        (root / "widget.c").write_text("// SPDX-License-Identifier: GPL-2.0\nint x;\n")
+
+        found = {lic.spdx_id for lic in _detector().detect_licenses(root)}
+
+        assert "GPL-2.0-only" in found and "GPL-2.0" not in found, found
+
+
+class TestTheFilesAreReadOnMoreThanOneThread:
+    """The race this file exists for is in the threaded path. Take that path
+    away and every assertion here still passes, on the sequential one, having
+    tested nothing about the fault."""
+
+    def _workers_used(self, tmp_path, monkeypatch):
+        import osslili.detectors.license_detector as module
+
+        root = _a_package(tmp_path)
+        asked_for = []
+        real = module.ThreadPoolExecutor
+
+        def watched(*args, **kwargs):
+            asked_for.append(kwargs.get("max_workers"))
+            return real(*args, **kwargs)
+
+        monkeypatch.setattr(module, "ThreadPoolExecutor", watched)
+        _detector().detect_licenses(root)
+        return asked_for
+
+    def test_a_directory_of_many_files_uses_the_pool(self, tmp_path, monkeypatch):
+        asked_for = self._workers_used(tmp_path, monkeypatch)
+
+        assert asked_for, "the files were read on one thread, so nothing raced"
+
+    def test_and_asks_for_more_than_one_thread(self, tmp_path, monkeypatch):
+        """A pool of one is a pool."""
+        asked_for = self._workers_used(tmp_path, monkeypatch)
+
+        assert all(workers > 1 for workers in asked_for), asked_for
