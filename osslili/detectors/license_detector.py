@@ -764,65 +764,40 @@ class LicenseDetector:
         
         logger.info(f"Scanning {len(files_to_scan)} files for licenses")
         
-        # Process files in parallel for better performance
-        max_workers = min(self.config.thread_count if hasattr(self.config, 'thread_count') else 4, len(files_to_scan))
-        
-        if max_workers > 1 and len(files_to_scan) > 1:
-            # Parallel processing
-            with ThreadPoolExecutor(max_workers=max_workers) as executor:
-                # Submit all files for processing
-                future_to_file = {
-                    executor.submit(self._detect_licenses_in_file_safe, file_path, single_file_mode): file_path
-                    for file_path in files_to_scan
-                }
-                
-                # Collect results as they complete
-                for future in as_completed(future_to_file):
-                    try:
-                        file_licenses = future.result(timeout=30)  # 30 second timeout per file
-                        for license in file_licenses:
-                            # Emit modern SPDX ids; the bare GNU-family forms
-                            # osslili's detectors produce are deprecated.
-                            license.spdx_id = self._to_modern_spdx_id(license.spdx_id)
-                            # Never emit identifiers outside the SPDX list.
-                            if not self._is_emittable_license_id(license.spdx_id):
-                                logger.debug(
-                                    f"Dropping non-SPDX license id '{license.spdx_id}' "
-                                    f"from {license.source_file}"
-                                )
-                                continue
-                            # Deduplicate by license ID, confidence, and source file
-                            key = (license.spdx_id, round(license.confidence, 2), license.source_file)
-                            if key not in processed_licenses:
-                                processed_licenses.add(key)
-                                licenses.append(license)
-                    except Exception as e:
-                        file_path = future_to_file[future]
-                        logger.warning(f"Error processing {file_path}: {e}")
-        else:
-            # Sequential processing for single file or small sets
-            for file_path in files_to_scan:
-                try:
-                    file_licenses = self._detect_licenses_in_file(file_path, single_file_mode)
-                    for license in file_licenses:
-                        # Emit modern SPDX ids; the bare GNU-family forms
-                        # osslili's detectors produce are deprecated.
-                        license.spdx_id = self._to_modern_spdx_id(license.spdx_id)
-                        # Never emit identifiers outside the SPDX list.
-                        if not self._is_emittable_license_id(license.spdx_id):
-                            logger.debug(
-                                f"Dropping non-SPDX license id '{license.spdx_id}' "
-                                f"from {license.source_file}"
-                            )
-                            continue
-                        # Deduplicate by license ID, confidence, and source file
-                        key = (license.spdx_id, round(license.confidence, 2), license.source_file)
-                        if key not in processed_licenses:
-                            processed_licenses.add(key)
-                            licenses.append(license)
-                except Exception as e:
-                    logger.warning(f"Error processing {file_path}: {e}")
-        
+        # What each file yielded, kept against the file rather than merged
+        # as it arrives. Threads finish in whatever order they finish in, and
+        # reading the results in that order decided the order of the
+        # evidence, so the same scan of the same directory listed it
+        # differently every run (issue #122, the sibling of #110).
+        found_in = {
+            file_path: results
+            for file_path, results in self._detect_from_each(
+                files_to_scan, single_file_mode
+            )
+        }
+
+        # Read them back in the order the files were chosen. One body for
+        # both ways of reading them, because there were two and they had to
+        # agree: what a licence is, whether it may be emitted and when it is
+        # a repeat were each written out twice.
+        for file_path in files_to_scan:
+            for license in found_in.get(file_path, []):
+                # Emit modern SPDX ids; the bare GNU-family forms
+                # osslili's detectors produce are deprecated.
+                license.spdx_id = self._to_modern_spdx_id(license.spdx_id)
+                # Never emit identifiers outside the SPDX list.
+                if not self._is_emittable_license_id(license.spdx_id):
+                    logger.debug(
+                        f"Dropping non-SPDX license id '{license.spdx_id}' "
+                        f"from {license.source_file}"
+                    )
+                    continue
+                # Deduplicate by license ID, confidence, and source file
+                key = (license.spdx_id, round(license.confidence, 2), license.source_file)
+                if key not in processed_licenses:
+                    processed_licenses.add(key)
+                    licenses.append(license)
+
         # Re-tag bundled third-party notices (issue #78). Several construction
         # paths hard-code the DECLARED category; normalize here at the single
         # exit point so any license sourced from a third-party notice file is
@@ -835,7 +810,43 @@ class LicenseDetector:
         licenses.sort(key=lambda x: x.confidence, reverse=True)
 
         return licenses
-    
+
+    def _detect_from_each(self, files_to_scan: List[Path], single_file_mode: bool):
+        """Every file paired with what it yielded, in no particular order.
+
+        The caller puts them back in order. Threads are used only to read the
+        files, not to decide what the answer looks like.
+        """
+        max_workers = min(
+            self.config.thread_count if hasattr(self.config, 'thread_count') else 4,
+            len(files_to_scan),
+        )
+
+        if max_workers > 1 and len(files_to_scan) > 1:
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                future_to_file = {
+                    executor.submit(
+                        self._detect_licenses_in_file_safe, file_path, single_file_mode
+                    ): file_path
+                    for file_path in files_to_scan
+                }
+
+                for future in as_completed(future_to_file):
+                    file_path = future_to_file[future]
+                    try:
+                        # 30 second timeout per file
+                        yield file_path, future.result(timeout=30)
+                    except Exception as e:
+                        logger.warning(f"Error processing {file_path}: {e}")
+        else:
+            for file_path in files_to_scan:
+                try:
+                    yield file_path, self._detect_licenses_in_file(
+                        file_path, single_file_mode
+                    )
+                except Exception as e:
+                    logger.warning(f"Error processing {file_path}: {e}")
+
     def _detect_licenses_in_file_safe(self, file_path: Path, single_file_mode: bool = False) -> List[DetectedLicense]:
         """Thread-safe wrapper for file license detection."""
         try:
@@ -869,7 +880,10 @@ class LicenseDetector:
                         license_files_set.add(file_path)
                         break
 
-        return list(license_files_set)
+        # Sorted, because a set is iterated in whatever order it likes and
+        # that order differs between processes, so two scans of one
+        # directory chose the files in a different order.
+        return sorted(license_files_set)
 
     def _find_metadata_and_readme_files(self, directory: Path) -> List[Path]:
         """Find README, package metadata, and other readable documentation files (.txt, .md, .rst, etc.)."""
@@ -937,7 +951,7 @@ class LicenseDetector:
             elif ext_lower in metadata_extensions:
                 metadata_files_set.add(file_path)
 
-        return list(metadata_files_set)
+        return sorted(metadata_files_set)
     
     def _find_source_files(self, directory: Path, limit: int = -1) -> List[Path]:
         """Find all readable files to scan for embedded licenses."""
@@ -962,8 +976,10 @@ class LicenseDetector:
             follow_symlinks=False
         )
         
-        # Scan all files recursively
-        for file_path in scanner.scan_directory(directory, '*'):
+        # Scan all files recursively, in a settled order: a directory walk
+        # returns what the filesystem gives it and two machines need not
+        # agree.
+        for file_path in sorted(scanner.scan_directory(directory, '*')):
             # Skip binary/archive files
             if file_path.suffix.lower() in skip_extensions:
                 continue
