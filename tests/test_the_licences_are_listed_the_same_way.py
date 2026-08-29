@@ -460,3 +460,40 @@ class TestWhatDecidesTheOrderOfEqualEvidence:
         )
 
         assert names[0] == "a.c", names
+
+
+class TestScanningOneFileOnItsOwn:
+    """Whether one file is being scanned, rather than a directory, is carried
+    through the reading of the files and changes what is looked for: a file
+    given on its own is compared whole against the licence texts, and matches
+    one exactly. Merging the two readings moved that flag, and nothing here
+    was carrying it far enough to notice if it stopped arriving."""
+
+    def _the_text_of(self, spdx_id):
+        record = _detector().spdx_data.get_license_info(spdx_id)
+        assert record and record.get("text"), spdx_id
+        return record["text"]
+
+    def test_the_text_matches_the_licence_exactly(self, tmp_path):
+        target = tmp_path / "MIT.data"
+        target.write_text(self._the_text_of("MIT"))
+
+        found = {
+            (lic.spdx_id, lic.match_type)
+            for lic in _detector().detect_licenses(target)
+        }
+
+        assert ("MIT", "exact_hash") in found, found
+
+    def test_and_at_no_doubt_at_all(self, tmp_path):
+        target = tmp_path / "MIT.data"
+        target.write_text(self._the_text_of("MIT"))
+
+        exact = [
+            lic for lic in _detector().detect_licenses(target)
+            if lic.match_type == "exact_hash"
+        ]
+
+        assert exact and all(lic.confidence == 1.0 for lic in exact), [
+            (lic.spdx_id, lic.confidence) for lic in exact
+        ]
