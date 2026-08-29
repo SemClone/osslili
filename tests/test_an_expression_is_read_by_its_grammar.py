@@ -259,3 +259,117 @@ class TestALineNamingTwoLicencesAndAGrant:
         named = detector._parse_license_expression("MIT or Apache-2.0 or above")
 
         assert named == ["MIT", "Apache-2.0"], named
+
+
+class TestWhichLicenceTheGrantSpeaksAbout:
+    """The GNU names contain one another, so finding where each was written
+    has to match the whole name: "gpl-2.0" is inside "lgpl-2.0" and at a
+    later place than the LGPL itself, which put the grant on the licence that
+    was not written there and left the one that was with the wrong
+    permission."""
+
+    @pytest.mark.parametrize("written,expected", [
+        ("GPL-2.0 or LGPL-2.0 or later", ["GPL-2.0", "LGPL-2.0+"]),
+        ("LGPL-2.0 or GPL-2.0 or later", ["LGPL-2.0", "GPL-2.0+"]),
+        ("GPL-3.0 or AGPL-3.0 or later", ["GPL-3.0", "AGPL-3.0+"]),
+        ("AGPL-3.0 or GPL-3.0 or later", ["AGPL-3.0", "GPL-3.0+"]),
+        ("GPL-2 or LGPL-2.1 or later", ["GPL-2", "LGPL-2.1+"]),
+    ])
+    def test_it_lands_on_the_one_written_before_it(self, detector, written, expected):
+        assert detector._parse_license_expression(written) == expected
+
+    def test_it_is_the_nearest_one_before_it(self, detector):
+        """A name written twice is followed by the grant at its second
+        place, not its first, and the grant speaks about the one it
+        follows."""
+        named = detector._parse_license_expression(
+            "GPL-2.0 or MIT or GPL-2.0 or later"
+        )
+
+        assert named == ["GPL-2.0+", "MIT"], named
+
+    def test_the_two_orders_do_not_agree_by_accident(self, detector):
+        """Both orders being right is the point: one of them passed while the
+        other was wrong, which is how the fault stayed hidden."""
+        one = detector._parse_license_expression("GPL-2.0 or LGPL-2.0 or later")
+        other = detector._parse_license_expression("LGPL-2.0 or GPL-2.0 or later")
+
+        assert one != other, (one, other)
+
+
+class TestALicenceTheWorkIsAlsoUnder:
+    """A term of an AND is a licence the work is under as well, not instead.
+    Leaving one out says the work is under fewer terms than it is."""
+
+    def test_a_term_of_an_and_is_never_dropped(self, detector):
+        """Even where its grant cannot be kept. "MIT AND GPLv2 or later" came
+        back as MIT, and whoever read that would not know about the
+        copyleft."""
+        named = detector._parse_license_expression("MIT AND GPLv2 or later")
+
+        assert "MIT" in named and any("GPL" in key for key in named), named
+
+    def test_but_an_alternative_still_is(self, detector):
+        """Where the licences are alternatives, saying nothing about one is
+        better than saying the opposite of what it grants."""
+        assert detector._parse_license_expression("MIT or GPLv2 or later") == ["MIT"]
+
+
+class TestTheExceptionAndTheGrantTogether:
+    """The form that took the longest to get right in #113, now with the
+    grant written in words as well."""
+
+    def test_the_grant_and_the_exception_both_survive(self, detector):
+        named = detector._parse_license_expression(
+            "GPL-2.0 or later WITH Classpath-exception-2.0"
+        )
+
+        assert named == ["GPL-2.0+", "Classpath-exception-2.0"], named
+
+    def test_a_comma_list_carrying_a_grant(self, detector):
+        named = detector._parse_license_expression("GPL-2.0 or later, MIT")
+
+        assert "MIT" in named, named
+        assert any(key.startswith("GPL-2.0") for key in named), named
+
+
+class TestWhatTheReportSays:
+    """Every other test here asks the reader. These ask what comes out, which
+    is the only thing a consumer sees, and the two have disagreed before."""
+
+    def _reported(self, tmp_path, value):
+        import json
+        import subprocess
+        import sys
+        from pathlib import Path
+
+        root = Path(__file__).resolve().parents[1]
+        (tmp_path / "package.json").write_text(
+            json.dumps({"name": "x", "version": "1.0.0", "license": value})
+        )
+        result = subprocess.run(
+            [sys.executable, "-m", "osslili", "-f", "evidence", str(tmp_path)],
+            capture_output=True, text=True, cwd=root,
+        )
+        assert result.returncode == 0, result.stderr
+        data = json.loads(result.stdout[result.stdout.find("{"):])
+        return {
+            record["detected_license"]
+            for scan in data["scan_results"]
+            for record in scan["license_evidence"]
+        }
+
+    @pytest.mark.parametrize("value,expected", [
+        ("MIT OR Apache-2.0", {"MIT", "Apache-2.0"}),
+        ("MIT or GPL-2.0 or later", {"MIT", "GPL-2.0-or-later"}),
+        ("GPL-2.0 or later", {"GPL-2.0-or-later"}),
+        ("Dual license: GPL-2.0 or MIT", {"GPL-2.0-only", "MIT"}),
+    ])
+    def test_what_is_reported(self, tmp_path, value, expected):
+        assert expected <= self._reported(tmp_path, value), value
+
+    def test_a_grant_that_cannot_be_kept_reports_nothing_for_it(self, tmp_path):
+        """Rather than the licence with the opposite permission."""
+        found = self._reported(tmp_path, "GPLv2 or later")
+
+        assert "GPL-2.0-only" not in found, found

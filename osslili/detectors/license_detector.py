@@ -113,6 +113,9 @@ _GNU_OR_LATER_RE = re.compile(
 _GNU_VARIANT_PREFIX_RE = re.compile(r'(?:Lesser|Library|Affero)\s+$', re.IGNORECASE)
 
 
+# A licence joined by AND is one the work is under as well, not instead.
+_AN_AND_IN_IT = re.compile(r'\bAND\b', re.IGNORECASE)
+
 # What is left of an or-later grant once the "or" before it has been read as
 # an operator. It is written as one word and as several, "or later" and "or
 # any later version", so a list of words could not see the longer spellings.
@@ -150,11 +153,20 @@ def _with_the_grant_put_back(
     if not grant:
         return named
 
-    before = [
-        (text.lower().rfind(key.lower(), 0, grant.start()), position)
-        for position, key in enumerate(named)
-    ]
-    found = [pair for pair in before if pair[0] >= 0]
+    # Each name matched whole. The GNU names contain one another, and
+    # "gpl-2.0" is found inside "lgpl-2.0" at a later place than the LGPL
+    # itself, so the grant landed on the licence that was not written there
+    # and the one that was kept the wrong permission.
+    found = []
+    for position, key in enumerate(named):
+        written = [
+            match.start() for match in re.finditer(
+                r'(?<![\w.\-])' + re.escape(key) + r'(?![\w.\-])',
+                text[:grant.start()], re.IGNORECASE,
+            )
+        ]
+        if written:
+            found.append((written[-1], position))
     if not found:
         return named
 
@@ -174,7 +186,12 @@ def _with_the_grant_put_back(
     # what was written, and saying nothing about it is better than that:
     # "GPLv2 or later" came back as GPL-2.0-only, which is the one permission
     # the line does not give.
-    if tells_the_grants_apart(spoken_about):
+    #
+    # Only where the licences are alternatives, though. A term of an AND is
+    # a licence the work is under as well, and leaving it out says the work
+    # is under fewer terms than it is: "MIT AND GPLv2 or later" came back as
+    # MIT, and whoever read that would not know about the copyleft.
+    if tells_the_grants_apart(spoken_about) and not _AN_AND_IN_IT.search(text):
         return [key for index, key in enumerate(named) if index != position]
 
     # Where it does not, there is nothing to lose. SPDX writes no or-later
