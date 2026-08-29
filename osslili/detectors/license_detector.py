@@ -2686,20 +2686,6 @@ class LicenseDetector:
         # A comma is not an SPDX operator, and metadata writes lists with one:
         # "MIT, Apache-2.0". Each part is read as an expression of its own, so
         # a list that mixes the two still gives up every term.
-        if ',' in text:
-            # Brackets around the whole list belong to the list, not to a
-            # part of it: splitting "(MIT, BSD-3-Clause)" left "(MIT", which
-            # is nothing, and the first licence went with it.
-            inside = text
-            while inside.startswith('(') and inside.endswith(')'):
-                inside = inside[1:-1].strip()
-            named = []
-            for part in inside.split(','):
-                for key in self._parse_license_expression(part):
-                    if key not in named:
-                        named.append(key)
-            return named or [text]
-
         licensing = _licensing(self.spdx_data)
         parsed = self._as_an_expression(licensing, text)
         if parsed is None:
@@ -2781,7 +2767,18 @@ class LicenseDetector:
         MIT" makes the parser refuse the whole line, and handing that to the
         reader of prose names got the GPL out of it and lost the MIT.
         """
-        for attempt in (text, text.split(':', 1)[-1].strip() if ':' in text else None):
+        # A comma is not an SPDX operator, and metadata writes lists with
+        # one: "MIT, Apache-2.0". It says what OR says, so it is read that
+        # way rather than by cutting the line up, which cut through the
+        # brackets of "(MIT, BSD-3-Clause) OR Apache-2.0" and left two pieces
+        # that are each nothing.
+        as_or = text.replace(',', ' OR ') if ',' in text else None
+        for attempt in (
+            text,
+            as_or,
+            text.split(':', 1)[-1].strip() if ':' in text else None,
+            as_or.split(':', 1)[-1].strip() if as_or and ':' in as_or else None,
+        ):
             if not attempt:
                 continue
             try:

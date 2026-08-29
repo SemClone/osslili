@@ -364,6 +364,10 @@ class TestWhatTheReportSays:
         ("MIT or GPL-2.0 or later", {"MIT", "GPL-2.0-or-later"}),
         ("GPL-2.0 or later", {"GPL-2.0-or-later"}),
         ("Dual license: GPL-2.0 or MIT", {"GPL-2.0-only", "MIT"}),
+        # A licence the work is under as well is reported even where its
+        # grant cannot be kept, understated rather than missing.
+        ("MIT AND GPLv2 or later", {"MIT", "GPL-2.0-only"}),
+        ("(MIT, BSD-3-Clause) OR Apache-2.0", {"MIT", "BSD-3-Clause", "Apache-2.0"}),
     ])
     def test_what_is_reported(self, tmp_path, value, expected):
         assert expected <= self._reported(tmp_path, value), value
@@ -373,3 +377,24 @@ class TestWhatTheReportSays:
         found = self._reported(tmp_path, "GPLv2 or later")
 
         assert "GPL-2.0-only" not in found, found
+
+
+class TestACommaSaysWhatOrSays:
+    """Metadata writes a list with a comma, which is not an SPDX operator.
+    Reading it by cutting the line up cut through the brackets as well, so
+    "(MIT, BSD-3-Clause) OR Apache-2.0" became two pieces that are each
+    nothing and two of its three licences were lost."""
+
+    @pytest.mark.parametrize("written,expected", [
+        ("MIT, Apache-2.0", ["MIT", "Apache-2.0"]),
+        ("(MIT, BSD-3-Clause)", ["MIT", "BSD-3-Clause"]),
+        ("(MIT, BSD-3-Clause) OR Apache-2.0", ["MIT", "BSD-3-Clause", "Apache-2.0"]),
+        ("MIT, Apache-2.0 OR BSD-3-Clause", ["MIT", "Apache-2.0", "BSD-3-Clause"]),
+    ])
+    def test_every_term_of_the_list(self, detector, written, expected):
+        assert detector._parse_license_expression(written) == expected
+
+    def test_and_a_grant_in_the_list_keeps_its_licence(self, detector):
+        named = detector._parse_license_expression("GPL-2.0 or later, MIT")
+
+        assert named == ["GPL-2.0+", "MIT"], named
