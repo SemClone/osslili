@@ -27,7 +27,7 @@ osslili /path/to/project
 
 Reads license files, package metadata, and documentation:
 
-- license files — `LICENSE`, `COPYING`, `NOTICE`, `LICENSE-MIT`, `COPYING.LESSER`, `THIRD_PARTY_NOTICES` and anything else shaped like a license filename ([how that is decided](configuration.md#license-file-recognition))
+- license files — `LICENSE`, `COPYING`, `NOTICE`, `LICENSE-MIT`, `COPYING.LESSER`, `THIRD_PARTY_NOTICES` and anything else shaped like a license filename ([how that is decided]({{ site.baseurl }}/configuration/#license-file-recognition))
 - package metadata — `package.json`, `pyproject.toml`, `setup.py`, `setup.cfg`, `pom.xml`, `Cargo.toml`, `composer.json`, `build.gradle`, `*.gemspec`, `*.nuspec`
 - documentation — `README*` and other markdown and text files
 

@@ -154,8 +154,13 @@ MIT-LICENSE  APACHE-LICENSE  BSD-LICENSE
 Most license files need no pattern at all, because a license filename is recognized
 by its **shape**: the stem is a license word on its own, or a license word joined to
 the license being named. `LICENSE-MIT`, `MIT-LICENSE.txt`, `COPYING.LESSER`,
-`LICENSE.APACHE2`, `GPL-3.0.txt` and `THIRD_PARTY_NOTICES` are all recognized
-without being listed.
+`LICENSE.APACHE2` and `THIRD_PARTY_NOTICES` are all recognized without being listed.
+
+One limit worth knowing: a strict scan (`--license-files-only`) looks for candidates
+using the patterns above and the `license_fuzzy_base_names`, and applies the shape
+rule to what it finds. A name carrying only the license and no license word —
+`GPL-3.0.txt` — is not among those candidates, so add a pattern for it if your
+project uses that form. An ordinary scan reads it anyway, as documentation.
 
 Every part of the name has to belong and at least one has to name a license, so a
 file that merely mentions one is not treated as holding one:
