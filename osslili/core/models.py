@@ -2,9 +2,13 @@
 Data models for the semantic-copycat-oslili package.
 """
 
-from dataclasses import dataclass, field
+from pathlib import Path
+from dataclasses import dataclass, field, replace
 from typing import List, Optional, Dict, Any
 from enum import Enum
+
+
+# Scanning modes are presets over the individual scan targets (issue #79).
 
 
 class DetectionMethod(Enum):
@@ -134,6 +138,139 @@ class DetectionResult:
         }
 
 
+PACKAGE_METADATA_FILENAMES = {
+    # JavaScript/Node.js (npm, yarn, pnpm)
+    'package.json', 'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml',
+    # Python
+    'pyproject.toml', 'setup.py', 'setup.cfg', 'pipfile', 'pipfile.lock', 'requirements.txt',
+    # Go
+    'go.mod', 'go.sum',
+    # Java (Maven, Gradle)
+    'pom.xml', 'build.gradle', 'build.gradle.kts', 'settings.gradle', 'manifest.mf',
+    # .NET/NuGet
+    'packages.config', 'paket.dependencies',
+    # Rust
+    'cargo.toml', 'cargo.lock',
+    # Ruby
+    'gemfile', 'gemfile.lock',
+    # PHP/Composer
+    'composer.json', 'composer.lock',
+    # Swift/CocoaPods
+    'podfile', 'podfile.lock',
+    # Dart/Flutter
+    'pubspec.yaml', 'pubspec.lock',
+    # Elixir
+    'mix.exs', 'mix.lock',
+    # Scala
+    'build.sbt',
+    # Kotlin
+    'build.gradle.kts',
+}
+
+# Pattern-based metadata extensions
+PACKAGE_METADATA_EXTENSIONS = {
+    '.gemspec',   # Ruby
+    '.nuspec',    # NuGet
+    '.csproj',    # .NET C#
+    '.fsproj',    # .NET F#
+    '.vbproj',    # .NET VB
+    '.podspec',   # CocoaPods
+}
+
+
+DOCUMENTATION_EXTENSIONS = {
+    '.txt', '.md', '.rst', '.text', '.markdown', '.adoc', '.asciidoc'
+}
+
+# A bundled notice names both a third party and the kind of file it is.
+THIRD_PARTY_MARKERS = (
+    'third-party', 'third_party', 'thirdparty',
+    '3rdparty', '3rd-party', '3rd_party',
+)
+THIRD_PARTY_NOTICE_TOKENS = (
+    'notice', 'license', 'licence', 'legal', 'attribution',
+)
+
+# The words a licence file is named by, beyond the configured patterns.
+LICENCE_FILE_WORDS = (
+    'license', 'licence', 'copying', 'copyright', 'notice', 'legal',
+    'gpl', 'copyleft', 'eula', 'commercial', 'agreement', 'bundle',
+    'third-party', 'third_party',
+)
+
+
+def names_a_third_party_notice(file_path) -> bool:
+    """Whether this file is a bundled third-party notice."""
+    name = Path(file_path).name.lower()
+    return (any(marker in name for marker in THIRD_PARTY_MARKERS)
+            and any(token in name for token in THIRD_PARTY_NOTICE_TOKENS))
+
+
+def names_a_licence_file(file_path, patterns=()) -> bool:
+    """Whether this file is a licence file, by name."""
+    name = Path(file_path).name
+    if any(pattern.match(name) for pattern in patterns):
+        return True
+    return any(word in name.lower() for word in LICENCE_FILE_WORDS)
+
+
+def names_documentation(file_path) -> bool:
+    """Whether this file is readable documentation."""
+    return Path(file_path).suffix.lower() in DOCUMENTATION_EXTENSIONS
+
+
+def the_category_of(file_path, patterns=()) -> str:
+    """Which scan target this file belongs to.
+
+    The categories are mutually exclusive and asked in precedence order: a
+    bundled notice is a notice rather than a licence file, and package
+    metadata wins over the documentation extensions it shares
+    (``requirements.txt``).
+
+    Asked here rather than in each reader, because the licence detector and
+    the copyright extractor have to agree about it. They did not, and a
+    scan told to read only licence files still reported the copyright out of
+    a README and a source file.
+    """
+    if names_a_third_party_notice(file_path):
+        return 'notice_files'
+    if names_a_licence_file(file_path, patterns):
+        return 'license_files'
+    if names_package_metadata(file_path):
+        return 'package_metadata'
+    if names_documentation(file_path):
+        return 'documentation'
+    return 'source_files'
+
+
+def names_package_metadata(file_path) -> bool:
+    """Whether this file is a package manifest or lock file.
+
+    Asked here rather than in each reader, because the licence detector and
+    the copyright extractor both have to agree about it: disregarding package
+    metadata means the file is not read at all, and the two disagreeing meant
+    a manifest's licence was left out while its author was still reported.
+    """
+    name = Path(file_path).name.lower()
+    return (name in PACKAGE_METADATA_FILENAMES
+            or Path(file_path).suffix.lower() in PACKAGE_METADATA_EXTENSIONS)
+
+
+@dataclass(frozen=True)
+class ScanTargets:
+    """Which categories of files a scan reads (issue #79).
+
+    Resolved from the scanning mode plus any explicit per-category override, so
+    a consumer that already has declared licenses from package metadata (ORT's
+    analyzer, for instance) can scan every file while disregarding metadata.
+    """
+    license_files: bool = True      # LICENSE, COPYING, ... (the project's own)
+    notice_files: bool = True       # bundled third-party notices (issue #78)
+    package_metadata: bool = True   # package.json, pom.xml, requirements.txt, ...
+    documentation: bool = True      # README and other readable documentation
+    source_files: bool = False      # every other readable file (content scan)
+
+
 @dataclass
 class Config:
     """Configuration for the license and copyright detector."""
@@ -177,6 +314,79 @@ class Config:
     skip_smart_read: bool = False  # Read files sequentially instead of sampling start/end
     fast_mode: bool = False  # Enable multiple optimizations for maximum speed
     deep_scan: bool = False  # Enable comprehensive scan of all source files
+
+    # Fine-grained scan targets (issue #79). None means "whatever the scanning
+    # mode selects"; setting one to True/False overrides the mode's preset.
+    scan_license_files: Optional[bool] = None
+    scan_notice_files: Optional[bool] = None
+    scan_package_metadata: Optional[bool] = None
+    scan_documentation: Optional[bool] = None
+    scan_source_files: Optional[bool] = None
+
+    # Full license text comparison (exact hash, Dice-Sørensen, TLSH). Disabling
+    # it leaves the cheap detectors (SPDX tags, keywords, references) in place,
+    # for a caller that wants every file read but not compared against every
+    # licence text.
+    text_similarity_matching: bool = True
+
+    def wants(self, file_path) -> bool:
+        """Whether this file's category is one the scan is reading.
+
+        The one question both readers ask, so that turning a category off
+        means the file is not read at all rather than read by whichever of
+        them was not told.
+        """
+        import re
+
+        if not hasattr(self, '_licence_name_patterns'):
+            object.__setattr__(self, '_licence_name_patterns', tuple(
+                re.compile(pattern.replace('*', '.*'), re.IGNORECASE)
+                for pattern in self.license_filename_patterns
+            ))
+        category = the_category_of(file_path, self._licence_name_patterns)
+        return getattr(self.scan_targets(), category)
+
+    def the_category(self, file_path) -> str:
+        """Which scan target this file belongs to."""
+        self.wants(file_path)  # compiles the patterns once
+        return the_category_of(file_path, self._licence_name_patterns)
+
+    def was_not_turned_off(self, file_path) -> bool:
+        """Whether this file's category was explicitly disregarded.
+
+        Asked of what the caller said rather than of what a directory scan
+        would have chosen, because naming a file is itself the choice to read
+        it: a source file is not in the default scan, and pointing straight
+        at one has always read it.
+        """
+        said = ScanTargets(
+            license_files=self.scan_license_files,
+            notice_files=self.scan_notice_files,
+            package_metadata=self.scan_package_metadata,
+            documentation=self.scan_documentation,
+            source_files=self.scan_source_files,
+        )
+        self.wants(file_path)  # compiles the patterns once
+        category = the_category_of(file_path, self._licence_name_patterns)
+        return getattr(said, category) is not False
+
+    def scan_targets(self) -> ScanTargets:
+        """Resolve the scan targets this configuration selects."""
+        if self.strict_license_files:
+            base = ScanTargets(package_metadata=False, documentation=False)
+        elif self.deep_scan or not self.license_files_only:
+            base = ScanTargets(source_files=True)
+        else:
+            base = ScanTargets()
+
+        overrides = {
+            'license_files': self.scan_license_files,
+            'notice_files': self.scan_notice_files,
+            'package_metadata': self.scan_package_metadata,
+            'documentation': self.scan_documentation,
+            'source_files': self.scan_source_files,
+        }
+        return replace(base, **{k: v for k, v in overrides.items() if v is not None})
 
     def apply_fast_mode(self):
         """Apply fast mode preset - enables multiple optimizations for maximum speed."""

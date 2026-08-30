@@ -20,13 +20,15 @@ from .core.models import (
     DetectionResult,
     DetectedLicense,
     CopyrightInfo,
-    Config
+    Config,
+    ScanTargets
 )
 
 __all__ = [
     "LicenseCopyrightDetector",
-    "DetectionResult", 
+    "DetectionResult",
     "DetectedLicense",
     "CopyrightInfo",
     "Config",
+    "ScanTargets",
 ]
