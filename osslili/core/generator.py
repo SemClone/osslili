@@ -277,6 +277,11 @@ class LicenseCopyrightDetector:
             try:
                 inside = Path(evidence.source_file).resolve().relative_to(extracted_root)
             except (ValueError, OSError):
+                # Deliberately left as it is rather than raised. A nested
+                # archive extracts to a sibling of this directory rather than
+                # into it, and nothing walks those today, so nothing reaches
+                # here; were that gap closed, such a path would keep its
+                # extracted name rather than stop the scan.
                 continue
             evidence.source_file = inside.as_posix()
 
