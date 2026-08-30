@@ -1415,9 +1415,43 @@ class LicenseDetector:
         keyword_licenses = self._detect_license_keywords(content, file_path)
         licenses.extend(keyword_licenses)
 
-        # Method 3: Apply full three-tier detection
-        # For single file mode or dedicated license files, use full content
-        if single_file_mode or self._is_license_file(file_path):
+        # Method 3: Apply full three-tier detection.
+        #
+        # Which window is measured follows from what the file is, not from how
+        # the scan was started. It used to follow `single_file_mode`, so a
+        # README carrying the whole MIT text was compared against it whole when
+        # named on the command line, scoring 0.995 through the similarity
+        # tier, and measured through a short window around the first line
+        # saying "license" when the directory holding it was scanned, scoring
+        # 0.95 and 0.6 as two contradictory `documentation` records. One file,
+        # two answers under one name, and no threshold worked in both (#111).
+        # A consumer that could not tell them apart refused the match type
+        # outright, which cost it the genuine case: a package whose only
+        # licence statement is the text in its README.
+        #
+        # A licence file and a document are read whole: both are prose, and a
+        # README carrying a licence is carrying it. A source file keeps the
+        # window, where a whole-file comparison against a licence text means
+        # nothing.
+        #
+        # A file named on the command line is still read whole whatever it is,
+        # because it was named: that is what `single_file_mode` says, and
+        # scanning one file is a question about that file.
+        # A document is only worth the text tiers if it says something about
+        # a licence. Running them over every .md in a documentation-heavy
+        # repository compared each page against every licence text to find
+        # nothing: 200 ordinary pages went from 6.0s to 17.8s and produced no
+        # evidence either way. A licence file and a file named on the command
+        # line are compared whole regardless, because that is what they are
+        # for.
+        if (
+            single_file_mode
+            or self._is_license_file(file_path)
+            or (
+                _has_a_document_suffix(file_path)
+                and self._contains_license_text(content)
+            )
+        ):
             detected = self._detect_license_from_text(content, file_path)
             if detected:
                 licenses.append(detected)
