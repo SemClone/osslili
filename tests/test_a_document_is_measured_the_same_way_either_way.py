@@ -166,25 +166,52 @@ class TestADocumentWithNothingToSayIsCheap:
     text to find nothing. Two hundred ordinary pages went from 6.0s to 17.8s
     and produced no evidence either way, so a documentation-heavy repository
     paid three times over for the same answer.
+
+    Pinned by which files reach the text tiers rather than by how long the
+    scan took, so it does not depend on the machine it runs on.
     """
 
-    def test_ordinary_pages_are_not_compared_against_every_licence(self):
-        import time
+    def _pages_read_whole(self, root):
+        """How many files were handed to the text tiers.
 
+        Counted rather than timed: a wall-clock bound depends on the machine
+        and can pass on a fast run with the guard removed.
+        """
+        detector = LicenseCopyrightDetector()
+        reader = detector.license_detector
+        read_whole = []
+        original = reader._detect_license_from_text
+
+        def counting(content, file_path, *args, **kwargs):
+            read_whole.append(Path(file_path).name)
+            return original(content, file_path, *args, **kwargs)
+
+        reader._detect_license_from_text = counting
+        found = detector.process_local_path(str(root))
+        return read_whole, found
+
+    def test_ordinary_pages_are_not_compared_against_every_licence(self):
         root = Path(tempfile.mkdtemp())
-        for n in range(60):
+        for n in range(20):
             (root / f"page{n}.md").write_text(
-                f"# Page {n}\n\n" + "Some ordinary prose about the product. " * 80
+                f"# Page {n}\n\n" + "Some ordinary prose about the product. " * 40
             )
 
-        started = time.monotonic()
-        found = LicenseCopyrightDetector().process_local_path(str(root))
-        elapsed = time.monotonic() - started
+        read_whole, found = self._pages_read_whole(root)
 
+        assert read_whole == [], read_whole
         assert not found.licenses
-        # Generous: the unguarded version took about three times as long, and
-        # this is a bound on the shape of the work rather than a benchmark.
-        assert elapsed < 8, f"{elapsed:.1f}s for 60 pages with nothing in them"
+
+    def test_a_page_that_mentions_one_is_read_whole(self):
+        """The guard must not cost the case the fix exists for."""
+        root = Path(tempfile.mkdtemp())
+        (root / "boring.md").write_text("# Boring\n\nNothing to declare here.\n")
+        (root / "README.md").write_text("# widget\n\n" + _the_text_of("MIT") + "\n")
+
+        read_whole, _ = self._pages_read_whole(root)
+
+        assert "README.md" in read_whole, read_whole
+        assert "boring.md" not in read_whole, read_whole
 
     def test_a_document_that_does_mention_one_is_still_read_whole(self):
         root = Path(tempfile.mkdtemp())
