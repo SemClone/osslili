@@ -219,6 +219,10 @@ class LicenseCopyrightDetector:
                 try:
                     content = self.input_processor.read_text_file(file_path)
                     if content:
+                        # `_extract_package_metadata` modernises what it
+                        # produces, so this path answers the same identifier a
+                        # scan of the same manifest answers. It used to reach
+                        # the reader with the deprecated form (issue #112).
                         metadata_licenses = detector._extract_package_metadata(content, file_path)
                         result.licenses.extend(metadata_licenses)
                 except Exception as e:
