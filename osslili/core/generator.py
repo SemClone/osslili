@@ -125,6 +125,9 @@ class LicenseCopyrightDetector:
                         if extracted_dir:
                             logger.info(f"Extracted archive to: {extracted_dir}")
                             self._process_local_path(extracted_dir, result)
+                            self._name_evidence_by_its_path_inside(
+                                result, extracted_dir
+                            )
                         else:
                             logger.warning(f"Failed to extract archive: {path_obj}")
                             self._process_local_path(path_obj, result)
@@ -234,6 +237,41 @@ class LicenseCopyrightDetector:
             result.processing_time = time.time() - start_time
 
         return result
+
+    def _name_evidence_by_its_path_inside(
+        self, result: DetectionResult, extracted_dir: Path
+    ) -> None:
+        """Name each piece of evidence by its path inside the archive.
+
+        Extraction picks a fresh temporary directory every run, so reporting
+        where a file was extracted to gave the same file a different name each
+        time — two scans of one archive could not be compared — and named a
+        directory that no longer exists by the time anyone reads the report.
+
+        The path inside the archive is stable across runs and is what a reader
+        recognises: ``gin-1.10.0/auth.go`` rather than
+        ``/var/folders/.../oslili_extract_x3wmyiba/extract_0_gin/gin-1.10.0/auth.go``.
+
+        Both sides are resolved before they are compared. ``mkdtemp`` answers
+        with ``/var/...`` on macOS while the scan walks its way to
+        ``/private/var/...``, and the two spell the same directory; comparing
+        them as written finds no common prefix and would leave every path
+        untouched.
+
+        A path that is not under the extraction directory is left as it is: it
+        did not come out of the archive, and there is nothing to make it
+        relative to.
+        """
+        extracted_root = Path(extracted_dir).resolve()
+
+        for evidence in (*result.licenses, *result.copyrights):
+            if not evidence.source_file:
+                continue
+            try:
+                inside = Path(evidence.source_file).resolve().relative_to(extracted_root)
+            except (ValueError, OSError):
+                continue
+            evidence.source_file = str(inside)
 
     def _process_local_path(self, path: Path, result: DetectionResult):
         """

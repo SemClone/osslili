@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Evidence for an archive named a temporary directory that changed every run** (Issue #121). Extraction picks a fresh `mkdtemp` each time, so the same file in the same archive was reported under a different name on every scan, and the name pointed at a directory that no longer existed once the scan returned. Two scans of one archive could not be diffed
+  - What is reported now is the path inside the archive — `gin-1.10.0/auth.go` rather than `/var/folders/.../oslili_extract_x3wmyiba/extract_0_gin/gin-1.10.0/auth.go`
+  - Applies to licence and copyright evidence alike; #110 was the same fault in the copyright half of the scanner
+  - A scan of a directory is unchanged: nothing was extracted, so there is no archive for the path to be relative to, and the absolute path stays the only name the caller can act on
+  - Both paths are resolved before they are compared. `mkdtemp` answers with `/var/...` on macOS while the scan walks its way to `/private/var/...`; comparing them as written finds no common prefix and would have left every path untouched
+
 ### Removed
 - **The `ml` extra and the `DetectionMethod.ML` enum value** (Issue #106). `pip install osslili[ml]` pulled transformers, torch and scikit-learn, several hundred MB, and changed nothing: no module imported any of them, and no code ever assigned `DetectionMethod.ML`. Detection is the four tiers it has always been — exact hash, Dice-Sorensen, TLSH fuzzy hashing, regex — plus the keyword and tag readers
   - `DetectionMethod` is not part of the public API: it is absent from `__all__` and never imported in `osslili/__init__.py`, so no exported name changes
