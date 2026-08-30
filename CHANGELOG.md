@@ -5,6 +5,13 @@ All notable changes to osslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Removed
+- **The `ml` extra and the `DetectionMethod.ML` enum value** (Issue #106). `pip install osslili[ml]` pulled transformers, torch and scikit-learn, several hundred MB, and changed nothing: no module imported any of them, and no code ever assigned `DetectionMethod.ML`. Detection is the four tiers it has always been — exact hash, Dice-Sorensen, TLSH fuzzy hashing, regex — plus the keyword and tag readers
+  - `DetectionMethod` is not part of the public API: it is absent from `__all__` and never imported in `osslili/__init__.py`, so no exported name changes
+  - Anyone with `osslili[ml]` pinned gets pip's "does not provide the extra" warning rather than a failed install. Drop the extra from the requirement; nothing is lost, because nothing was ever installed for a reason
+
 ## [1.7.5] - 2026-08-11
 
 Recommended upgrade for anyone on 1.7.4 that does **not** have `python-tlsh`
