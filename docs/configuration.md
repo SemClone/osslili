@@ -158,9 +158,9 @@ the license being named. `LICENSE-MIT`, `MIT-LICENSE.txt`, `COPYING.LESSER`,
 
 One limit worth knowing: a strict scan (`--license-files-only`) looks for candidates
 using the patterns above and the `license_fuzzy_base_names`, and applies the shape
-rule to what it finds. A name carrying only the license and no license word —
-`GPL-3.0.txt` — is not among those candidates, so add a pattern for it if your
-project uses that form. An ordinary scan reads it anyway, as documentation.
+rule to what it finds. A name carrying only the license and no license word,
+such as `GPL-3.0.txt`, is not among those candidates, so add a pattern for it if
+your project uses that form. An ordinary scan reads it anyway, as documentation.
 
 Every part of the name has to belong and at least one has to name a license, so a
 file that merely mentions one is not treated as holding one:
@@ -179,7 +179,7 @@ bundle and every page written about licensing was read as the project's own lice
 declaration. See issue #116.
 
 Setting `license_filename_patterns` replaces the built-in list rather than adding to
-it, but the shape rule still applies either way — a pattern is for a name your project
+it, but the shape rule still applies either way. A pattern is for a name your project
 uses that no rule would guess, such as `OUR-TERMS.md`.
 
 Files matching a third-party marker together with a notice token — `THIRD_PARTY_NOTICES`,
