@@ -18,6 +18,7 @@ from license_expression import LicenseSymbol, Licensing
 
 from fuzzywuzzy import fuzz
 
+from ..core.models import looks_like_a_licence_filename  # noqa: F401
 from ..core.models import (DetectedLicense, DetectionMethod, LicenseCategory,
                            ScanTargets, names_package_metadata, the_category_of)
 from ..core.input_processor import InputProcessor
@@ -1476,23 +1477,22 @@ class LicenseDetector:
         return has_marker and has_token
 
     def _is_license_file(self, file_path: Path) -> bool:
-        """Check if file is likely a license file."""
-        name_lower = file_path.name.lower()
-        
-        # Check patterns
+        """Whether this filename is the name of a file that holds a licence.
+
+        Asked wherever the answer changes how a file is read, so it decides
+        what a licence filename *looks like* rather than whether a licence
+        word appears anywhere inside it. By the word, `bundle.js` was a
+        licence file, and so was every page written *about* licensing
+        (#116).
+
+        A pattern the caller configured is still honoured as written: it is
+        an explicit instruction about this project, not a guess.
+        """
         for pattern in self.license_patterns:
             if pattern.match(file_path.name):
                 return True
-        
-        # Check common names
-        license_names = ['license', 'licence', 'copying', 'copyright', 'notice', 'legal',
-                        'gpl', 'copyleft', 'eula', 'commercial', 'agreement', 'bundle',
-                        'third-party', 'third_party']
-        for name in license_names:
-            if name in name_lower:
-                return True
-        
-        return False
+
+        return looks_like_a_licence_filename(file_path)
     
     def _contains_license_text(self, content: str) -> bool:
         """Check if content contains license-related text."""

@@ -2,6 +2,7 @@
 Data models for the semantic-copycat-oslili package.
 """
 
+import re
 from pathlib import Path
 from dataclasses import dataclass, field, replace
 from typing import List, Optional, Dict, Any
@@ -190,12 +191,127 @@ THIRD_PARTY_NOTICE_TOKENS = (
     'notice', 'license', 'licence', 'legal', 'attribution',
 )
 
-# The words a licence file is named by, beyond the configured patterns.
-LICENCE_FILE_WORDS = (
-    'license', 'licence', 'copying', 'copyright', 'notice', 'legal',
-    'gpl', 'copyleft', 'eula', 'commercial', 'agreement', 'bundle',
-    'third-party', 'third_party',
-)
+# What makes a filename a licence filename is its shape, not a licence word
+# appearing somewhere inside it. Asked by substring, `bundle.js` held the
+# project's licence, and so did every page written *about* licensing:
+# `docs/license-policy.md`, `license_manager.py`, `CONTRIBUTING-legal.md`
+# (#116). The shape is: the stem is a licence noun on its own, or a licence
+# noun joined to the licence being named — `LICENSE-MIT`, `COPYING.LESSER`,
+# `THIRD_PARTY_NOTICES`.
+
+# The nouns a file holding a licence is named after. Singular: `LICENSE.md`
+# is the licence, `licenses.md` is a list of them and reads as documentation.
+LICENCE_NOUNS = frozenset({
+    'license', 'licence', 'copying', 'notice', 'notices', 'copyright',
+    'unlicense', 'unlicence', 'copyleft', 'eula', 'legal',
+})
+
+# The licences themselves, which may name a file with no noun beside them:
+# `GPL-3.0.txt` holds one. A part must match whole, so `gplus` is not `gpl`.
+LICENCE_FAMILIES = frozenset({
+    'mit', 'apache', 'bsd', 'gpl', 'lgpl', 'agpl', 'gfdl', 'fdl', 'mpl',
+    'epl', 'eupl', 'cddl', 'isc', 'zlib', 'artistic', 'boost', 'bsl', 'ofl',
+    'wtfpl', 'psf', 'python', 'ruby', 'perl', 'unicode', 'openssl', 'curl',
+    'cc', 'cc0', 'ncsa', 'zpl', 'afl', 'osl', 'sspl', 'unlicensed',
+})
+
+# Words projects join to either of the above. Not licence files on their own:
+# `third-party` alone says nothing about a licence.
+LICENCE_QUALIFIERS = frozenset({
+    'lesser', 'library', 'lib', 'clause', 'clauses', 'only', 'later', 'plus',
+    'third', 'party', 'parties', '3rd', 'rd', 'new', 'old', 'short', 'full',
+    'modified', 'revised', 'classpath', 'exception', 'exceptions',
+    'v', 'ver', 'version', 'the', 'of', 'and', 'or',
+})
+
+# Names that hold a licence without being shaped like one.
+LICENCE_FILENAMES_EXACTLY = frozenset({
+    '3rdpartylicenses.txt', '3rdpartylicenses', 'thirdpartylicenses.txt',
+    'thirdpartylicenses', 'thirdpartynotices.txt', 'thirdpartynotices',
+    'patents', 'patents.txt', 'authors', 'authors.txt',
+})
+
+# A licence is prose. A suffix that says the file is code, data or a binary
+# says it is not the licence, whatever it is called: `license_manager.py`
+# implements licensing and `vendor-agreement.pdf` is not read as text.
+NOT_A_LICENCE_SUFFIX = frozenset({
+    '.py', '.pyc', '.pyi', '.js', '.mjs', '.cjs', '.jsx', '.ts', '.tsx',
+    '.java', '.class', '.kt', '.scala', '.go', '.rb', '.rs', '.swift',
+    '.c', '.h', '.cc', '.cpp', '.hpp', '.cs', '.php', '.pl', '.pm', '.sh',
+    '.bash', '.zsh', '.ps1', '.bat', '.css', '.scss', '.less', '.sass',
+    '.json', '.yaml', '.yml', '.xml', '.ini', '.cfg', '.sql', '.lock',
+    '.pdf', '.doc', '.docx', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico',
+    '.zip', '.tar', '.gz', '.so', '.dll', '.dylib', '.exe', '.bin',
+    '.html', '.htm',
+})
+
+A_VERSION = re.compile(r'^v?\d+(\.\d+)*$')
+
+# Suffixes that say "this is prose" and carry no meaning of their own, so the
+# name is read without them. Every other suffix is part of the name: projects
+# write the licence into it, as in COPYING.LESSER and LICENSE.APACHE2, and
+# reading it as an inert extension let anything hide there — LICENSE.POLICY
+# and GPL.README were licence files because only the stem was examined.
+# Derived from the documentation extensions rather than restated, because a
+# licence written as `LICENSE.asciidoc` is a licence file and a second list
+# had already left `.asciidoc` out of this one.
+A_DOCUMENT_SUFFIX = frozenset({'', '.1st'}) | DOCUMENTATION_EXTENSIONS
+
+# A family may carry its version in the same word: "apache2", "bsd3", "gpl2".
+A_FAMILY_WITH_A_VERSION = re.compile(r'^([a-z]+?)[-_]?v?\d+(\.\d+)*$')
+
+FILENAME_PARTS = re.compile(r'[-_.\s]+')
+
+
+def looks_like_a_licence_filename(file_path) -> bool:
+    """Whether this name is the name of a file that holds a licence.
+
+    Every part of the stem has to be a word that belongs in a licence
+    filename, and at least one has to be the licence noun or the licence
+    itself. `license-policy` fails on "policy", `copyrights-faq` on "faq",
+    and `third-party` has neither a noun nor a licence to carry.
+    """
+    name = Path(file_path).name.lower()
+    if not name:
+        return False
+
+    if name in LICENCE_FILENAMES_EXACTLY:
+        return True
+
+    suffix = Path(name).suffix
+    if suffix in NOT_A_LICENCE_SUFFIX:
+        return False
+
+    # Only a document suffix is dropped. Anything else is read as part of the
+    # name, because that is where projects put the licence.
+    named = Path(name).stem if suffix in A_DOCUMENT_SUFFIX else name
+
+    parts = [part for part in FILENAME_PARTS.split(named) if part]
+    if not parts:
+        return False
+
+    def belongs(part: str) -> bool:
+        if (
+            part in LICENCE_NOUNS
+            or part in LICENCE_FAMILIES
+            or part in LICENCE_QUALIFIERS
+            or A_VERSION.match(part)
+        ):
+            return True
+        carried = A_FAMILY_WITH_A_VERSION.match(part)
+        return bool(carried) and carried.group(1) in LICENCE_FAMILIES
+
+    if not all(belongs(part) for part in parts):
+        return False
+
+    # Qualifiers and version numbers describe a licence; they do not name one.
+    def names_one(part: str) -> bool:
+        if part in LICENCE_NOUNS or part in LICENCE_FAMILIES:
+            return True
+        carried = A_FAMILY_WITH_A_VERSION.match(part)
+        return bool(carried) and carried.group(1) in LICENCE_FAMILIES
+
+    return any(names_one(part) for part in parts)
 
 
 def names_a_third_party_notice(file_path) -> bool:
@@ -210,7 +326,7 @@ def names_a_licence_file(file_path, patterns=()) -> bool:
     name = Path(file_path).name
     if any(pattern.match(name) for pattern in patterns):
         return True
-    return any(word in name.lower() for word in LICENCE_FILE_WORDS)
+    return looks_like_a_licence_filename(file_path)
 
 
 def names_documentation(file_path) -> bool:
@@ -279,13 +395,24 @@ class Config:
     thread_count: int = 4
     verbose: bool = False
     debug: bool = False
+    # Anchored at the front, because a licence file is *named* after the
+    # licence rather than merely mentioning one. The wildcards that opened
+    # both ends — "*BUNDLE*", "*COMMERCIAL*", "*AGREEMENT*", "*GPL*" — made
+    # every JavaScript bundle and every page about licensing a licence file
+    # (#116). What they were reaching for is now decided by shape, in
+    # `_looks_like_a_licence_filename`; a pattern here is an explicit
+    # instruction about one project and is still honoured as written.
+    # The canonical names, and nothing wildcarded. What the open-ended
+    # patterns were reaching for — "LICENSE-MIT", "COPYING.LESSER",
+    # "THIRD_PARTY_NOTICES" — is decided by shape now, in
+    # `looks_like_a_licence_filename`, which can tell "LICENSE-MIT" from
+    # "license-policy.md" where a glob cannot. A pattern added here is an
+    # explicit instruction about one project and is honoured as written.
     license_filename_patterns: List[str] = field(default_factory=lambda: [
-        "LICENSE*", "LICENCE*", "COPYING*", "NOTICE*",
-        "MIT-LICENSE*", "APACHE-LICENSE*", "BSD-LICENSE*",
-        "UNLICENSE*", "COPYRIGHT*", "3rdpartylicenses.txt",
-        "*GPL*", "*COPYLEFT*",
-        "*EULA*", "*COMMERCIAL*", "*AGREEMENT*", "*BUNDLE*",
-        "*THIRD-PARTY*", "*THIRD_PARTY*", "LEGAL*"
+        "LICENSE", "LICENCE", "COPYING", "NOTICE", "COPYRIGHT",
+        "UNLICENSE", "COPYLEFT", "EULA", "LEGAL",
+        "MIT-LICENSE", "APACHE-LICENSE", "BSD-LICENSE",
+        "3rdpartylicenses.txt",
     ])
     license_fuzzy_base_names: List[str] = field(default_factory=lambda: [
         'license', 'licence', 'copying', 'copyright', 'notice'
@@ -338,8 +465,14 @@ class Config:
         import re
 
         if not hasattr(self, '_licence_name_patterns'):
+            # fnmatch, as the detector compiles them, so one glob means one
+            # thing. Hand-rolling `*` into `.*` left the pattern unanchored at
+            # the end, so `LICENSE` matched `LICENSE.POLICY` and this reader
+            # called it a licence file while the detector did not.
+            import fnmatch
+
             object.__setattr__(self, '_licence_name_patterns', tuple(
-                re.compile(pattern.replace('*', '.*'), re.IGNORECASE)
+                re.compile(fnmatch.translate(pattern), re.IGNORECASE)
                 for pattern in self.license_filename_patterns
             ))
         category = the_category_of(file_path, self._licence_name_patterns)

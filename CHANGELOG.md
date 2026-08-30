@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Any filename containing a licence word was treated as a licence file** (Issue #116). The test was a substring match, so `bundle.js` held the project's licence — "bundle" was in the word list — and so did every page written *about* licensing
+
+  | name | before | now |
+  |---|---|---|
+  | `bundle.js` | licence file | source file |
+  | `docs/license-policy.md` | licence file | documentation |
+  | `license_manager.py` | licence file | source file |
+  | `LICENSE-MIT`, `COPYING.LESSER`, `THIRD_PARTY_NOTICES` | licence file | licence file |
+
+  - This decided how content was read, not just how it was labelled: evidence in a licence file is categorised `declared` with match type `license_file`, so a page about licensing had its examples read as the project's own declaration, and a minified bundle carrying a vendored header was read as its licence rather than as code
+  - A licence filename is recognised by **shape** now: the stem is a licence noun on its own, or a licence noun joined to the licence being named. Every part has to belong and at least one has to name a licence — `LICENSE-MIT` passes where `license-policy` fails on "policy", and a part matches whole, so `gplus` is no longer `gpl`. A suffix that says the file is code or a binary rules it out
+  - **The same substring test existed twice** — in the detector and in `names_a_licence_file`, which decides scan-target categories — so the two could drift. There is one rule now and both ask it
+  - The default `license_filename_patterns` no longer wildcard both ends. `*BUNDLE*`, `*COMMERCIAL*`, `*AGREEMENT*` and `*GPL*` are gone; a pattern a caller configures is still honoured exactly as written
+  - Only a prose suffix is dropped before the name is read. Every other suffix is part of it, because that is where projects write the licence — `COPYING.LESSER`, `LICENSE.APACHE2`. Reading it as an inert extension meant only the stem was examined, so anything could hide after the dot: `LICENSE.POLICY` and `GPL.README` were licence files
+  - `Config` compiled the same globs by hand, turning `*` into `.*` and leaving the pattern unanchored at the end, so `LICENSE` matched `LICENSE.POLICY` and the scan-target reader called it a licence file while the detector did not. Both use `fnmatch` now, so one glob means one thing
+  - The prose suffixes are derived from the documentation extensions rather than restated, so `LICENSE.asciidoc` stays a licence file; the two lists had already drifted
+  - Measured over 62 filenames: 34 of 34 real licence files still recognised, and false positives fall from 17 to 0
 - **The CycloneDX SBOM named the wrong tool version and repeated a licence** (Issue #132)
   - The tool version was the literal `"1.5.6"` in both the JSON and the XML writer while the package had moved to `1.7.5`. An SBOM records which tool made it so a consumer can reason about what the scan could and could not detect, and those are not the same scanner — 1.7.3 alone changed what is found for GNU headers, Sleepycat and CECILL-2.1. It now reads `__version__` rather than restating it, so a release cannot leave it behind again
   - A `licenses` array listed one entry per *detection*, so a licence reached by both the keyword and the regex tier appeared twice under one component. It is a statement of what the component is under, not a log of how many times a scanner noticed. Identifiers are now collapsed and sorted, as the third-party path beside them already did
