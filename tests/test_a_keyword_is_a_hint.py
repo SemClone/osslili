@@ -185,6 +185,28 @@ class TestAStatedLicenceWinsOverAGuess:
         assert "Python-2.0" in found, found
         assert "Python-2.0.1" not in found, found
 
+    def test_a_second_licence_the_file_really_offers_is_kept(self):
+        """Only a near miss at the stated licence is dropped.
+
+        A file may state one licence and carry the text of a second, and that
+        second one is a licence the file really does offer rather than a
+        guess at the first. Dropping every score on a file that states
+        anything would lose it, which is worse than the duplicate this rule
+        exists to remove.
+        """
+        detector = LicenseCopyrightDetector()
+        root = Path(tempfile.mkdtemp())
+        (root / "LICENSE").write_text(
+            "SPDX-License-Identifier: MIT\n\n"
+            "This file may alternatively be used under the Apache License 2.0:\n\n"
+            + (detector.license_detector.spdx_data.get_license_text("Apache-2.0") or "")
+        )
+
+        found = _licences(_scan(root))
+
+        assert "MIT" in found, found
+        assert "Apache-2.0" in found, found
+
     def test_a_file_that_states_nothing_still_gets_the_comparison(self):
         """The rule only applies where the file spoke for itself."""
         detector = LicenseCopyrightDetector()

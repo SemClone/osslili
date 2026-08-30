@@ -909,6 +909,70 @@ class LicenseDetector:
             )
         }
 
+        # A file that states its licence has answered the question. A
+        # similarity score on that same file is a guess about text the file
+        # already spoke for, and with every licence text bundled (#126) the
+        # near neighbours are all present to be guessed at: a LICENSE stating
+        # Python-2.0 also scored 0.961 against Python-2.0.1, which is the same
+        # licence one revision apart, and both were reported.
+        #
+        # This is what #108 settled for normalisation, applied to the tiers: an
+        # identifier a file states is the identifier reported back.
+        stated_in = {}
+        for results in found_in.values():
+            for license in results:
+                if (
+                    license.detection_method == DetectionMethod.TAG.value
+                    and license.confidence >= 1.0
+                ):
+                    stated_in.setdefault(license.source_file, set()).add(
+                        self._to_modern_spdx_id(license.spdx_id)
+                    )
+        guessing_tiers = {
+            DetectionMethod.DICE_SORENSEN.value,
+            DetectionMethod.TLSH.value,
+        }
+
+        def is_a_guess_at_what_the_file_already_said(license) -> bool:
+            """Whether this score is a near neighbour of a stated licence.
+
+            Only a licence the stated one is nearly indistinguishable from is
+            dropped. A file may state one licence and carry the text of a
+            second, "MIT, or alternatively Apache-2.0", and that second one is
+            a licence the file really does offer rather than a near miss at
+            the first.
+            """
+            if license.detection_method not in guessing_tiers:
+                return False
+            if license.confidence >= 1.0:
+                return False
+            stated = stated_in.get(license.source_file)
+            if not stated:
+                return False
+
+            guessed = self._to_modern_spdx_id(license.spdx_id)
+            if guessed in stated:
+                return True
+
+            bigrams = self._licence_bigrams()
+            guessed_bigrams = bigrams.get(guessed)
+            if not guessed_bigrams:
+                return False
+            return any(
+                self._dice_coefficient(guessed_bigrams, bigrams[said]) >= self.DICE_FLOOR
+                for said in stated
+                if said in bigrams
+            )
+
+        # Worked out before the corroboration set is built, so a keyword match
+        # is never kept alive by a finding that is itself about to be dropped.
+        dropped_as_a_near_miss = {
+            id(license)
+            for results in found_in.values()
+            for license in results
+            if is_a_guess_at_what_the_file_already_said(license)
+        }
+
         # A licence word in a document is a mention until something agrees.
         # The keyword tier matches single words and short names, so "JSON" in a
         # changelog reported the JSON licence and "0BSD" in a README reported
@@ -941,31 +1005,13 @@ class LicenseDetector:
             for results in found_in.values()
             for license in results
             if license.detection_method != DetectionMethod.KEYWORD.value
+            and id(license) not in dropped_as_a_near_miss
             and self._is_emittable_license_id(
                 self._to_modern_spdx_id(license.spdx_id)
             )
         }
 
-        # A file that states its licence has answered the question. A
-        # similarity score on that same file is a guess about text the file
-        # already spoke for, and with every licence text bundled (#126) the
-        # near neighbours are all present to be guessed at: a LICENSE stating
-        # Python-2.0 also scored 0.961 against Python-2.0.1, which is the same
-        # licence one revision apart, and both were reported.
-        #
-        # This is what #108 settled for normalisation, applied to the tiers: an
-        # identifier a file states is the identifier reported back.
-        stated_in = {
-            license.source_file
-            for results in found_in.values()
-            for license in results
-            if license.detection_method == DetectionMethod.TAG.value
-            and license.confidence >= 1.0
-        }
-        guessing_tiers = {
-            DetectionMethod.DICE_SORENSEN.value,
-            DetectionMethod.TLSH.value,
-        }
+
 
         # Read them back in the order the files were chosen. One body for
         # both ways of reading them, because there were two and they had to
@@ -976,11 +1022,7 @@ class LicenseDetector:
                 # Emit modern SPDX ids; the bare GNU-family forms
                 # osslili's detectors produce are deprecated.
                 self.modernise_identifier(license)
-                if (
-                    license.detection_method in guessing_tiers
-                    and license.source_file in stated_in
-                    and license.confidence < 1.0
-                ):
+                if id(license) in dropped_as_a_near_miss:
                     logger.debug(
                         f"Dropping similarity guess '{license.spdx_id}' for "
                         f"{license.source_file}, which states its licence"
