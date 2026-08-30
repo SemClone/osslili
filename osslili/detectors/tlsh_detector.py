@@ -335,11 +335,30 @@ class TLSHDetector:
             if corroborated:
                 best_match, confidence = corroborated
             else:
-                # Only a minority of SPDX entries ship their text, so most
-                # candidates can never be corroborated. Falling silent for all of
-                # them loses licenses TLSH identifies perfectly well and hands the
-                # verdict to weaker tiers, so an unambiguous match is still
-                # asserted — see UNAMBIGUOUS_MARGIN.
+                # The fallback exists for candidates that cannot be checked at
+                # all. It was written when only a minority of SPDX entries
+                # shipped their text, so most proposals were uncheckable and
+                # falling silent for all of them lost licences TLSH identifies
+                # perfectly well — see UNAMBIGUOUS_MARGIN.
+                #
+                # Every licence on the list carries its text now (#126), so a
+                # failed corroboration usually means something different and
+                # much more important: the text was read and it disagreed.
+                # Asserting over that would be the fallback overruling the
+                # evidence, and widening the candidate distance would have made
+                # it reachable for candidates that are simply wrong.
+                checkable = any(
+                    self.spdx_data.get_license_text(license_id)
+                    for _distance, license_id in candidates
+                )
+                if checkable:
+                    logger.debug(
+                        f"TLSH proposed {candidates[0][1]} for {file_path} "
+                        f"(distance {candidates[0][0]}) and its licence text does "
+                        f"not agree; not asserting a license"
+                    )
+                    return None
+
                 unambiguous = self._unambiguous_match(input_hash, candidates)
                 if not unambiguous:
                     logger.debug(

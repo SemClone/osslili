@@ -3033,19 +3033,26 @@ class LicenseDetector:
         while 46 licences shipped text. With the whole SPDX list bundled
         (#126) it is the cost of the scan.
         """
-        if self._licence_bigram_cache is None:
-            cache = {}
-            for license_id in self.spdx_data.get_all_license_ids():
-                license_text = self.spdx_data.get_license_text(license_id)
-                if not license_text:
-                    continue
-                bigrams = self._create_bigrams(
-                    self.spdx_data._normalize_text(license_text)
-                )
-                if bigrams:
-                    cache[license_id] = bigrams
-            self._licence_bigram_cache = cache
-        return self._licence_bigram_cache
+        cache = self._licence_bigram_cache
+        if cache is None:
+            cache = self._licence_bigram_cache = {}
+
+        # Topped up rather than built once and frozen. A licence with no text
+        # when the cache was built is simply absent from it, and osslili can
+        # acquire a text later; a cache built once would never look at that
+        # licence again. Re-checking is a dict lookup per licence.
+        for license_id in self.spdx_data.get_all_license_ids():
+            if license_id in cache:
+                continue
+            license_text = self.spdx_data.get_license_text(license_id)
+            if not license_text:
+                continue
+            bigrams = self._create_bigrams(
+                self.spdx_data._normalize_text(license_text)
+            )
+            if bigrams:
+                cache[license_id] = bigrams
+        return cache
 
     def _tier1_dice_sorensen(self, text: str, file_path: Path) -> Optional[DetectedLicense]:
         """
