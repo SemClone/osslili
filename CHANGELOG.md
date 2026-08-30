@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Applies to licence and copyright evidence alike; #110 was the same fault in the copyright half of the scanner
   - A scan of a directory is unchanged: nothing was extracted, so there is no archive for the path to be relative to, and the absolute path stays the only name the caller can act on
   - The name is spelled with forward slashes on every platform, because that is how tar and zip spell their own entries; the local separator would report `proj-2.0\LICENSE` on Windows for a member stored as `proj-2.0/LICENSE`
+  - Counting a file now takes the scan it belongs to into account. A member path is unique inside its own archive but not across archives: two packages that each carry `pkg/LICENSE` are two files, and `total_files_scanned` and `files_with_licenses` reported one. `generate_evidence()` takes a list of results, so this is reachable from the library; the CLI scans one path at a time. Sources recorded as `unknown` collided the same way before this
   - Both paths are resolved before they are compared. `mkdtemp` answers with `/var/...` on macOS while the scan walks its way to `/private/var/...`; comparing them as written finds no common prefix and would have left every path untouched
 
 ### Removed

@@ -169,6 +169,64 @@ class TestTwoScansAgree:
         assert without_timings(_scan(archive)) == without_timings(_scan(archive))
 
 
+class TestTwoArchivesAreTwoScans:
+    """A member path is unique inside its archive, not across archives.
+
+    The name reported for archive evidence is stable across runs, which is
+    the point of #121, but two packages that each carry `pkg/LICENSE` name
+    the same string for different files. Anything counting those names has
+    to know which scan each belongs to; counting the names alone reported
+    one file where two were read.
+
+    `generate_evidence` takes a list of results, so this is reachable from
+    the library even though the CLI scans one path at a time.
+    """
+
+    def _two_archives(self, tmp_path):
+        archives = []
+        for name in ("alpha", "beta"):
+            root = tmp_path / name / "pkg"
+            root.mkdir(parents=True)
+            (root / "LICENSE").write_text(MIT_TEXT)
+            archive = tmp_path / f"{name}.tar.gz"
+            with tarfile.open(archive, "w:gz") as tar:
+                tar.add(root, arcname="pkg")
+            archives.append(archive)
+        return archives
+
+    def _summary(self, tmp_path, detail_level):
+        from osslili import LicenseCopyrightDetector
+
+        detector = LicenseCopyrightDetector()
+        results = [
+            detector.process_local_path(str(archive))
+            for archive in self._two_archives(tmp_path)
+        ]
+        rendered = detector.generate_evidence(results, detail_level=detail_level)
+        return results, json.loads(rendered)["summary"]
+
+    def test_both_archives_name_the_same_member(self, tmp_path):
+        """The premise: the collision is real, not hypothetical."""
+        results, _ = self._summary(tmp_path, "detailed")
+
+        named = {
+            license.source_file for result in results for license in result.licenses
+        }
+        assert named == {"pkg/LICENSE"}
+
+    @pytest.mark.parametrize("detail_level", ["detailed", "summary", "minimal"])
+    def test_two_files_are_counted_as_two(self, tmp_path, detail_level):
+        _, summary = self._summary(tmp_path, detail_level)
+
+        assert summary["total_files_scanned"] == 2
+
+    @pytest.mark.parametrize("detail_level", ["summary", "minimal"])
+    def test_files_with_licenses_counts_both(self, tmp_path, detail_level):
+        _, summary = self._summary(tmp_path, detail_level)
+
+        assert summary["files_with_licenses"] == 2
+
+
 class TestADirectoryIsUnaffected:
     def test_a_directory_scan_still_names_the_file_it_read(self, tmp_path):
         """Nothing was extracted, so there is no archive to be relative to.
