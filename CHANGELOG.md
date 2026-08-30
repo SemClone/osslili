@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **A document scored differently depending on whether it or its directory was scanned** (Issue #111). Which window was measured followed from how the scan was *started* rather than from what the file is
+
+  | a README carrying the whole MIT text | before | now |
+  |---|---|---|
+  | scanning the file | `text_similarity` 0.995 | `text_similarity` 0.995 |
+  | scanning the directory | `documentation` 0.95 **and** `documentation` 0.6 | `text_similarity` 0.995 |
+
+  - One file gave three answers, two of them contradicting each other under one name, so no threshold worked in both modes
+  - A licence file and a document are read whole now — both are prose, and a README carrying a licence is carrying it. A source file keeps the window, where comparing a whole file against a licence text means nothing. A file named on the command line is still read whole whatever it is, because it was named
+  - **What it cost:** a consumer that could not tell a full licence text from a fragment refused the `documentation` match type outright, so a package whose only licence statement is the text in its README read as unlicensed. That package now reports its licence through the similarity tier, which such a consumer accepts
 - **Any filename containing a licence word was treated as a licence file** (Issue #116). The test was a substring match, so `bundle.js` held the project's licence — "bundle" was in the word list — and so did every page written *about* licensing
 
   | name | before | now |
