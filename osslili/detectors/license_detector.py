@@ -340,6 +340,21 @@ _DOCUMENT_STEMS = (
 _DOCUMENT_OPENING = r'(?:[\s#]|<!--)*'
 
 
+def _the_same_licence_differently_granted(one: str, other: str) -> bool:
+    """Whether two identifiers are one licence with two grants.
+
+    `GPL-2.0-only` and `GPL-2.0-or-later` are the same text; what separates
+    them is stated where the licence is applied rather than in the licence.
+    """
+    def without_the_grant(identifier: str) -> str:
+        for grant in ('-or-later', '-only'):
+            if identifier.endswith(grant):
+                return identifier[: -len(grant)]
+        return identifier
+
+    return one != other and without_the_grant(one) == without_the_grant(other)
+
+
 def _has_a_document_suffix(file_path) -> bool:
     """Whether the name says this file's subject is prose."""
     name = str(getattr(file_path, 'name', file_path)).lower()
@@ -909,6 +924,122 @@ class LicenseDetector:
             )
         }
 
+        # A file that states its licence has answered the question. A
+        # similarity score on that same file is a guess about text the file
+        # already spoke for, and with every licence text bundled (#126) the
+        # near neighbours are all present to be guessed at: a LICENSE stating
+        # Python-2.0 also scored 0.961 against Python-2.0.1, which is the same
+        # licence one revision apart, and both were reported.
+        #
+        # This is what #108 settled for normalisation, applied to the tiers: an
+        # identifier a file states is the identifier reported back.
+        stated_in = {}
+        for results in found_in.values():
+            for license in results:
+                if (
+                    license.detection_method == DetectionMethod.TAG.value
+                    and license.confidence >= 1.0
+                ):
+                    stated_in.setdefault(license.source_file, set()).add(
+                        self._to_modern_spdx_id(license.spdx_id)
+                    )
+        guessing_tiers = {
+            DetectionMethod.DICE_SORENSEN.value,
+            DetectionMethod.TLSH.value,
+        }
+
+        def is_a_guess_at_what_the_file_already_said(license) -> bool:
+            """Whether this score is a near neighbour of a stated licence.
+
+            Only a licence the stated one is nearly indistinguishable from is
+            dropped. A file may state one licence and carry the text of a
+            second, "MIT, or alternatively Apache-2.0", and that second one is
+            a licence the file really does offer rather than a near miss at
+            the first.
+            """
+            if license.detection_method not in guessing_tiers:
+                return False
+            if license.confidence >= 1.0:
+                return False
+            stated = stated_in.get(license.source_file)
+            if not stated:
+                return False
+
+            guessed = self._to_modern_spdx_id(license.spdx_id)
+            if guessed in stated:
+                return True
+
+            # Two spellings of one licence that differ only in the grant are
+            # never near misses at each other. Their texts are the same text:
+            # the -or-later grant is stated in the file's header, not in the
+            # licence body, so Dice cannot tell them apart and would drop one
+            # on the strength of the other. Which of the two a file carries is
+            # the difference between being allowed to use a later version and
+            # not, and #118 is what it costs to get it wrong. Report both and
+            # let the reader see the disagreement.
+            if any(_the_same_licence_differently_granted(guessed, said)
+                   for said in stated):
+                return False
+
+            bigrams = self._licence_bigrams()
+            guessed_bigrams = bigrams.get(guessed)
+            if not guessed_bigrams:
+                return False
+            return any(
+                self._dice_coefficient(guessed_bigrams, bigrams[said]) >= self.DICE_FLOOR
+                for said in stated
+                if said in bigrams
+            )
+
+        # Worked out before the corroboration set is built, so a keyword match
+        # is never kept alive by a finding that is itself about to be dropped.
+        dropped_as_a_near_miss = {
+            id(license)
+            for results in found_in.values()
+            for license in results
+            if is_a_guess_at_what_the_file_already_said(license)
+        }
+
+        # A licence word in a document is a mention until something agrees.
+        # The keyword tier matches single words and short names, so "JSON" in a
+        # changelog reported the JSON licence and "0BSD" in a README reported
+        # 0BSD, in packages that are BSD-3-Clause and MIT (#138).
+        #
+        # Only documents are held to this, and only once the scan has found a
+        # licence some other way. In a licence file a bare licence word is very
+        # often the grant itself -- "distributed under the terms of the GNU GPL
+        # version 2" in a COPYING -- and the keyword tier is the only reader
+        # that finds it. A README can state a grant the same way, "licensed
+        # under GPL2", and nothing else reads that either.
+        #
+        # What separates those from the JSON changelog is that the package has
+        # already said what it is licensed under. An extra licence appearing
+        # only as a word in prose, in a package whose licence is established,
+        # is noise; the same word in a package with nothing else to go on is
+        # the only answer there is, and silence would be worse.
+        #
+        # Corroboration is asked of the whole scan rather than of one file: a
+        # README naming the licence its LICENSE file states is evidence about
+        # that README, and only a licence nothing else in the package supports
+        # is dropped.
+        # Only what will actually be reported counts as corroboration. A
+        # README saying "licensed under GPL2" yields a tag reading `GPL2`,
+        # which is not an SPDX identifier and is dropped a few lines below;
+        # counting it made the scan look like it had a licence and took away
+        # the keyword match that was the only real answer.
+        corroborated_licences = {
+            self._to_modern_spdx_id(license.spdx_id)
+            for results in found_in.values()
+            for license in results
+            if license.detection_method != DetectionMethod.KEYWORD.value
+            and id(license) not in dropped_as_a_near_miss
+            and self._is_emittable_license_id(
+                self._to_modern_spdx_id(license.spdx_id)
+            )
+        }
+
+
+
         # Read them back in the order the files were chosen. One body for
         # both ways of reading them, because there were two and they had to
         # agree: what a licence is, whether it may be emitted and when it is
@@ -918,6 +1049,25 @@ class LicenseDetector:
                 # Emit modern SPDX ids; the bare GNU-family forms
                 # osslili's detectors produce are deprecated.
                 self.modernise_identifier(license)
+                if id(license) in dropped_as_a_near_miss:
+                    logger.debug(
+                        f"Dropping similarity guess '{license.spdx_id}' for "
+                        f"{license.source_file}, which states its licence"
+                    )
+                    continue
+                if (
+                    license.detection_method == DetectionMethod.KEYWORD.value
+                    and license.spdx_id not in corroborated_licences
+                    and _has_a_document_suffix(file_path)
+                    and not self._is_license_file(file_path)
+                    and corroborated_licences
+                ):
+                    logger.debug(
+                        f"Dropping uncorroborated keyword match "
+                        f"'{license.spdx_id}' from {license.source_file}, "
+                        f"which is a document rather than a licence"
+                    )
+                    continue
                 # Never emit identifiers outside the SPDX list.
                 if not self._is_emittable_license_id(license.spdx_id):
                     logger.debug(
