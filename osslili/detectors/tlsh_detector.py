@@ -19,7 +19,23 @@ logger = logging.getLogger(__name__)
 # to the JSON license (distance 17) than to MIT itself (29), because JSON is
 # MIT plus one sentence and that sentence offsets the length difference of a
 # package's own copyright line. See issue #90.
-NEAR_NEIGHBOUR_DISTANCE = 30
+# Measured over 675 bundled licences, taking the canonical text with a project's
+# own copyright line on top, which is what a real licence file looks like: at 30
+# the licence itself was among the candidates only 76% of the time. The Pallets
+# BSD-3-Clause file sits at distance 35 from BSD-3-Clause and 29 from
+# BSD-4-Clause, so the tier proposed only the neighbour a clause away and
+# corroborated it, having nothing better to compare against.
+#
+# Widening cannot cost precision: corroboration keeps the candidate whose real
+# licence text scores highest, so an extra candidate can only win by being a
+# better match or lose. It costs candidates to compare, and few: at 60 the
+# median licence file has 2 and the worst has 23, out of 737.
+#
+#   cutoff 30 -> the true licence is a candidate for 76% of licence files
+#   cutoff 45 -> 84%
+#   cutoff 60 -> 91%
+#   cutoff 80 -> 95%, median 6 candidates
+NEAR_NEIGHBOUR_DISTANCE = 60
 
 # Minimum Dice-Sørensen agreement between the scanned text and a candidate's
 # actual license text before that candidate may be asserted. Matches the bar

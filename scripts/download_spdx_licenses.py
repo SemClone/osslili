@@ -7,6 +7,7 @@ This script should be run during package build time.
 import json
 import os
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import requests
 from datetime import datetime
@@ -38,16 +39,12 @@ def download_spdx_licenses():
     # Process each license
     total_licenses = len(licenses_data.get("licenses", []))
     print(f"Processing {total_licenses} licenses...")
-    
-    for i, license_info in enumerate(licenses_data.get("licenses", []), 1):
+
+    for license_info in licenses_data.get("licenses", []):
         license_id = license_info.get("licenseId")
         if not license_id:
             continue
-        
-        if i % 10 == 0:
-            print(f"  Processed {i}/{total_licenses} licenses...")
-        
-        # Store basic info
+
         bundled_data["licenses"][license_id] = {
             "name": license_info.get("name", license_id),
             "reference": license_info.get("reference", ""),
@@ -56,18 +53,39 @@ def download_spdx_licenses():
             "isFsfLibre": license_info.get("isFsfLibre", False),
             "seeAlso": license_info.get("seeAlso", [])
         }
-        
-        # Try to download full license text for common licenses
-        if license_id in COMMON_LICENSES:
-            try:
-                details_url = f"{DETAILS_URL}{license_id}.json"
-                detail_response = requests.get(details_url, timeout=10)
-                if detail_response.status_code == 200:
-                    detail_data = detail_response.json()
-                    bundled_data["licenses"][license_id]["text"] = detail_data.get("licenseText", "")
-                    bundled_data["licenses"][license_id]["standardLicenseTemplate"] = detail_data.get("standardLicenseTemplate", "")
-            except Exception as e:
-                print(f"    Warning: Could not download text for {license_id}: {e}")
+
+    # The text of every licence, not a chosen few. The tiers that compare text
+    # can only recognise a licence whose text is here, and for the rest the
+    # regex tier answered instead: a Sleepycat licence file was reported as
+    # BSD-3-Clause, copyleft as permissive, and BSD-4-Clause lost the
+    # advertising clause that distinguishes it (issue #126).
+    #
+    # `standardLicenseTemplate` is not stored. Nothing in osslili reads it and
+    # it is roughly the size of the text again.
+    def fetch_text(license_id):
+        try:
+            response = requests.get(f"{DETAILS_URL}{license_id}.json", timeout=30)
+            if response.status_code == 200:
+                return license_id, response.json().get("licenseText", "")
+        except Exception as exc:
+            print(f"    Warning: could not download text for {license_id}: {exc}")
+        return license_id, None
+
+    print(f"Fetching licence texts for {total_licenses} licenses...")
+    done = 0
+    with ThreadPoolExecutor(max_workers=16) as pool:
+        for license_id, text in pool.map(fetch_text, list(bundled_data["licenses"])):
+            done += 1
+            if done % 100 == 0:
+                print(f"  Fetched {done}/{total_licenses} texts...")
+            if text:
+                bundled_data["licenses"][license_id]["text"] = text
+
+    with_text = sum(1 for v in bundled_data["licenses"].values() if v.get("text"))
+    print(f"  {with_text} of {total_licenses} licenses have text")
+    if with_text < total_licenses:
+        missing = [k for k, v in bundled_data["licenses"].items() if not v.get("text")]
+        print(f"  Without text: {', '.join(missing[:20])}")
     
     # Create license name mappings and aliases
     bundled_data["name_mappings"] = create_name_mappings(bundled_data["licenses"])
@@ -162,18 +180,8 @@ def create_common_aliases():
     }
 
 # Common licenses to download full text for
-COMMON_LICENSES = {
-    "MIT", "Apache-2.0", "BSD-3-Clause", "BSD-2-Clause", "ISC",
-    "GPL-2.0-only", "GPL-3.0-only", "LGPL-2.1-only", "LGPL-3.0-only",
-    "MPL-2.0", "CC0-1.0", "Unlicense", "BSL-1.0", "AFL-3.0",
-    "Artistic-2.0", "EPL-1.0", "EPL-2.0", "EUPL-1.2", "AGPL-3.0-only",
-    "GPL-2.0-or-later", "GPL-3.0-or-later", "LGPL-2.1-or-later",
-    "LGPL-3.0-or-later", "AGPL-3.0-or-later", "CC-BY-4.0",
-    "CC-BY-SA-4.0", "CC-BY-NC-4.0", "CC-BY-NC-SA-4.0",
-    "CDDL-1.0", "CPL-1.0", "ECL-2.0", "MIT-0", "MS-PL", "MS-RL",
-    "NCSA", "OpenSSL", "PHP-3.01", "PostgreSQL", "PSF-2.0",
-    "Ruby", "Vim", "W3C", "WTFPL", "X11", "Zlib", "ZPL-2.1"
-}
+# COMMON_LICENSES is gone: every licence on the list is bundled with its text
+# now, so there is no chosen few to keep in step with anything (issue #126).
 
 def main():
     """Main entry point."""
