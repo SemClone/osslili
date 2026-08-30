@@ -9,6 +9,7 @@ from typing import List, Dict, Any
 from pathlib import Path
 import uuid
 
+from .. import __version__
 from ..core.models import DetectionResult
 
 
@@ -50,14 +51,18 @@ class CycloneDXFormatter:
             # licenses are not listed as the component's license; they are
             # emitted as properties so they remain visible but filterable
             # (issue #78).
-            licenses = []
-            for license_info in result.get_own_licenses():
-                if license_info.spdx_id and license_info.spdx_id != "NO-ASSERTION":
-                    licenses.append({
-                        "license": {
-                            "id": license_info.spdx_id
-                        }
-                    })
+            # One entry per licence, not per detection. The same licence
+            # reached by the keyword and the regex tier is one grant noticed
+            # twice, and a consumer counting entries was reading the
+            # detection count. Sorted so two runs render alike.
+            licenses = [
+                {"license": {"id": spdx_id}}
+                for spdx_id in sorted({
+                    license_info.spdx_id
+                    for license_info in result.get_own_licenses()
+                    if license_info.spdx_id and license_info.spdx_id != "NO-ASSERTION"
+                })
+            ]
 
             if licenses:
                 component["licenses"] = licenses
@@ -101,7 +106,7 @@ class CycloneDXFormatter:
                     {
                         "vendor": "osslili",
                         "name": "osslili",
-                        "version": "1.5.6"
+                        "version": __version__
                     }
                 ]
             },
@@ -131,7 +136,7 @@ class CycloneDXFormatter:
         name = ET.SubElement(tool, "name")
         name.text = "osslili"
         version = ET.SubElement(tool, "version")
-        version.text = "1.5.6"
+        version.text = __version__
         
         # Add components
         components = ET.SubElement(root, "components")
@@ -150,14 +155,17 @@ class CycloneDXFormatter:
             
             # Add the project's own licenses (issue #78: bundled third-party
             # notice licenses are emitted as properties, not component licenses).
-            own_licenses = result.get_own_licenses()
-            if own_licenses:
+            own_ids = sorted({
+                license_info.spdx_id
+                for license_info in result.get_own_licenses()
+                if license_info.spdx_id and license_info.spdx_id != "NO-ASSERTION"
+            })
+            if own_ids:
                 licenses_elem = ET.SubElement(component, "licenses")
-                for license_info in own_licenses:
-                    if license_info.spdx_id and license_info.spdx_id != "NO-ASSERTION":
-                        license_elem = ET.SubElement(licenses_elem, "license")
-                        id_elem = ET.SubElement(license_elem, "id")
-                        id_elem.text = license_info.spdx_id
+                for spdx_id in own_ids:
+                    license_elem = ET.SubElement(licenses_elem, "license")
+                    id_elem = ET.SubElement(license_elem, "id")
+                    id_elem.text = spdx_id
 
             # Add copyright (must precede <properties> in the CycloneDX 1.4
             # XML component sequence).
