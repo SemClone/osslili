@@ -4,7 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "osslili"
-version = "1.7.5"
+# Read from osslili/__init__.py rather than written twice. The two had already
+# drifted once here, and a third copy in the CycloneDX writer shipped `1.5.6`
+# in every SBOM for three releases (issue #132).
+dynamic = ["version"]
 description = "Open Source License Identification Library"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -87,6 +90,9 @@ Changelog = "https://github.com/SemClone/osslili/blob/main/CHANGELOG.md"
 
 [project.scripts]
 osslili = "osslili.cli:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "osslili.__version__"}
 
 [tool.setuptools]
 packages = ["osslili",
