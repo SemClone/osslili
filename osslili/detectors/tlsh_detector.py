@@ -19,7 +19,23 @@ logger = logging.getLogger(__name__)
 # to the JSON license (distance 17) than to MIT itself (29), because JSON is
 # MIT plus one sentence and that sentence offsets the length difference of a
 # package's own copyright line. See issue #90.
-NEAR_NEIGHBOUR_DISTANCE = 30
+# Measured over 675 bundled licences, taking the canonical text with a project's
+# own copyright line on top, which is what a real licence file looks like: at 30
+# the licence itself was among the candidates only 76% of the time. The Pallets
+# BSD-3-Clause file sits at distance 35 from BSD-3-Clause and 29 from
+# BSD-4-Clause, so the tier proposed only the neighbour a clause away and
+# corroborated it, having nothing better to compare against.
+#
+# Widening cannot cost precision: corroboration keeps the candidate whose real
+# licence text scores highest, so an extra candidate can only win by being a
+# better match or lose. It costs candidates to compare, and few: at 60 the
+# median licence file has 2 and the worst has 23, out of 737.
+#
+#   cutoff 30 -> the true licence is a candidate for 76% of licence files
+#   cutoff 45 -> 84%
+#   cutoff 60 -> 91%
+#   cutoff 80 -> 95%, median 6 candidates
+NEAR_NEIGHBOUR_DISTANCE = 60
 
 # Minimum Dice-Sørensen agreement between the scanned text and a candidate's
 # actual license text before that candidate may be asserted. Matches the bar
@@ -319,11 +335,32 @@ class TLSHDetector:
             if corroborated:
                 best_match, confidence = corroborated
             else:
-                # Only a minority of SPDX entries ship their text, so most
-                # candidates can never be corroborated. Falling silent for all of
-                # them loses licenses TLSH identifies perfectly well and hands the
-                # verdict to weaker tiers, so an unambiguous match is still
-                # asserted — see UNAMBIGUOUS_MARGIN.
+                # The fallback exists for candidates that cannot be checked at
+                # all. It was written when only a minority of SPDX entries
+                # shipped their text, so most proposals were uncheckable and
+                # falling silent for all of them lost licences TLSH identifies
+                # perfectly well — see UNAMBIGUOUS_MARGIN.
+                #
+                # Every licence on the list carries its text now (#126), so a
+                # failed corroboration usually means something different and
+                # much more important: the text was read and it disagreed.
+                # Asserting over that would be the fallback overruling the
+                # evidence, and widening the candidate distance would have made
+                # it reachable for candidates that are simply wrong.
+                # Only the candidate that would be asserted gets to veto the
+                # fallback. Asking whether *any* candidate had text refused the
+                # fallback whenever a checkable neighbour sat beside an
+                # uncheckable best candidate, which is the very case the
+                # fallback is kept for.
+                proposed = candidates[0][1]
+                if self.spdx_data.get_license_text(proposed):
+                    logger.debug(
+                        f"TLSH proposed {proposed} for {file_path} "
+                        f"(distance {candidates[0][0]}) and its licence text does "
+                        f"not agree; not asserting a license"
+                    )
+                    return None
+
                 unambiguous = self._unambiguous_match(input_hash, candidates)
                 if not unambiguous:
                     logger.debug(

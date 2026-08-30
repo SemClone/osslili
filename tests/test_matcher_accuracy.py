@@ -300,16 +300,33 @@ class TestTlshCorroboration:
         ids = _ids(detector, tmp_path, filename, text)
         assert ids == [actual], f"{actual} text classified as {ids}"
 
-    def test_uncorroborated_candidate_is_not_asserted(self, detector, tmp_path):
-        """A proposal whose license text is unavailable cannot be checked.
+    def test_a_candidate_its_text_contradicts_is_not_asserted(self, detector):
+        """A proposal the license's own text does not support is dropped.
 
-        Only a minority of the bundled SPDX entries carry their text, so most
-        TLSH proposals cannot be substantiated. Silence beats a guess.
+        This used to be tested with the JSON license, which shipped no text,
+        so the proposal could not be checked at all. Every license on the list
+        carries its text now (#126), so the case that remains is the one that
+        always mattered: the text is there and it disagrees.
         """
         tlsh_detector = detector.tlsh_detector
-        candidates = [(3, "JSON")]  # JSON ships no text in the bundled data
-        assert tlsh_detector.spdx_data.get_license_text("JSON") is None
-        assert tlsh_detector._corroborate(MIT_CANONICAL, candidates) is None
+        assert tlsh_detector.spdx_data.get_license_text("GPL-3.0-only")
+
+        # MIT text against a GPL-3.0-only proposal. The texts are nothing
+        # alike, so nothing substantiates it.
+        assert tlsh_detector._corroborate(MIT_CANONICAL, [(3, "GPL-3.0-only")]) is None
+
+    def test_a_candidate_with_no_text_is_not_asserted(self, detector):
+        """The path is kept even though the bundled list no longer takes it.
+
+        Silence beats a license assertion nothing can check, whether the text
+        is missing because SPDX has none or because the id is not one of ours.
+        """
+        tlsh_detector = detector.tlsh_detector
+        assert tlsh_detector.spdx_data.get_license_text("Not-A-Real-License") is None
+
+        assert tlsh_detector._corroborate(
+            MIT_CANONICAL, [(3, "Not-A-Real-License")]
+        ) is None
 
     def test_corroborated_candidate_reports_text_agreement(self, detector, tmp_path):
         """Confidence is the measured agreement, not a fixed floor."""

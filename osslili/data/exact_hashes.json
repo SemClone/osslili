@@ -1,10 +1,150 @@
 {
+  "0BSD": {
+    "sha256": "cde501df0f95195da74060fe162b610b5e1e8d542d57a1a407ed1a9e14104333",
+    "md5": "a3a3148f56bf9dfe808c70e7881c42db",
+    "name": "BSD Zero Clause License",
+    "text_length": 643,
+    "normalized_length": 623
+  },
+  "3D-Slicer-1.0": {
+    "sha256": "7f7fe5bc670507ccd83dd5716379a1cb9fbd30ed200e3646a94ebc393520a35a",
+    "md5": "880929d92a2166283992e76035099d19",
+    "name": "3D Slicer License v1.0",
+    "text_length": 10299,
+    "normalized_length": 9697
+  },
+  "AAL": {
+    "sha256": "e1152193f1381d204a951642c3380e1a0119260b4524a541d97cb60bd3661d85",
+    "md5": "c240ef5844746d4c567b980b550dafb8",
+    "name": "Attribution Assurance License",
+    "text_length": 2529,
+    "normalized_length": 2288
+  },
+  "Abstyles": {
+    "sha256": "09b6e0978f700f57d6ffad8256f20ee939c5c95745a3160025835aabdc5753c2",
+    "md5": "c8709f4711fbdb1d1108ba72ccd54a25",
+    "name": "Abstyles License",
+    "text_length": 731,
+    "normalized_length": 645
+  },
+  "AdaCore-doc": {
+    "sha256": "d4bf5386a8607c51767577812ffeb768e987eb2134944a13db9861f178daa27f",
+    "md5": "396ddc372031cb1820fcab6a99a5ed32",
+    "name": "AdaCore Doc License",
+    "text_length": 236,
+    "normalized_length": 226
+  },
+  "Adobe-2006": {
+    "sha256": "89eea8b20c48e0a00f42edef3eb1f9fd0c331448197df48d2fd0177b098659ef",
+    "md5": "ecb2f7c2d2fe8c7ff313470d64da76ca",
+    "name": "Adobe Systems Incorporated Source Code License Agreement",
+    "text_length": 1776,
+    "normalized_length": 1650
+  },
+  "Adobe-Display-PostScript": {
+    "sha256": "8da718bc9fb77675038ef678e93bb82f576ce055493657a458c47f021bd5aa8d",
+    "md5": "0a6f73966da47deb734a4fcc4e94303b",
+    "name": "Adobe Display PostScript License",
+    "text_length": 1883,
+    "normalized_length": 1839
+  },
+  "Adobe-Glyph": {
+    "sha256": "6245180434c7fba3fe99eb513c62df2c08f35d237b5555578d5af02d74efbeed",
+    "md5": "afb6754464e6139ad866608336cb71c0",
+    "name": "Adobe Glyph List License",
+    "text_length": 1607,
+    "normalized_length": 1492
+  },
+  "Adobe-Utopia": {
+    "sha256": "908b60ed28c139d514e9aa074511adb104c23ec3c1023950d4301fcf855ea92f",
+    "md5": "f891b6beefafa501c927ba56ad8c4cd9",
+    "name": "Adobe Utopia Font License",
+    "text_length": 481,
+    "normalized_length": 438
+  },
+  "ADSL": {
+    "sha256": "5f777fb36402032796d7e9ac8636e18d642225e69a50692ff53ca550f16917f4",
+    "md5": "cd9ae0abd7724dd09a21557472857303",
+    "name": "Amazon Digital Services License",
+    "text_length": 488,
+    "normalized_length": 472
+  },
+  "Advanced-Cryptics-Dictionary": {
+    "sha256": "3218a660954254257a15a461fd16d021f2579d5a872dc3d2b8a05cb38ba15e07",
+    "md5": "2a9d591c4f545f6096c10638e16efbdd",
+    "name": "Advanced Cryptics Dictionary License",
+    "text_length": 451,
+    "normalized_length": 438
+  },
+  "AFL-1.1": {
+    "sha256": "3b19960dfc19fd34305989bbd009102aa7d1deb8cda2cb5e83fb3b1f1de1afcc",
+    "md5": "882a697ef89c35d1d62e5167d78bc488",
+    "name": "Academic Free License v1.1",
+    "text_length": 4676,
+    "normalized_length": 4550
+  },
+  "AFL-1.2": {
+    "sha256": "83815da28b639cef0b37dd6f394ca4c9c28ad2c4707c7ae27be02a0713529828",
+    "md5": "b323f1b2add33450acd681181bd93bc5",
+    "name": "Academic Free License v1.2",
+    "text_length": 4950,
+    "normalized_length": 4830
+  },
+  "AFL-2.0": {
+    "sha256": "1309113feb4892043389eacedc5e9d458e57bfe29a647bbdda99e825b55d0432",
+    "md5": "bf29267cf7cb178c61b0540bbd51110f",
+    "name": "Academic Free License v2.0",
+    "text_length": 8986,
+    "normalized_length": 8689
+  },
+  "AFL-2.1": {
+    "sha256": "139f434d120580834213aaacb2dcb792c119e9d85fb9808cf24622d67aa6e746",
+    "md5": "7a3a67f5d2a857289bf5701355ed0dab",
+    "name": "Academic Free License v2.1",
+    "text_length": 10601,
+    "normalized_length": 10304
+  },
   "AFL-3.0": {
     "sha256": "6106104f3088d57087a8abc9ca364959d7ab1e18fb440f053f0e181f63d91bab",
     "md5": "d0e962d214b568557b4a487b78e71a7b",
     "name": "Academic Free License v3.0",
     "text_length": 10315,
     "normalized_length": 9995
+  },
+  "Afmparse": {
+    "sha256": "13c43bbb7a20663af88797b4007202f34517bf217f330ecf4837e82aa15b4d6a",
+    "md5": "9af44ef8e742eae785471a3c24a96e1e",
+    "name": "Afmparse License",
+    "text_length": 893,
+    "normalized_length": 855
+  },
+  "AGPL-1.0": {
+    "sha256": "713a445bf34e93ec0ca0ad83b206f3ae1a3f4cdf105a7f8e5baa4cc2c561ff65",
+    "md5": "5be7d07afef008891cddf2b3947ace7f",
+    "name": "Affero General Public License v1.0",
+    "text_length": 15838,
+    "normalized_length": 15450
+  },
+  "AGPL-1.0-only": {
+    "sha256": "713a445bf34e93ec0ca0ad83b206f3ae1a3f4cdf105a7f8e5baa4cc2c561ff65",
+    "md5": "5be7d07afef008891cddf2b3947ace7f",
+    "name": "Affero General Public License v1.0 only",
+    "text_length": 15838,
+    "normalized_length": 15450
+  },
+  "AGPL-1.0-or-later": {
+    "sha256": "713a445bf34e93ec0ca0ad83b206f3ae1a3f4cdf105a7f8e5baa4cc2c561ff65",
+    "md5": "5be7d07afef008891cddf2b3947ace7f",
+    "name": "Affero General Public License v1.0 or later",
+    "text_length": 15838,
+    "normalized_length": 15450
+  },
+  "AGPL-3.0": {
+    "sha256": "5ccc2995e5f1043b2e2b6add9b889bfa5334aeab67a5e9fc831a4e5dc31308c6",
+    "md5": "10468073f6e349e86a08d4f43619fa16",
+    "name": "GNU Affero General Public License v3.0",
+    "text_length": 34020,
+    "normalized_length": 32823
   },
   "AGPL-3.0-only": {
     "sha256": "5ccc2995e5f1043b2e2b6add9b889bfa5334aeab67a5e9fc831a4e5dc31308c6",
@@ -20,12 +160,180 @@
     "text_length": 34020,
     "normalized_length": 32823
   },
+  "Aladdin": {
+    "sha256": "86f44ac043befa5920adb835856ba6d743c5bb9977d2c282d232530aea8e1aca",
+    "md5": "66a83082f1de70ebfe2f5341764a3c8a",
+    "name": "Aladdin Free Public License",
+    "text_length": 11604,
+    "normalized_length": 11082
+  },
+  "ALGLIB-Documentation": {
+    "sha256": "75b7366cfbfcc4afc867ea08be515b3dd4e32820a85fbee9763d1f48bee5d8f7",
+    "md5": "4a5cd9b1e47d7f945d0a577059954b88",
+    "name": "ALGLIB Documentation License",
+    "text_length": 1078,
+    "normalized_length": 966
+  },
+  "AMD-newlib": {
+    "sha256": "7bd00bcf613fdb2c02f026e8212d9dff927f7e1b12e5c58fce8d819cf88afb59",
+    "md5": "25463d0f75ef37fae816da5767a5e928",
+    "name": "AMD newlib License",
+    "text_length": 545,
+    "normalized_length": 475
+  },
+  "AMDPLPA": {
+    "sha256": "7456422d78abb02046039b04561e787cfa88b58bac68409f771f01da190838c7",
+    "md5": "ca6aa17d8d0be4a53895fca6c55ea590",
+    "name": "AMD's plpa_map.c License",
+    "text_length": 5642,
+    "normalized_length": 5422
+  },
+  "AML": {
+    "sha256": "d8fab22526de4d8a6062d4abe6d9a17c0f865222c2d12c57233d107b1f85235a",
+    "md5": "938fd5d6d3a19d9351df5e017ce4b372",
+    "name": "Apple MIT License",
+    "text_length": 2358,
+    "normalized_length": 2209
+  },
+  "AML-glslang": {
+    "sha256": "32ae4370293314711de7d40fc53756220be1fe09f5bc9b70335f0ea34f57f199",
+    "md5": "ba76ce884403411b5e096a95527e1b64",
+    "name": "AML glslang variant License",
+    "text_length": 2373,
+    "normalized_length": 2258
+  },
+  "AMPAS": {
+    "sha256": "a6a1416b8e34ce5c0f38a96376381ddf83e6561d9a46f0dd76f6c8bb5f58b9ce",
+    "md5": "218e46efaa1184682787343de7a3630d",
+    "name": "Academy of Motion Picture Arts and Sciences BSD",
+    "text_length": 2192,
+    "normalized_length": 1959
+  },
+  "ANTLR-PD": {
+    "sha256": "88dfe4eff78504370301cb9cbfa56e3f5642be74f873b62fd469d125f865d1de",
+    "md5": "f13208cf65021aa39041ca269e58e50f",
+    "name": "ANTLR Software Rights Notice",
+    "text_length": 987,
+    "normalized_length": 958
+  },
+  "ANTLR-PD-fallback": {
+    "sha256": "25a7166acc6ee61231dc7eb1625c983be1b21a680cb04423e968650d983e4c1a",
+    "md5": "d34759a6badcef286c1234acb5339335",
+    "name": "ANTLR Software Rights Notice with license fallback",
+    "text_length": 1261,
+    "normalized_length": 1226
+  },
+  "any-OSI": {
+    "sha256": "ff5e4f8bf57023aff6407447a62dfe15988a9551895915f3d6c44fc36f419fa8",
+    "md5": "86643d5d00fc032b26349442fe992282",
+    "name": "Any OSI License",
+    "text_length": 93,
+    "normalized_length": 40
+  },
+  "any-OSI-perl-modules": {
+    "sha256": "777a346bbde0da97583d0e4103f0b4badcce2b2c1d989d1ee78efcb703bb32c5",
+    "md5": "f03f3892f99e2508c5cb4873c64c2903",
+    "name": "Any OSI License - Perl Modules",
+    "text_length": 627,
+    "normalized_length": 565
+  },
+  "Apache-1.0": {
+    "sha256": "62ab901506a87af3c645ddc8c921cbc67912e19280eb6ee1a9eca4b03fb9e6d5",
+    "md5": "319579da03432e74d41b9408dd6d634d",
+    "name": "Apache License 1.0",
+    "text_length": 2507,
+    "normalized_length": 2273
+  },
+  "Apache-1.1": {
+    "sha256": "e5bc7bf9ce0d1054bdd873f115ccefd5ae1181a367c4bb0f344bf0d6c12a49b2",
+    "md5": "7d155fe620641da4820d3c125404b9b9",
+    "name": "Apache License 1.1",
+    "text_length": 2474,
+    "normalized_length": 2253
+  },
   "Apache-2.0": {
     "sha256": "865f0bfc806e527a8234b62cce223aa6e838a1fd084ab7fc907f8e2f329e2c2e",
     "md5": "65dc85eb9f7b52a1514b86dd3a882d6d",
     "name": "Apache License 2.0",
     "text_length": 10280,
     "normalized_length": 9822
+  },
+  "APAFML": {
+    "sha256": "e580ca8c94d713d82f22ddf26e71c34ce31e445bc2cd77b40c9cf844fda42bc1",
+    "md5": "34d27720563008464ec9299c46caa493",
+    "name": "Adobe Postscript AFM License",
+    "text_length": 617,
+    "normalized_length": 494
+  },
+  "APL-1.0": {
+    "sha256": "c8697a75bc69d2520ca81fdac18c747b5f0aaab0444a7e9e40b940d885733c19",
+    "md5": "becbac8594b9216a93b8d7c5fb776bc5",
+    "name": "Adaptive Public License 1.0",
+    "text_length": 46064,
+    "normalized_length": 44476
+  },
+  "App-s2p": {
+    "sha256": "e5ea3c7b2bf76f99b657f35a54d58db618d19123da91749952d34fbcfff7577b",
+    "md5": "47d6eaf0673bb3b43b4bc90b6bd38998",
+    "name": "App::s2p License",
+    "text_length": 224,
+    "normalized_length": 214
+  },
+  "APSL-1.0": {
+    "sha256": "2cd4930571ebd0bc0b9bf6a63c0dea8ca88d701b89706f23d9672839f82ba84a",
+    "md5": "215649d7607b632c3bf30fa4529e414f",
+    "name": "Apple Public Source License 1.0",
+    "text_length": 19644,
+    "normalized_length": 18694
+  },
+  "APSL-1.1": {
+    "sha256": "7cb8098d5fdea101a5e88768435082df5cdf0dd695e9877c4419638bea62e766",
+    "md5": "811bb7bbd4b4d2ef550e93ca6bda3f03",
+    "name": "Apple Public Source License 1.1",
+    "text_length": 20151,
+    "normalized_length": 19156
+  },
+  "APSL-1.2": {
+    "sha256": "0b721ffb91dc8071c1a134942f64974e3ebb1dd40c0131ce663b4c8832411989",
+    "md5": "dc54c703d1cb60d69825ee2675571464",
+    "name": "Apple Public Source License 1.2",
+    "text_length": 19796,
+    "normalized_length": 18911
+  },
+  "APSL-2.0": {
+    "sha256": "d6b55a245c24c2e4961c1c47a5fe939063312c19d1ed67dc95f74c319169f29f",
+    "md5": "34b5f4cd84962bd8996e3e34d93fbcbb",
+    "name": "Apple Public Source License 2.0",
+    "text_length": 20281,
+    "normalized_length": 19340
+  },
+  "Arphic-1999": {
+    "sha256": "36878668f63fd4b5bf08a87d24e868c7b70e4fdb35438b696a7de1c1f4f0ddd1",
+    "md5": "cf8f12c92922613edb720f50bce5a295",
+    "name": "Arphic Public License",
+    "text_length": 6901,
+    "normalized_length": 6600
+  },
+  "Artistic-1.0": {
+    "sha256": "d28d8aedc5acd7d41e9a245a26839e2984d305f1ece7111b8050f90d9c5cff82",
+    "md5": "a66fe478951e32b955e4a778368e08d6",
+    "name": "Artistic License 1.0",
+    "text_length": 4854,
+    "normalized_length": 4658
+  },
+  "Artistic-1.0-cl8": {
+    "sha256": "64177e30036c0988a403c2786f5361f46784b50f8ff5fdf3549fd78a1d7c1733",
+    "md5": "b1e029bb03d9e53c337ea56121f5c72e",
+    "name": "Artistic License 1.0 w/clause 8",
+    "text_length": 5184,
+    "normalized_length": 4983
+  },
+  "Artistic-1.0-Perl": {
+    "sha256": "e45e818a0c1cf43c0ceb0a69b1a410e301e3d56a0c148b84828a2a7551b5b9d2",
+    "md5": "403aeb5d6bc9a8734280a1fa50d1c77e",
+    "name": "Artistic License 1.0 (Perl)",
+    "text_length": 6060,
+    "normalized_length": 5833
   },
   "Artistic-2.0": {
     "sha256": "069792abbe42fb6cfdf32623ff831d1f213f478f7e005b1729804e73dfeda065",
@@ -34,12 +342,236 @@
     "text_length": 8764,
     "normalized_length": 8361
   },
+  "Artistic-dist": {
+    "sha256": "1cec6e4c3a0ed49423dc78b7a229592bb66a968628b5e381f0fd53b546c820e3",
+    "md5": "0fb6c3d585c9349434bc405b58218b91",
+    "name": "Artistic License 1.0 (dist)",
+    "text_length": 6177,
+    "normalized_length": 5725
+  },
+  "Aspell-RU": {
+    "sha256": "88543ace897eba4e90cbf44651f8f3063f2631b287870a35cd0f670d5295264c",
+    "md5": "5b22018bd32a7843712cea434a28e4fc",
+    "name": "Aspell Russian License",
+    "text_length": 217,
+    "normalized_length": 210
+  },
+  "ASWF-Digital-Assets-1.0": {
+    "sha256": "cdd7e16b31b54561c217c0e0d4e6bb47686ce4129cd49d701cbe2a5bb04822a5",
+    "md5": "51b816fb483153b7502e7afb6fb52959",
+    "name": "ASWF Digital Assets License version 1.0",
+    "text_length": 2230,
+    "normalized_length": 2144
+  },
+  "ASWF-Digital-Assets-1.1": {
+    "sha256": "71437937a6142f2a20fb282a7d3be50246c1b32d488a5a42d69e03fc19fed793",
+    "md5": "872f08f97053f150b768dc64c533492d",
+    "name": "ASWF Digital Assets License 1.1",
+    "text_length": 2346,
+    "normalized_length": 2258
+  },
+  "atc-game": {
+    "sha256": "d010736e26afae56a1512b0442464f343f4b530465b0f2fc444794a9e14150a5",
+    "md5": "0d59d0c1a78728f98454b9c013e5a4c1",
+    "name": "atc Game License",
+    "text_length": 247,
+    "normalized_length": 152
+  },
+  "Baekmuk": {
+    "sha256": "57c1780b02a43809111a308b66ea334bfdd3a2dce9899cc7aebe5c64b6c8ac76",
+    "md5": "f81a0c1e52342b8e888625955a84c4d7",
+    "name": "Baekmuk License",
+    "text_length": 479,
+    "normalized_length": 398
+  },
+  "Bahyph": {
+    "sha256": "32e2bf49a85564791fb2b3c6f48a72bf155882dbb81b67119e0749dcd3a04774",
+    "md5": "372f7efd5312d5373e96337c1bf6c28d",
+    "name": "Bahyph License",
+    "text_length": 1377,
+    "normalized_length": 1319
+  },
+  "Barr": {
+    "sha256": "cb5b815bc1705ca5a9ee8da7f5de4eced8ed7c2cfc1a13f278880dab7600f29b",
+    "md5": "b5b5f9dcb9d9a2e7b447b48d4d902b0f",
+    "name": "Barr License",
+    "text_length": 603,
+    "normalized_length": 562
+  },
+  "bcrypt-Solar-Designer": {
+    "sha256": "61166c30a38ae00bbc6e6e5ae18f89508bbef3d142412188e757edee0ce85d82",
+    "md5": "5cbb8e150ebd7a2d801568e8f577934f",
+    "name": "bcrypt Solar Designer License",
+    "text_length": 543,
+    "normalized_length": 455
+  },
+  "Beerware": {
+    "sha256": "68c5d64e5bb4b256f92272a636636c6db9507e74a0248dcf6fbdbfd5152174f2",
+    "md5": "00caeb17215098f8f9d9459bf196ac36",
+    "name": "Beerware License",
+    "text_length": 266,
+    "normalized_length": 235
+  },
+  "Bitstream-Charter": {
+    "sha256": "cf99253bc381dd26c3dca9574eff511f55c92a5d82de019820ddaa6b24a4e090",
+    "md5": "a3f8fdbd9b1a7d8302083c92094c0cbc",
+    "name": "Bitstream Charter Font License",
+    "text_length": 572,
+    "normalized_length": 544
+  },
+  "Bitstream-Vera": {
+    "sha256": "865c598fdc71e9b2442ddfe053604efb2c6851451f90f2ff2aa25b87c4dd9721",
+    "md5": "222c33ef16d1f9c8cd0e05ced4326c53",
+    "name": "Bitstream Vera Font License",
+    "text_length": 2318,
+    "normalized_length": 2125
+  },
+  "BitTorrent-1.0": {
+    "sha256": "3dcd199a528e82597512bf5f1f16ac497da8630b58ccce30926ca865e52b2433",
+    "md5": "8a547d7f1aae27ca476b1e6b76213f19",
+    "name": "BitTorrent Open Source License v1.0",
+    "text_length": 24219,
+    "normalized_length": 23102
+  },
+  "BitTorrent-1.1": {
+    "sha256": "4c488ecc44e077e1194aa3b9db44935228d7bf8198d52dd4b18c15f3d8896d57",
+    "md5": "b998b652b65eee0c0c6716b4182abf9c",
+    "name": "BitTorrent Open Source License v1.1",
+    "text_length": 27782,
+    "normalized_length": 26888
+  },
+  "blessing": {
+    "sha256": "9deba8b24dba8b97ecd86d62866894bfb775b4aa913c1e8426ba82c1531f4538",
+    "md5": "08c739beb998023603689a0e5073ec8b",
+    "name": "SQLite Blessing",
+    "text_length": 244,
+    "normalized_length": 235
+  },
+  "BlueOak-1.0.0": {
+    "sha256": "ea9c210bf345f99c20acc3ad7f35b823b0b9868c3983c3d66fdfc03ef2ebcdcd",
+    "md5": "6141b263348dab2fbd3f5c4029c9ddf0",
+    "name": "Blue Oak Model License 1.0.0",
+    "text_length": 1552,
+    "normalized_length": 1432
+  },
+  "Boehm-GC": {
+    "sha256": "1c3f5715559d8fb6152ad7b5d05b7b433cccf9f8ad8eefbc69d2985679466300",
+    "md5": "0aadb9349493328b09d74b8595498d06",
+    "name": "Boehm-Demers-Weiser GC License",
+    "text_length": 506,
+    "normalized_length": 485
+  },
+  "Boehm-GC-without-fee": {
+    "sha256": "430115ffb8ca496ac1546944de8f9598ff7980b5796c66b107f382dea847cea4",
+    "md5": "8a6aa4cbb01a51a4124a12f6d4786f03",
+    "name": "Boehm-Demers-Weiser GC License (without fee)",
+    "text_length": 586,
+    "normalized_length": 545
+  },
+  "BOLA-1.1": {
+    "sha256": "01260822cbe75a974b4441319965c2343c96ce48e7b83d476346283a9cc7ec7c",
+    "md5": "652e8c64d0ac268ef0354559128f3b3f",
+    "name": "Buena Onda License Agreement v1.1",
+    "text_length": 1187,
+    "normalized_length": 1133
+  },
+  "Borceux": {
+    "sha256": "9500de1069385572209e0c3efe9b68cee1492fd8a9bb08eec4a353dd1d0056a5",
+    "md5": "bb9d941bcb282ebc865ba468dd7c4451",
+    "name": "Borceux license",
+    "text_length": 647,
+    "normalized_length": 603
+  },
+  "Brian-Gladman-2-Clause": {
+    "sha256": "8ea5430a303c87ea06467da1c5e5d732be59365265149cf2b5ad38137d1a1d4d",
+    "md5": "fd33f44d8f7ed006b5fd9c6dbb99f510",
+    "name": "Brian Gladman 2-Clause License",
+    "text_length": 655,
+    "normalized_length": 559
+  },
+  "Brian-Gladman-3-Clause": {
+    "sha256": "054dbb7d803f8796980205a6f124dd90f74833e40c7e4ec6f82aa5667571f0de",
+    "md5": "e07998beeb0ba11eda37215ed6d8de36",
+    "name": "Brian Gladman 3-Clause License",
+    "text_length": 1096,
+    "normalized_length": 962
+  },
+  "Brian-Gladman-3-Clause-no-conversion": {
+    "sha256": "8a243a2b61c2301881424aa02b904f7f421f37beaba53c3d773a4bb98730042b",
+    "md5": "885c74da6e5db87b3173b150729c5fec",
+    "name": "Brian Gladman 3-Clause License (no conversion clause)",
+    "text_length": 880,
+    "normalized_length": 757
+  },
+  "BSD-1-Clause": {
+    "sha256": "53686b7305ebb0b2f910669e13dfbbb4fdc109af43ef948c83d22c9c9e4940ec",
+    "md5": "aecb931785d481210fa97121aa14bcd4",
+    "name": "BSD 1-Clause License",
+    "text_length": 1086,
+    "normalized_length": 1034
+  },
   "BSD-2-Clause": {
     "sha256": "1b1aec50a528f881fc306a7c0c37c5bb3ca94e6313d49f656f80a7b64c5ad02e",
     "md5": "d9637a2b8093acd311f0e71eb330c37b",
     "name": "BSD 2-Clause \"Simplified\" License",
     "text_length": 1267,
     "normalized_length": 1215
+  },
+  "BSD-2-Clause-Darwin": {
+    "sha256": "5181474e9203bcd1780a6a6d482004f7fdd6d681e75849456af5b3ff82e90c4d",
+    "md5": "e18e109e9fce57e56016b175d43ff62c",
+    "name": "BSD 2-Clause - Ian Darwin variant",
+    "text_length": 1593,
+    "normalized_length": 1457
+  },
+  "BSD-2-Clause-first-lines": {
+    "sha256": "f3c816d281ee89f05cf5032c35e1d4513c9ee39b6bedcb20fee9bbf01efbcdfe",
+    "md5": "c8760a96409ab9afd53ad57d7941994d",
+    "name": "BSD 2-Clause - first lines requirement",
+    "text_length": 1329,
+    "normalized_length": 1204
+  },
+  "BSD-2-Clause-FreeBSD": {
+    "sha256": "275439a677a884c140c4fe367df2ec7e6e3c326b39c67bafa176e1b12737fe1d",
+    "md5": "c54ac07d3ded6f563d8d738a5390f0f1",
+    "name": "BSD 2-Clause FreeBSD License",
+    "text_length": 1518,
+    "normalized_length": 1409
+  },
+  "BSD-2-Clause-NetBSD": {
+    "sha256": "770e4cf42164ca98360659d2278a86341d03368fd23fed4a394d8cd046bd1bcc",
+    "md5": "86b566494483f62ce491a23bf18072e3",
+    "name": "BSD 2-Clause NetBSD License",
+    "text_length": 1383,
+    "normalized_length": 1270
+  },
+  "BSD-2-Clause-Patent": {
+    "sha256": "ccb395ad8622517af999a893a2913985d586f8c864d64bf6a51f565f4450f088",
+    "md5": "ea36149b75c8a14187845d2d71192b1e",
+    "name": "BSD-2-Clause Plus Patent License",
+    "text_length": 2569,
+    "normalized_length": 2474
+  },
+  "BSD-2-Clause-pkgconf-disclaimer": {
+    "sha256": "8d56bfd89485492870711c682aa8a64f2cdd92d02661d012d1bb7685c77f281d",
+    "md5": "7de67f13a4acc49005c358c5bc07f4d0",
+    "name": "BSD 2-Clause pkgconf disclaimer variant",
+    "text_length": 699,
+    "normalized_length": 614
+  },
+  "BSD-2-Clause-pos-unchanged": {
+    "sha256": "9776f4f4fb997d4a8852eaaf31d6eb3da464bebf9d7c2e1ede49b17b4fe94ad3",
+    "md5": "1c142ce2eb5672b1f71d20d91fc159d5",
+    "name": "BSD 2-Clause - position unchanged variant",
+    "text_length": 1276,
+    "normalized_length": 1212
+  },
+  "BSD-2-Clause-Views": {
+    "sha256": "112898d2f162df11d44d7b00ca17d098fc88c12d5ebe7816dc502f82f19f986a",
+    "md5": "edf25d5eb6e1cdaef60ba4c24365724b",
+    "name": "BSD 2-Clause with views sentence",
+    "text_length": 1519,
+    "normalized_length": 1463
   },
   "BSD-3-Clause": {
     "sha256": "23fa1d97d5c30bd312ca9f1dbae00ee3b14b21c200459c55abb8eb54554b7749",
@@ -48,12 +580,390 @@
     "text_length": 1460,
     "normalized_length": 1404
   },
+  "BSD-3-Clause-acpica": {
+    "sha256": "ee4aa8ff29e7fa09ab88dc95fc76e4dbe03144330140b6b8cfd1eff59cd0c004",
+    "md5": "64ddc3e5330534ca0e66ebf2bb71745d",
+    "name": "BSD 3-Clause acpica variant",
+    "text_length": 1568,
+    "normalized_length": 1498
+  },
+  "BSD-3-Clause-Attribution": {
+    "sha256": "ba56e5fc4ac33f6b229fd4bac386a609247fd034a0bf67b12155c8492d517f63",
+    "md5": "cd253cc9d56b0f29b4e33704e86a489e",
+    "name": "BSD with attribution",
+    "text_length": 1646,
+    "normalized_length": 1549
+  },
+  "BSD-3-Clause-Clear": {
+    "sha256": "35b7e996e5584111a9e102aa4d07261edffc7b00d94906bce49bc91b64f6bffa",
+    "md5": "8ae7ad1d589c3078df9b3def635c3ba3",
+    "name": "BSD 3-Clause Clear License",
+    "text_length": 1676,
+    "normalized_length": 1602
+  },
+  "BSD-3-Clause-flex": {
+    "sha256": "6fa6eb59033a11363f191a5b79ca7dcf6d0bbb47782253c0ec9f604a9b29f6a4",
+    "md5": "3f866a85e16ac0d9c445fb14d9367000",
+    "name": "BSD 3-Clause Flex variant",
+    "text_length": 1855,
+    "normalized_length": 1652
+  },
+  "BSD-3-Clause-HP": {
+    "sha256": "d2272601dd8f9cf4389fbd2b3dc4dc04eaa073c00e92c3ee9d6d1e9d27978273",
+    "md5": "991f81c05aafb46942aaff3206daa7c8",
+    "name": "Hewlett-Packard BSD variant license",
+    "text_length": 1393,
+    "normalized_length": 1338
+  },
+  "BSD-3-Clause-LBNL": {
+    "sha256": "3ce1b8c8b981856d8b7b61151eaf49b2793beb9b2c4baab3cfdc70241d3183c8",
+    "md5": "564609da9997f751f95195ba4b84c76f",
+    "name": "Lawrence Berkeley National Labs BSD variant license",
+    "text_length": 2388,
+    "normalized_length": 1966
+  },
+  "BSD-3-Clause-Modification": {
+    "sha256": "3d7e7c10c4bd8271ef6cad9015defbe7e265c7059b1b8e0dc3bbe94a9ed99be9",
+    "md5": "18684c1942991be915eddbfc27674f04",
+    "name": "BSD 3-Clause Modification",
+    "text_length": 1624,
+    "normalized_length": 1511
+  },
+  "BSD-3-Clause-No-Military-License": {
+    "sha256": "4cb04a52c1facc2d3cb071488ee2c22557405621a1e88d692b072d37a6d25265",
+    "md5": "2fa81654dc946ea75742b414b5903dec",
+    "name": "BSD 3-Clause No Military License",
+    "text_length": 1647,
+    "normalized_length": 1595
+  },
+  "BSD-3-Clause-No-Nuclear-License": {
+    "sha256": "0ab99f85c33f4b99b1d6656cabf6bb99caa13bf1762d816004e85972af44149e",
+    "md5": "0204de655f95c803faa707eb30ce5044",
+    "name": "BSD 3-Clause No Nuclear License",
+    "text_length": 1693,
+    "normalized_length": 1571
+  },
+  "BSD-3-Clause-No-Nuclear-License-2014": {
+    "sha256": "c7eed7801d918d350841c7ebd954a64466bcd01052013c975ba564f552e6689d",
+    "md5": "7cbeb5c4b4f8ca827624e82404202a37",
+    "name": "BSD 3-Clause No Nuclear License 2014",
+    "text_length": 1708,
+    "normalized_length": 1565
+  },
+  "BSD-3-Clause-No-Nuclear-Warranty": {
+    "sha256": "fbf6873e87f059d0610aced4a3c91b2f051b2a9e7b0bcf437b0c9453f530f010",
+    "md5": "373bc9dd1b05464a523097d4215cee7d",
+    "name": "BSD 3-Clause No Nuclear Warranty",
+    "text_length": 1699,
+    "normalized_length": 1568
+  },
+  "BSD-3-Clause-Open-MPI": {
+    "sha256": "dc8663bb9fbaf7564680b97ea7a4178daf38caaf3550969de7ee0b0bfc33eea3",
+    "md5": "29bf11ef4b9469214e2f339112c12c27",
+    "name": "BSD 3-Clause Open MPI variant",
+    "text_length": 1820,
+    "normalized_length": 1763
+  },
+  "BSD-3-Clause-Sun": {
+    "sha256": "22ca8960362c1d38efde5445755cb8bd89356fa1abe724ccf300fd75b0b04b33",
+    "md5": "932c1921be56d5bdec8d3e61632f9346",
+    "name": "BSD 3-Clause Sun Microsystems",
+    "text_length": 1620,
+    "normalized_length": 1427
+  },
+  "BSD-3-Clause-Tso": {
+    "sha256": "be43fece2d15c77c72d5639e5ba1b63868531777e8202c5fd5da9283f31194cc",
+    "md5": "1db54b2e0762239b24354d24a1dcf493",
+    "name": "BSD 3-Clause Tso variant",
+    "text_length": 1456,
+    "normalized_length": 1329
+  },
+  "BSD-4-Clause": {
+    "sha256": "e93459ff6d24270b00e4f1df49eb0d990be200e6a80a64609f35536f38c118e8",
+    "md5": "f21a4ac19407546194cd86a8f7dde780",
+    "name": "BSD 4-Clause \"Original\" or \"Old\" License",
+    "text_length": 1618,
+    "normalized_length": 1558
+  },
+  "BSD-4-Clause-Shortened": {
+    "sha256": "adf4a260241785a6568e66138b0fd698dfc2cc52a5b5899c090752ee50937c06",
+    "md5": "93eca004f1296fe9a106a304390485de",
+    "name": "BSD 4 Clause Shortened",
+    "text_length": 1048,
+    "normalized_length": 1017
+  },
+  "BSD-4-Clause-UC": {
+    "sha256": "f5150bee0a8a45fdc1781fb095c12f8c2c1603551469b7be96d6b2c6b23b88cb",
+    "md5": "8862f0603c123561492a2a5f32541af1",
+    "name": "BSD-4-Clause (University of California-Specific)",
+    "text_length": 1771,
+    "normalized_length": 1714
+  },
+  "BSD-4.3RENO": {
+    "sha256": "d87f80f56306feca9e136e39c29e292c4a3ee15369b35127f6f9ea644c9beec7",
+    "md5": "be3195c1bced4ab1ce9b53646006e873",
+    "name": "BSD 4.3 RENO License",
+    "text_length": 476,
+    "normalized_length": 406
+  },
+  "BSD-4.3TAHOE": {
+    "sha256": "4680868d449823ce8a49339ce7d0a47058f79795ca94d2670d28fd0daa4204b8",
+    "md5": "67af6c06a0853e51921535b999bee5c5",
+    "name": "BSD 4.3 TAHOE License",
+    "text_length": 781,
+    "normalized_length": 676
+  },
+  "BSD-Advertising-Acknowledgement": {
+    "sha256": "b175f4837a9e95de078a5bbd7d5ed42df97e5dab86e0f514734d7300f7f0d575",
+    "md5": "ead1bf7ac8281e898550d7856c04897b",
+    "name": "BSD Advertising Acknowledgement License",
+    "text_length": 1626,
+    "normalized_length": 1499
+  },
+  "BSD-ask-to-endorse": {
+    "sha256": "da739f64ab024e653661354a9ec8406fe92da85512d08a1de0cf78266fcb2ab0",
+    "md5": "2ffdfe409d77db938055a98d4714d414",
+    "name": "BSD - ask to endorse",
+    "text_length": 1099,
+    "normalized_length": 1016
+  },
+  "BSD-Attribution-HPND-disclaimer": {
+    "sha256": "a29476f2da8dcacdca2c5a41eb2dffaad6bc0e91d66f22905c36c94a2f55e194",
+    "md5": "8bfa5d9046c0181047097456391f6fe4",
+    "name": "BSD with Attribution and HPND disclaimer",
+    "text_length": 1679,
+    "normalized_length": 1441
+  },
+  "BSD-Inferno-Nettverk": {
+    "sha256": "d4983224554f7c82877d45e4a7b31ab3cb1659be750beb964be4187318e86f7d",
+    "md5": "a64850364174a0e20807876f60ca6e70",
+    "name": "BSD-Inferno-Nettverk",
+    "text_length": 2084,
+    "normalized_length": 1788
+  },
+  "BSD-Mark-Modifications": {
+    "sha256": "2744ac37cb0588e6512d8ca14fe94851eae60ed348418e4350148c6eb790a97d",
+    "md5": "29e36bbaec9384a09116868c30811e62",
+    "name": "BSD Mark Modifications License",
+    "text_length": 1763,
+    "normalized_length": 1704
+  },
+  "BSD-Protection": {
+    "sha256": "04e7f68fced682a1f2929f5d752500204c2f5111b72d20c17b1c13f70a776ff0",
+    "md5": "26d9025bb315f35e361d4f78ce0b70d2",
+    "name": "BSD Protection License",
+    "text_length": 6244,
+    "normalized_length": 6023
+  },
+  "BSD-Source-beginning-file": {
+    "sha256": "e968f6df7a178a8034ebbf871c0f39a662f89ae4d25e4b2eec569690d0776641",
+    "md5": "08f2fd72de2d243a1ce4442b4e7031e1",
+    "name": "BSD Source Code Attribution - beginning of file variant",
+    "text_length": 1284,
+    "normalized_length": 1196
+  },
+  "BSD-Source-Code": {
+    "sha256": "7ce59a2e4d0c1b3b0ec5191c427c6837a4ead819b40c119fb599643b9bc67f2e",
+    "md5": "a6a7676c434bd868eff302face4a7dc9",
+    "name": "BSD Source Code Attribution",
+    "text_length": 1301,
+    "normalized_length": 1216
+  },
+  "BSD-Source-Code-no-disclaimer": {
+    "sha256": "a94ceca0e39c55ae2200b1f141355aa2dbc82732798034938a5330d198ca5dad",
+    "md5": "9cc91c2221e07d25520fb971be29c23c",
+    "name": "BSD Source Code Attribution - no disclaimer",
+    "text_length": 416,
+    "normalized_length": 401
+  },
+  "BSD-Systemics": {
+    "sha256": "89b7ed729fca212430581414ac60b456ab197c5c28451f8479ba3da67bc0de59",
+    "md5": "da63fc6ebe08f85cc55eee75d4217cc6",
+    "name": "Systemics BSD variant license",
+    "text_length": 2225,
+    "normalized_length": 2045
+  },
+  "BSD-Systemics-W3Works": {
+    "sha256": "68813b79917da0210b0566489ca453ff453412ccd5f52bcdf2239bec00e5c894",
+    "md5": "fd3f7af846b22e45ed4b3411e24e8fb9",
+    "name": "Systemics W3Works BSD variant license",
+    "text_length": 3180,
+    "normalized_length": 2871
+  },
   "BSL-1.0": {
     "sha256": "7914f6a05942740d4561f3aa8f4d882deca6f2fc940550859c0428926a654986",
     "md5": "3376f643b6127f13e198bb1a326dc1b5",
     "name": "Boost Software License 1.0",
     "text_length": 1338,
     "normalized_length": 1298
+  },
+  "Buddy": {
+    "sha256": "33d6b52ded669d0423ab4f9ca5f4ff61a0fa1655b82c85db5c2757f87442637c",
+    "md5": "48804170f45d91bff529aef03544f5ef",
+    "name": "Buddy License",
+    "text_length": 1447,
+    "normalized_length": 1328
+  },
+  "Bugroff": {
+    "sha256": "c05caf2ae82e29383265e20c8f3da50c404d30cc80472bce82a42161faeb7ce7",
+    "md5": "4f387dcbb335f5edb79af6eccfd65565",
+    "name": "Bugroff License",
+    "text_length": 2653,
+    "normalized_length": 2503
+  },
+  "BUSL-1.1": {
+    "sha256": "a2da4cfe0d43b5140fa9ca700f0fadcd27c355a9ccc9caf34a56986d5d828ce5",
+    "md5": "9027debe836b83500887b9e9648987b4",
+    "name": "Business Source License 1.1",
+    "text_length": 3400,
+    "normalized_length": 3280
+  },
+  "bzip2-1.0.5": {
+    "sha256": "2a81ce04844fd950ab2224d9360dce6c264e6c82bad425cbcf2657a46fce0f2f",
+    "md5": "c24f489828808c667fd7f54a145b8a5e",
+    "name": "bzip2 and libbzip2 License v1.0.5",
+    "text_length": 1937,
+    "normalized_length": 1812
+  },
+  "bzip2-1.0.6": {
+    "sha256": "498ffd70e6052051dcb922ea5139b3873a3b49d5c173c45536eba53006c8bcff",
+    "md5": "79321fa18dc6961f82e5cf374cfaf6d6",
+    "name": "bzip2 and libbzip2 License v1.0.6",
+    "text_length": 1739,
+    "normalized_length": 1637
+  },
+  "C-UDA-1.0": {
+    "sha256": "4ef27d1ae75ddc064ac6ed00036e4f843615839eaed2fba280abe4dc661cb05b",
+    "md5": "af5ca3c16db288d83cda4295d440b963",
+    "name": "Computational Use of Data Agreement v1.0",
+    "text_length": 3419,
+    "normalized_length": 3294
+  },
+  "CAL-1.0": {
+    "sha256": "23b403b7d31f8f70b8ab12a157f480f303ce54e309bcf13b480ccdbc57d7b4f7",
+    "md5": "29e66de8d4609754f3656e63c1131ac5",
+    "name": "Cryptographic Autonomy License 1.0",
+    "text_length": 16121,
+    "normalized_length": 15558
+  },
+  "CAL-1.0-Combined-Work-Exception": {
+    "sha256": "23b403b7d31f8f70b8ab12a157f480f303ce54e309bcf13b480ccdbc57d7b4f7",
+    "md5": "29e66de8d4609754f3656e63c1131ac5",
+    "name": "Cryptographic Autonomy License 1.0 (Combined Work Exception)",
+    "text_length": 16121,
+    "normalized_length": 15558
+  },
+  "Caldera": {
+    "sha256": "d782bdb384e556a95f506b6558fe827e56d1bbc20d44ebf437d757194ce508ac",
+    "md5": "fe94a8aa0846bdce7f0fb68b541a97a7",
+    "name": "Caldera License",
+    "text_length": 2577,
+    "normalized_length": 2400
+  },
+  "Caldera-no-preamble": {
+    "sha256": "98b04f757928cd8bde2750bbf7ecd495aaa6245e73f4b7b6edc81975480c129e",
+    "md5": "c77f8944ee9a3479134cc7c570679183",
+    "name": "Caldera License (without preamble)",
+    "text_length": 1752,
+    "normalized_length": 1616
+  },
+  "CAPEC-tou": {
+    "sha256": "34f2a80f2af818cceb4e193fe156b3504b4166ab4dd4637d4bd7ab91ac9527d3",
+    "md5": "04e4932f733156c8011a40a55c71e88f",
+    "name": "Common Attack    Pattern Enumeration and Classification License",
+    "text_length": 860,
+    "normalized_length": 832
+  },
+  "Catharon": {
+    "sha256": "c21ad9f743a76c43931718e80a6a6949c62aa42f8b3b7606cd048fc76fbbc632",
+    "md5": "89cebddd510a2ce18f22e779721cd893",
+    "name": "Catharon License",
+    "text_length": 5178,
+    "normalized_length": 4387
+  },
+  "CATOSL-1.1": {
+    "sha256": "95c344f09a23882dc575361aa8f8a3ce9d1bde26cbe69327e5cbd5b8c34d2039",
+    "md5": "3b8d71eed47924b8290af49efe07c264",
+    "name": "Computer Associates Trusted Open Source License 1.1",
+    "text_length": 19046,
+    "normalized_length": 18493
+  },
+  "CC-BY-1.0": {
+    "sha256": "f574f9b02b6791e4332793608048e3d4b77987adf17256d4c1537b584ee8a7ef",
+    "md5": "49021fbdf0787d1289fff703d35115dc",
+    "name": "Creative Commons Attribution 1.0 Generic",
+    "text_length": 11405,
+    "normalized_length": 10949
+  },
+  "CC-BY-2.0": {
+    "sha256": "dd6fbe155a92bd70621b25a5783c13004ac623915233bfcab34947b48133eb48",
+    "md5": "95785e4c4c7970a048dca715af5eedb1",
+    "name": "Creative Commons Attribution 2.0 Generic",
+    "text_length": 12572,
+    "normalized_length": 12064
+  },
+  "CC-BY-2.5": {
+    "sha256": "47e74e40dc5e8d9c86eb08d73c1bd4a20d5ef087f91159cc106f55e78ed1da5c",
+    "md5": "0bbd3bd691f3ccb6df1da94a835c3894",
+    "name": "Creative Commons Attribution 2.5 Generic",
+    "text_length": 12781,
+    "normalized_length": 12256
+  },
+  "CC-BY-2.5-AU": {
+    "sha256": "ba5a5c553a7a22beaddf48804fdeb54911746d5d2f24dc5012ab5f3b04a60c1c",
+    "md5": "abfc55373f0dbc3b969820526536af6f",
+    "name": "Creative Commons Attribution 2.5 Australia",
+    "text_length": 17126,
+    "normalized_length": 16360
+  },
+  "CC-BY-3.0": {
+    "sha256": "4b0fa3eebee415d41eb7bbcdab0bb8be069349a161fd59a068bfd42a4614289f",
+    "md5": "2080318ca0664b7b1aa06de6062a0177",
+    "name": "Creative Commons Attribution 3.0 Unported",
+    "text_length": 19467,
+    "normalized_length": 17989
+  },
+  "CC-BY-3.0-AT": {
+    "sha256": "106d853273b36dd660eca219340e71ed580ae70ec0e186c3cf965aad2c32d79a",
+    "md5": "00d546e156a11866ca3d556690b231e4",
+    "name": "Creative Commons Attribution 3.0 Austria",
+    "text_length": 18910,
+    "normalized_length": 18301
+  },
+  "CC-BY-3.0-AU": {
+    "sha256": "b9b3c1ede3a0f684df26846bc2493af21dc6b684dfe892194f4f0c6db2b25a47",
+    "md5": "85c07beff2f0e7ba5a705f449ca76423",
+    "name": "Creative Commons Attribution 3.0 Australia",
+    "text_length": 15256,
+    "normalized_length": 14465
+  },
+  "CC-BY-3.0-DE": {
+    "sha256": "5d83664e0f2310c6878f2e450569dbdc40848d8eef9b27b49421d9c91f45d415",
+    "md5": "f6b2bfb5b34316d65327c10f80292ef7",
+    "name": "Creative Commons Attribution 3.0 Germany",
+    "text_length": 18950,
+    "normalized_length": 18287
+  },
+  "CC-BY-3.0-IGO": {
+    "sha256": "e90fae29248498fb48282b7ed0afe1f20b0ea9ab84a513bd8c9f2d544682ef50",
+    "md5": "782dd7bd2abf79ef25d370471f2c17fd",
+    "name": "Creative Commons Attribution 3.0 IGO",
+    "text_length": 17572,
+    "normalized_length": 16955
+  },
+  "CC-BY-3.0-NL": {
+    "sha256": "0564059e228e8c336c7fca46dba3400ab5e04441c62a414207dc285332977cec",
+    "md5": "d27765d5e460ed6c5f5024da3d739839",
+    "name": "Creative Commons Attribution 3.0 Netherlands",
+    "text_length": 18367,
+    "normalized_length": 17807
+  },
+  "CC-BY-3.0-US": {
+    "sha256": "719a2e80e4438161a908052ebebe0aecfa2efc0285456765e3365536b9898e10",
+    "md5": "4990cb34bc355d1329495a4aa81590b1",
+    "name": "Creative Commons Attribution 3.0 United States",
+    "text_length": 14654,
+    "normalized_length": 14091
   },
   "CC-BY-4.0": {
     "sha256": "9bd87e01480d382ac0bc3419d8bb3d55a9eba26d9225d68c84ed4dd80b52c586",
@@ -62,12 +972,166 @@
     "text_length": 16983,
     "normalized_length": 15992
   },
+  "CC-BY-NC-1.0": {
+    "sha256": "ac026e76aa370e3037580d4ef89cf376b94fd5078cc5c79bc40e85a8e5800a58",
+    "md5": "bedc4f872a2ff51d56d9890b48817730",
+    "name": "Creative Commons Attribution Non Commercial 1.0 Generic",
+    "text_length": 11902,
+    "normalized_length": 11473
+  },
+  "CC-BY-NC-2.0": {
+    "sha256": "6ff519157c9f0ab1cb822a7dcdbe0c69eaf50bf25a6e811ac1fa043fec451ecf",
+    "md5": "0d7a0d455754f23018b8a04e22b8eb3c",
+    "name": "Creative Commons Attribution Non Commercial 2.0 Generic",
+    "text_length": 13585,
+    "normalized_length": 13070
+  },
+  "CC-BY-NC-2.5": {
+    "sha256": "197fef8cfde8414629a84120ef37a0a9a2960d19cbe9c8325256c623268ce42a",
+    "md5": "0c529c9cd0e8ce236d7078ea472a905d",
+    "name": "Creative Commons Attribution Non Commercial 2.5 Generic",
+    "text_length": 13790,
+    "normalized_length": 13258
+  },
+  "CC-BY-NC-3.0": {
+    "sha256": "b530e567ed0cd79d3738e23d5425fc1548fceb5451bee63f6392e9e59474345c",
+    "md5": "01da594298ddb039a1b22142ff4290e9",
+    "name": "Creative Commons Attribution Non Commercial 3.0 Unported",
+    "text_length": 20479,
+    "normalized_length": 18918
+  },
+  "CC-BY-NC-3.0-DE": {
+    "sha256": "d357d5a51a8b42516feec5e8d0ddf149560437e69325651ddc5b0b2173904d70",
+    "md5": "475afc257aef7d0892e06a793760e9cb",
+    "name": "Creative Commons Attribution Non Commercial 3.0 Germany",
+    "text_length": 20142,
+    "normalized_length": 19450
+  },
+  "CC-BY-NC-3.0-IGO": {
+    "sha256": "e17aed605c3be97396398f580a64eb40f4ab6842ac4dc23aa00eccc81f06918a",
+    "md5": "0b05c695ce78c88db5032fbbf282de18",
+    "name": "Creative Commons Attribution Non Commercial 3.0 IGO",
+    "text_length": 18208,
+    "normalized_length": 17795
+  },
   "CC-BY-NC-4.0": {
     "sha256": "f1472b1a398aad845f563f6f78e4e3ecd49da248007c46864b03eec968118314",
     "md5": "a7b151545ebd7ab46532761b8cb555d9",
     "name": "Creative Commons Attribution Non Commercial 4.0 International",
     "text_length": 17609,
     "normalized_length": 16603
+  },
+  "CC-BY-NC-ND-1.0": {
+    "sha256": "53e37b2a7d8408137ed60f97a6bb1a8f9c8ad7a76923ef67de0e01daf520db2d",
+    "md5": "e869d035993717be91b11963659318c3",
+    "name": "Creative Commons Attribution Non Commercial No Derivatives 1.0 Generic",
+    "text_length": 11032,
+    "normalized_length": 10610
+  },
+  "CC-BY-NC-ND-2.0": {
+    "sha256": "a30d19a2ede800de32e5030d9b7cd8ffbf504a5028520b7c10dd0fab3c48657a",
+    "md5": "ac772b1ac0d7a2b0f355de6812ba7b81",
+    "name": "Creative Commons Attribution Non Commercial No Derivatives 2.0 Generic",
+    "text_length": 12711,
+    "normalized_length": 12231
+  },
+  "CC-BY-NC-ND-2.5": {
+    "sha256": "28a52d25be495e8cf00b89111aca5fc954707824bccef25663d60364c0840628",
+    "md5": "d1233e67ec9a965aaf26e3188a417dd0",
+    "name": "Creative Commons Attribution Non Commercial No Derivatives 2.5 Generic",
+    "text_length": 12936,
+    "normalized_length": 12440
+  },
+  "CC-BY-NC-ND-3.0": {
+    "sha256": "b719ed0f0273b9700f3d4f1133b48459534c12bdf19a7e971c2400ce9dbf2db0",
+    "md5": "d4225994eb3ed23c2e17f90e4e230020",
+    "name": "Creative Commons Attribution Non Commercial No Derivatives 3.0 Unported",
+    "text_length": 18650,
+    "normalized_length": 17247
+  },
+  "CC-BY-NC-ND-3.0-DE": {
+    "sha256": "a8cede1d1622b3f429d28297ef6f0503268090693f752ab932ebe283b8a8bc02",
+    "md5": "fb5bb318338be5d2562817a246892bc2",
+    "name": "Creative Commons Attribution Non Commercial No Derivatives 3.0 Germany",
+    "text_length": 19186,
+    "normalized_length": 18544
+  },
+  "CC-BY-NC-ND-3.0-IGO": {
+    "sha256": "71041ef69b21d6fcb75989d85aa349873e30d92fecc212ee88801869b79b9fe2",
+    "md5": "a3d750db6611327535396dcaf753f2c7",
+    "name": "Creative Commons Attribution Non Commercial No Derivatives 3.0 IGO",
+    "text_length": 17672,
+    "normalized_length": 17079
+  },
+  "CC-BY-NC-ND-4.0": {
+    "sha256": "9734e449b9d2d43ba66144158b098a4f66b65b22f49a8d54bb0d9de98034f1c4",
+    "md5": "6d832c45d48a1aea3824c18adf36cd1b",
+    "name": "Creative Commons Attribution Non Commercial No Derivatives 4.0 International",
+    "text_length": 17412,
+    "normalized_length": 16417
+  },
+  "CC-BY-NC-SA-1.0": {
+    "sha256": "d028d6540f8f71750b1f3d2a346da79911d57824a415bee8a7071f926e019a54",
+    "md5": "b09b6293b5987401e59159a2d4311997",
+    "name": "Creative Commons Attribution Non Commercial Share Alike 1.0 Generic",
+    "text_length": 13065,
+    "normalized_length": 12574
+  },
+  "CC-BY-NC-SA-2.0": {
+    "sha256": "47db9a9e746a1129b7c340beb658f566dbe74dc2831a82c9e1022773273a4cee",
+    "md5": "49783e8cf638dfcb0d7d64a603da04b3",
+    "name": "Creative Commons Attribution Non Commercial Share Alike 2.0 Generic",
+    "text_length": 15177,
+    "normalized_length": 14610
+  },
+  "CC-BY-NC-SA-2.0-DE": {
+    "sha256": "8d05a23eee70e83eda0f23a28fbd43447902e54f4a9de24b2bf41e07849fbeb3",
+    "md5": "0e6b26fa98e28d6abb776f9eb66b2048",
+    "name": "Creative Commons Attribution Non Commercial Share Alike 2.0 Germany",
+    "text_length": 15389,
+    "normalized_length": 14819
+  },
+  "CC-BY-NC-SA-2.0-FR": {
+    "sha256": "66070a7323add41633247361ca72c95ef24cabacbf2059d471d75050ec39f71b",
+    "md5": "02b7204eea0cfc6598357297dcf3ec2a",
+    "name": "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 France",
+    "text_length": 18284,
+    "normalized_length": 17712
+  },
+  "CC-BY-NC-SA-2.0-UK": {
+    "sha256": "aa583828dcba808540fa19ac399aa9a28cb5d08cf61912c0bd8c720df14dea61",
+    "md5": "48c35ff2c5e452cf98f84681c43e9bb7",
+    "name": "Creative Commons Attribution Non Commercial Share Alike 2.0 England and Wales",
+    "text_length": 11307,
+    "normalized_length": 10801
+  },
+  "CC-BY-NC-SA-2.5": {
+    "sha256": "38e79b98c9aaaf721e12ce3f36ff91c93a8899035150558ad5703549753631a3",
+    "md5": "aee2e6d4891ba01de5efa2e192fa72c2",
+    "name": "Creative Commons Attribution Non Commercial Share Alike 2.5 Generic",
+    "text_length": 15386,
+    "normalized_length": 14802
+  },
+  "CC-BY-NC-SA-3.0": {
+    "sha256": "b5c5fa8f3066ee5379efede682f04f1322be5ad0527255ea3633edef368c95f1",
+    "md5": "504f3ebf8260347c83e3672332632f0c",
+    "name": "Creative Commons Attribution Non Commercial Share Alike 3.0 Unported",
+    "text_length": 22306,
+    "normalized_length": 20612
+  },
+  "CC-BY-NC-SA-3.0-DE": {
+    "sha256": "4944ce9f2c2a60477c807498affdcafed2febfa9c29147b050f4aeb65fb8545e",
+    "md5": "8f68fb95037fb6bcfe8659f4a36bd6c7",
+    "name": "Creative Commons Attribution Non Commercial Share Alike 3.0 Germany",
+    "text_length": 22098,
+    "normalized_length": 21285
+  },
+  "CC-BY-NC-SA-3.0-IGO": {
+    "sha256": "d872eaf9d890f770d8d1d45f17ae3529ef4dbebc99a91f0a1ecf5e04c8a55261",
+    "md5": "f5968ed3ebe4e5ee4297d831bdfe543e",
+    "name": "Creative Commons Attribution Non Commercial Share Alike 3.0 IGO",
+    "text_length": 20322,
+    "normalized_length": 19495
   },
   "CC-BY-NC-SA-4.0": {
     "sha256": "edaa5aa3081887b916ab61eba7e84473cd039469b8e043f431c2ca31b90be8f4",
@@ -76,12 +1140,138 @@
     "text_length": 18972,
     "normalized_length": 17878
   },
+  "CC-BY-ND-1.0": {
+    "sha256": "15e1c0e5059c293b54045a3d906e85d2edd6a11987891b7a6b6b3d163617f4f3",
+    "md5": "03c30600c59283f463ef102d1baedcc4",
+    "name": "Creative Commons Attribution No Derivatives 1.0 Generic",
+    "text_length": 10488,
+    "normalized_length": 10077
+  },
+  "CC-BY-ND-2.0": {
+    "sha256": "779786a9e4d885259a95c9dc89b61fdd435d6c693a3ff17dbf02890e038169dc",
+    "md5": "f9cbabba7d478427c2fb0ed6fcbe2273",
+    "name": "Creative Commons Attribution No Derivatives 2.0 Generic",
+    "text_length": 11696,
+    "normalized_length": 11231
+  },
+  "CC-BY-ND-2.5": {
+    "sha256": "af3a7724c94a27cc28d5417fbe5fbff65fb367c2132e86bd57fd453bf15fda7c",
+    "md5": "64a4c06718529f1e1d833d866880777b",
+    "name": "Creative Commons Attribution No Derivatives 2.5 Generic",
+    "text_length": 11929,
+    "normalized_length": 11448
+  },
+  "CC-BY-ND-3.0": {
+    "sha256": "471a74660071ac063e4ce691ed36cbf94790336cf78e023c8333ed0489d9b665",
+    "md5": "066ea60450a1f37b4a7f2f5449e63e5c",
+    "name": "Creative Commons Attribution No Derivatives 3.0 Unported",
+    "text_length": 17650,
+    "normalized_length": 16332
+  },
+  "CC-BY-ND-3.0-DE": {
+    "sha256": "db9823d982155a9dda7b835184ceb969890c5ee0bcb99088a32db8d5322bd07f",
+    "md5": "0f043cb87ab6b7a45c9d7ac634ee99e0",
+    "name": "Creative Commons Attribution No Derivatives 3.0 Germany",
+    "text_length": 17987,
+    "normalized_length": 17374
+  },
+  "CC-BY-ND-4.0": {
+    "sha256": "062d652fb22859adb9ce7f973136ccd74637df420472f44854c131e32460a45c",
+    "md5": "c4aaa94a3d60cb67b6a8f6b3091948a2",
+    "name": "Creative Commons Attribution No Derivatives 4.0 International",
+    "text_length": 16790,
+    "normalized_length": 15804
+  },
+  "CC-BY-SA-1.0": {
+    "sha256": "a147ddb74317bddf07f1af8d1092741a4daf1c917f9ade8d8068b7c9ac175014",
+    "md5": "3250c5aa998601a04d708c5e733361a6",
+    "name": "Creative Commons Attribution Share Alike 1.0 Generic",
+    "text_length": 12523,
+    "normalized_length": 12041
+  },
+  "CC-BY-SA-2.0": {
+    "sha256": "ba6184df865709b1191beed4e061b47105429237ef0f90876c63e441d54eb17d",
+    "md5": "b4c25df42388e7b323e48e296854d62b",
+    "name": "Creative Commons Attribution Share Alike 2.0 Generic",
+    "text_length": 14122,
+    "normalized_length": 13571
+  },
+  "CC-BY-SA-2.0-UK": {
+    "sha256": "ed88b67ee5aca807e7f73e78f61d52cc3016ed479be250c82067875245e4f618",
+    "md5": "12e2600d4488c7a8fd0ffb250b3e0230",
+    "name": "Creative Commons Attribution Share Alike 2.0 England and Wales",
+    "text_length": 10810,
+    "normalized_length": 10328
+  },
+  "CC-BY-SA-2.1-JP": {
+    "sha256": "6b4086c9209200e02d14ae94046722ca325001e61e90e0a275b236504174ac79",
+    "md5": "0877c12d913cb5400fedb580823b6b6c",
+    "name": "Creative Commons Attribution Share Alike 2.1 Japan",
+    "text_length": 5739,
+    "normalized_length": 5390
+  },
+  "CC-BY-SA-2.5": {
+    "sha256": "42e89f7709b05e54f8abc8da136a80cefe1eb31a290cd8a6cd097393982b457c",
+    "md5": "56e1c5addeb2302ef73b6b5afe5ed1f4",
+    "name": "Creative Commons Attribution Share Alike 2.5 Generic",
+    "text_length": 14331,
+    "normalized_length": 13763
+  },
+  "CC-BY-SA-3.0": {
+    "sha256": "a3ca4db015e5bc488884820f64ad33e7f55e31b294b91e322f2683d6a60e4653",
+    "md5": "274efcf0820da1bad9787d01b084cc4b",
+    "name": "Creative Commons Attribution Share Alike 3.0 Unported",
+    "text_length": 22240,
+    "normalized_length": 20488
+  },
+  "CC-BY-SA-3.0-AT": {
+    "sha256": "12c3f8b034d7bfa3a11c25a10f3c1e8b086f59b8405a8df261ae5b5db290b553",
+    "md5": "b66a60454affae95a4f5aa8a3e762a5c",
+    "name": "Creative Commons Attribution Share Alike 3.0 Austria",
+    "text_length": 22022,
+    "normalized_length": 21200
+  },
+  "CC-BY-SA-3.0-DE": {
+    "sha256": "1f032b3d9d1ae059ab343f59223dc12831e97617872699a230ed5182541e44da",
+    "md5": "73297434eeca248ad94326f4bbe39417",
+    "name": "Creative Commons Attribution Share Alike 3.0 Germany",
+    "text_length": 22119,
+    "normalized_length": 21208
+  },
+  "CC-BY-SA-3.0-IGO": {
+    "sha256": "b88dd1851bb891176e4735322e4b37ccab1f217d634bdc98668cbf3c23d9e50b",
+    "md5": "0eb2bf8dffa103b6454bdb218b732bec",
+    "name": "Creative Commons Attribution-ShareAlike 3.0 IGO",
+    "text_length": 20189,
+    "normalized_length": 19435
+  },
   "CC-BY-SA-4.0": {
     "sha256": "673666539851f0b2831f46495cd544b55f56f9874a33058250ef316e4c85397e",
     "md5": "9333b42fbedbcc0cab2e0a3a80afc056",
     "name": "Creative Commons Attribution Share Alike 4.0 International",
     "text_length": 18329,
     "normalized_length": 17247
+  },
+  "CC-PDDC": {
+    "sha256": "b00b14ef73f08ce0df66bbfd7fd5ca6f127b1db56ae1c4946b7c777a781e6035",
+    "md5": "e9d37a90b4e755d47d4d7f1600d7c460",
+    "name": "Creative Commons Public Domain Dedication and Certification",
+    "text_length": 1593,
+    "normalized_length": 1542
+  },
+  "CC-PDM-1.0": {
+    "sha256": "852d51621f34029b98982d4ead82fad1e5a25cb90648cb93117d11be057e9f57",
+    "md5": "e8661e3c9bb39eef88508c550ba0b1a1",
+    "name": "Creative    Commons Public Domain Mark 1.0 Universal",
+    "text_length": 1111,
+    "normalized_length": 1079
+  },
+  "CC-SA-1.0": {
+    "sha256": "1faab325ef0f9eb3c0e330cbdf7e2f9b438419a668f4d1a2578b625cadaaa15c",
+    "md5": "17f6b5ad6649d692eed37b1d4d46a828",
+    "name": "Creative Commons Share Alike 1.0 Generic",
+    "text_length": 11937,
+    "normalized_length": 11133
   },
   "CC0-1.0": {
     "sha256": "2a5e38ad31ebe369e70533cc7043a792d9d7a255d930feb0f26d5be91f9f69ff",
@@ -97,6 +1287,237 @@
     "text_length": 16419,
     "normalized_length": 15837
   },
+  "CDDL-1.1": {
+    "sha256": "f662aad566473c803225c18b07bfc7075096169263a9a7bc92884f1c20f7e5df",
+    "md5": "eb913ee9d986d1f81495c130c2abe272",
+    "name": "Common Development and Distribution License 1.1",
+    "text_length": 17305,
+    "normalized_length": 16712
+  },
+  "CDL-1.0": {
+    "sha256": "211a4f0a930d76d0f04c2c82ade05f704bda6bfdac4bd6be2d5d8387493f732d",
+    "md5": "41f17ea2916622b6e7c1d5b25106256d",
+    "name": "Common Documentation License 1.0",
+    "text_length": 8591,
+    "normalized_length": 8224
+  },
+  "CDLA-Permissive-1.0": {
+    "sha256": "302a60006d7a15e912d6132f582780c5b964e47b123a3487e5e3092f86c89cb9",
+    "md5": "a0c615484c52cfc98a7fd7bf91343da2",
+    "name": "Community Data License Agreement Permissive 1.0",
+    "text_length": 10354,
+    "normalized_length": 10002
+  },
+  "CDLA-Permissive-2.0": {
+    "sha256": "735cf2e2b5a6ebbf8ae9d4507a4e09e7da4662a7409cf71609c5739a6eba42a0",
+    "md5": "61684f0ac8caf51d6baa4b9c28b94312",
+    "name": "Community Data License Agreement Permissive 2.0",
+    "text_length": 2354,
+    "normalized_length": 2257
+  },
+  "CDLA-Sharing-1.0": {
+    "sha256": "22dc8fcc2ca8fa8c40730639d6d64d87d50af8240be0acd6480ef89cf9926d55",
+    "md5": "47082285dad8cfb6517eadcf466e24a5",
+    "name": "Community Data License Agreement Sharing 1.0",
+    "text_length": 11121,
+    "normalized_length": 10748
+  },
+  "CECILL-1.0": {
+    "sha256": "5ed35f39e7510b399503ee9a8dff3bd2aa03342e198c45fcc6a5196e48c15a27",
+    "md5": "d27b45e72ad47b07cd8644db1ab26004",
+    "name": "CeCILL Free Software License Agreement v1.0",
+    "text_length": 20939,
+    "normalized_length": 20460
+  },
+  "CECILL-1.1": {
+    "sha256": "b06c74c2cb8921956bb04feba171c84656d4db66649c3c9ff6db9e9b970de458",
+    "md5": "ed621fc95beab49aad5b787e917b2128",
+    "name": "CeCILL Free Software License Agreement v1.1",
+    "text_length": 21215,
+    "normalized_length": 20627
+  },
+  "CECILL-2.0": {
+    "sha256": "9aad675f877b22c10351c0b777d7d00112aa35b4c19b04d3d0058be37e180353",
+    "md5": "15f64e8a111624008d063cddc7d61f4b",
+    "name": "CeCILL Free Software License Agreement v2.0",
+    "text_length": 21095,
+    "normalized_length": 20247
+  },
+  "CECILL-2.1": {
+    "sha256": "4f931e207d350a6761325406f2c58ef9d8cfe0a54c1d149e265e66c485c43174",
+    "md5": "306c9168e5f44d4f11be6540720c16b1",
+    "name": "CeCILL Free Software License Agreement v2.1",
+    "text_length": 21774,
+    "normalized_length": 20905
+  },
+  "CECILL-B": {
+    "sha256": "47afd8319636580bdd70238804a489ba1ca0a47c1b30ab66adee919097598fcf",
+    "md5": "dbb7b394f16d7529693f3ffe7c1343ff",
+    "name": "CeCILL-B Free Software License Agreement",
+    "text_length": 21391,
+    "normalized_length": 20466
+  },
+  "CECILL-C": {
+    "sha256": "443e941f5985dbcfe40f567eb9d3f4cc27fef73331ff8699c9204d45c2ae3627",
+    "md5": "26fa2207a4e20c72e11c479129c0ec18",
+    "name": "CeCILL-C Free Software License Agreement",
+    "text_length": 21861,
+    "normalized_length": 20932
+  },
+  "CERN-OHL-1.1": {
+    "sha256": "b9c64b5d58a28f3320f1f9bf54fd9851964cd502417ac9aca142889f79422e48",
+    "md5": "0470c5fa11d6deeb2ee43b824920f2f2",
+    "name": "CERN Open Hardware Licence v1.1",
+    "text_length": 8090,
+    "normalized_length": 7878
+  },
+  "CERN-OHL-1.2": {
+    "sha256": "91bc436f09d2603ef35fbbb4aa2aadb75997a7b097fc8e0187dd6bd3c20a0afb",
+    "md5": "a41b057ae2b17594f45872fcca58351b",
+    "name": "CERN Open Hardware Licence v1.2",
+    "text_length": 9141,
+    "normalized_length": 8914
+  },
+  "CERN-OHL-P-2.0": {
+    "sha256": "e6213b725f5d2dea3aba29c52ce466fe68e7a944718fc00e036a1c99d198712b",
+    "md5": "c1b11f3b1bf0925165b4fe5931881897",
+    "name": "CERN Open Hardware Licence Version 2 - Permissive",
+    "text_length": 8855,
+    "normalized_length": 7950
+  },
+  "CERN-OHL-S-2.0": {
+    "sha256": "b0145a0760804fcba03ab42e5144c0755a8c94eb702d2193601d0ea31dfa7616",
+    "md5": "0ba3b6d85f99ce0b8c696e6adcd0e2cc",
+    "name": "CERN Open Hardware Licence Version 2 - Strongly Reciprocal",
+    "text_length": 13419,
+    "normalized_length": 11954
+  },
+  "CERN-OHL-W-2.0": {
+    "sha256": "8083a76e8f383c50f72810893d7dc9b4809782996078a6864ea2720f35e38d6f",
+    "md5": "e46bdd3e55e7ad09726f253baea957fe",
+    "name": "CERN Open Hardware Licence Version 2 - Weakly Reciprocal",
+    "text_length": 14529,
+    "normalized_length": 12922
+  },
+  "CFITSIO": {
+    "sha256": "4544781c885a72312184ddcf4f255cf0ce018d8fb73adfc91f7fc7c6f44528b1",
+    "md5": "4db0957c300cdbf80ee188a9db847ea5",
+    "name": "CFITSIO License",
+    "text_length": 1408,
+    "normalized_length": 1356
+  },
+  "check-cvs": {
+    "sha256": "64aef4f52afaa41679573ea25dd940c47b5c61ee59394eb776e38f28448f80b8",
+    "md5": "39db5059c2238d4a43c71a84c5277335",
+    "name": "check-cvs License",
+    "text_length": 125,
+    "normalized_length": 121
+  },
+  "checkmk": {
+    "sha256": "a368999ef24dff53ccbaa660c700df61065d9cb2bdfdf146afd370ca7abfb202",
+    "md5": "7d5723c462e785c5ad20e1d5da88ebcd",
+    "name": "Checkmk License",
+    "text_length": 435,
+    "normalized_length": 400
+  },
+  "ClArtistic": {
+    "sha256": "610a1e789b3bd114036de08250fd237d6708e8c61e8dbd365c0248ba460400e7",
+    "md5": "2a35bef9baba4ef39e86779a11c229e0",
+    "name": "Clarified Artistic License",
+    "text_length": 6389,
+    "normalized_length": 6174
+  },
+  "Clips": {
+    "sha256": "0d3cfa6d898826286f63b0384d24f348e3d1190679fedd235c5ffad7a738f41b",
+    "md5": "a0f3a40c9bf5346f6eb1efe4dd1691d5",
+    "name": "Clips License",
+    "text_length": 938,
+    "normalized_length": 902
+  },
+  "CMU-Mach": {
+    "sha256": "f8bca4fd202ddfd6cbddad7364f86dd620b120815ab56017b1c79f8614a516d5",
+    "md5": "ce1d2410ae13e814ad3354a062f6e55f",
+    "name": "CMU Mach License",
+    "text_length": 938,
+    "normalized_length": 823
+  },
+  "CMU-Mach-nodoc": {
+    "sha256": "a8415594b8f388af70dc8b3e4bba5cee1cb2f4fa23a2e74e6036a8805f8a56fc",
+    "md5": "393b0e1738f4354e4c156de794232e14",
+    "name": "CMU    Mach - no notices-in-documentation variant",
+    "text_length": 499,
+    "normalized_length": 432
+  },
+  "CNRI-Jython": {
+    "sha256": "d22bf1106a34b0caab0c61427f17884dc4a2bc80be64264820c78ba7a53daa40",
+    "md5": "9b96588e514b28c9e394ddc78682936c",
+    "name": "CNRI Jython License",
+    "text_length": 3907,
+    "normalized_length": 3749
+  },
+  "CNRI-Python": {
+    "sha256": "71adebd9b6711b7838241d7e6f385bce6623e52e36cf931a15be1ff0b1aa5c54",
+    "md5": "3f22daab84167a74bd19946c867e6899",
+    "name": "CNRI Python License",
+    "text_length": 3381,
+    "normalized_length": 3235
+  },
+  "CNRI-Python-GPL-Compatible": {
+    "sha256": "d2d4991ee8af5494d76668552d64773d96c8c10c69de880f954c420fc7fda8f2",
+    "md5": "bd582ac53c6fa71c56bc7f383c352fce",
+    "name": "CNRI Python Open Source GPL Compatible License Agreement",
+    "text_length": 4003,
+    "normalized_length": 3847
+  },
+  "COIL-1.0": {
+    "sha256": "0cd425a620accbd3541a108210ae4fe2444a47d4b6c83ba3f1148b789ee56ba4",
+    "md5": "2ea8b47ea25dd16234618a80296a7f89",
+    "name": "Copyfree Open Innovation License",
+    "text_length": 1657,
+    "normalized_length": 1589
+  },
+  "Community-Spec-1.0": {
+    "sha256": "7ba52bb3085c78f652aa06de34d3fb957718124e97b71a17d103768b8b98aef8",
+    "md5": "ccaf4a221669403be092d7f95f2a6a6e",
+    "name": "Community Specification License 1.0",
+    "text_length": 15779,
+    "normalized_length": 15273
+  },
+  "Condor-1.1": {
+    "sha256": "c51e370f0da8cde3af772f653aa7f341d89659f9fc444d40e8f0087f151aa475",
+    "md5": "7cb7979c4e4dc1aeda1895dba1bb8a0f",
+    "name": "Condor Public License v1.1",
+    "text_length": 6054,
+    "normalized_length": 5422
+  },
+  "copyleft-next-0.3.0": {
+    "sha256": "78a023e17011904958f37801849b7a3189b584c40f435860035946d89cdce95f",
+    "md5": "f69e3f42120b8b338863b832a68bafa8",
+    "name": "copyleft-next 0.3.0",
+    "text_length": 10571,
+    "normalized_length": 9180
+  },
+  "copyleft-next-0.3.1": {
+    "sha256": "ebace13fd9fb5d81752124c01a97f64a877b53ef6961c0e4c8ade50f6c7cc48b",
+    "md5": "b51b2c5f4468c5b44ab791eb45ad8517",
+    "name": "copyleft-next 0.3.1",
+    "text_length": 10634,
+    "normalized_length": 9221
+  },
+  "Cornell-Lossless-JPEG": {
+    "sha256": "78819b7f5740b959e45717bf419b00fc168ad46849dbe00e77b99589ec32d934",
+    "md5": "25cff22f31289160f22d671332168ae5",
+    "name": "Cornell Lossless JPEG License",
+    "text_length": 971,
+    "normalized_length": 888
+  },
+  "CPAL-1.0": {
+    "sha256": "f40a1be25b48b62a9f6e923bdd3b95ad429b04b8d9418d1178ea8ec3a14202c4",
+    "md5": "6c4e127c4c6b18b20955cd6c6868a30f",
+    "name": "Common Public Attribution License 1.0",
+    "text_length": 28141,
+    "normalized_length": 27283
+  },
   "CPL-1.0": {
     "sha256": "cbb0bcbe8996dffdfc4f8051a0387ec396ec816ba37b71d60937fd9f1904cbed",
     "md5": "0c09f70b2f34ac9bdac6b82638579af6",
@@ -104,12 +1525,243 @@
     "text_length": 11653,
     "normalized_length": 11250
   },
+  "CPOL-1.02": {
+    "sha256": "78c277bc47d74ab5d47b41eb3b7011cc796c01127090e9a3f80195bdbc7fc064",
+    "md5": "a8a8608c1e3f3b7bf4e2f2bbdd31d85b",
+    "name": "Code Project Open License 1.02",
+    "text_length": 11649,
+    "normalized_length": 11175
+  },
+  "Cronyx": {
+    "sha256": "3b6073edf94d85e750a537aeccdd09c8294a558f42d1bcd5817c12d187e1f570",
+    "md5": "1684424e06d8771b6990897f16ec7c2b",
+    "name": "Cronyx License",
+    "text_length": 595,
+    "normalized_length": 538
+  },
+  "Crossword": {
+    "sha256": "80989fb092a2326cab01e35cf742d2eeec1557b8bf4ed05e336e6c5f12c0c475",
+    "md5": "98717cd4599d4d9bb186d5057f292cfe",
+    "name": "Crossword License",
+    "text_length": 479,
+    "normalized_length": 427
+  },
+  "CryptoSwift": {
+    "sha256": "0413bc8a5eb58eeedee60f84e2c80231fd8119f771836c2b3c7b96b2f3014c86",
+    "md5": "d0d2c62020fb1825f9b325233ad4d55c",
+    "name": "CryptoSwift License",
+    "text_length": 1012,
+    "normalized_length": 915
+  },
+  "CrystalStacker": {
+    "sha256": "bc62effc34208b603ff8a6b2d16adb2457ba1ce938cf732c7e1cc34ccef82fcb",
+    "md5": "53d4b75ecfc85ec0a18e4ea8782ac163",
+    "name": "CrystalStacker License",
+    "text_length": 982,
+    "normalized_length": 961
+  },
+  "CUA-OPL-1.0": {
+    "sha256": "b5cfd9b161fa2ea77ffcd06864725f042b8ff1ae60fb3e43f0d5d5be6029b718",
+    "md5": "8882f30717315053956d8db71368e3b0",
+    "name": "CUA Office Public License v1.0",
+    "text_length": 23381,
+    "normalized_length": 22593
+  },
+  "Cube": {
+    "sha256": "6e4ee7ec8483a8cee2e9f13021b21eb6edbb91068f2d7365b7bbcec773401d45",
+    "md5": "0d3bb491c44bf8ba9fe32005b5c8d7fe",
+    "name": "Cube License",
+    "text_length": 1078,
+    "normalized_length": 975
+  },
+  "curl": {
+    "sha256": "091aaa7349467fa82d45a592b304d97a87e61fa149cf31c97589343ac9571f06",
+    "md5": "c1db63695d5cc9f883683d6edb03265b",
+    "name": "curl License",
+    "text_length": 1043,
+    "normalized_length": 954
+  },
+  "cve-tou": {
+    "sha256": "f59006868ff75211edb896a078f59a499e600e6d49ab661777c7669123414004",
+    "md5": "52176d10248bf9c1c26ee50a47567072",
+    "name": "Common Vulnerability Enumeration ToU License",
+    "text_length": 942,
+    "normalized_length": 909
+  },
+  "D-FSL-1.0": {
+    "sha256": "1b58813051762702540267f28e547fdd73e7addf01bac198f0dbe43e5c1a8c1d",
+    "md5": "0e67e566d1ad3d5de427d5b37fb0433b",
+    "name": "Deutsche Freie Software Lizenz",
+    "text_length": 15016,
+    "normalized_length": 14479
+  },
+  "DEC-3-Clause": {
+    "sha256": "8ceff03efabf7d38d9469fc97fa8cf7df4c68dded9d54c447b0c3a5e33778a63",
+    "md5": "a71060544fd40fc95e0d2f5a6c8fe837",
+    "name": "DEC 3-Clause License",
+    "text_length": 1530,
+    "normalized_length": 1395
+  },
+  "diffmark": {
+    "sha256": "e8476ce03c63815020d5827b1993c35283b36820915b42c09b8cd43e3edc0e9d",
+    "md5": "a52daa158c0cd9a6d3bb988ff031d99f",
+    "name": "diffmark license",
+    "text_length": 88,
+    "normalized_length": 85
+  },
+  "DL-DE-BY-2.0": {
+    "sha256": "b7dd1760644b564f3298ef4df9f196b6d6996b9ad372ba90f01cbdbe70467682",
+    "md5": "f0130ec9283a12b9be4e4c6743fae621",
+    "name": "Data licence Germany – attribution – version 2.0",
+    "text_length": 2472,
+    "normalized_length": 2277
+  },
+  "DL-DE-ZERO-2.0": {
+    "sha256": "ded0a21c13fc1554f4e820521d72b3763cdea0e078ee9df1f7f339757fa1eb19",
+    "md5": "70e3fc1115545d2aa814c7e8bbcc9dc6",
+    "name": "Data licence Germany – zero – version 2.0",
+    "text_length": 1188,
+    "normalized_length": 1085
+  },
+  "DOC": {
+    "sha256": "c64636ce9ebdc2b349fd79416d651a5042fd1ca1472dcfba86861e6e56d25e7d",
+    "md5": "bcfcfe3fc5f6ed828d3f5c0a5c34dc50",
+    "name": "DOC License",
+    "text_length": 4472,
+    "normalized_length": 4311
+  },
+  "DocBook-DTD": {
+    "sha256": "81d2b9d4e7336b0d887bb812b170897142a845f240fa889376d40c872a9f906d",
+    "md5": "f62466f1984ceaf746d00c65b8e6fad0",
+    "name": "DocBook DTD License",
+    "text_length": 1157,
+    "normalized_length": 1000
+  },
+  "DocBook-Schema": {
+    "sha256": "99c44aa74241c60f50257fdf239fd1ac3df0f2ddc6eb46973f481385c3487b69",
+    "md5": "daac5f9d6391354d7dac769870e16173",
+    "name": "DocBook Schema License",
+    "text_length": 1042,
+    "normalized_length": 834
+  },
+  "DocBook-Stylesheet": {
+    "sha256": "7c95c6b1dfdfd6d59ebe8882295f0335b95ab64f4449e2a91fe573e2d4918e6c",
+    "md5": "8adad117f39ba51eee03f4d6b6383833",
+    "name": "DocBook Stylesheet License",
+    "text_length": 615,
+    "normalized_length": 547
+  },
+  "DocBook-XML": {
+    "sha256": "14db02e8d93a6eff5a308ee51ed9db50c206f9106400dae94bc1a366d7e352fb",
+    "md5": "1b25233dac985d2fec36bebe2ad602d4",
+    "name": "DocBook XML License",
+    "text_length": 1997,
+    "normalized_length": 1718
+  },
+  "Dotseqn": {
+    "sha256": "926cb741deb4ef640efd2915c4dcd9a86f32e40fa79154cc5f9a377a0f1dda40",
+    "md5": "d25a94ce5ce970a2629b62e372c0ad54",
+    "name": "Dotseqn License",
+    "text_length": 261,
+    "normalized_length": 214
+  },
+  "DRL-1.0": {
+    "sha256": "6848d3813f7584194aa1aa29d0cd91b6abf56d7395be11e6cd122e8116e9079d",
+    "md5": "902586bf580061fccd2571e8531d20d5",
+    "name": "Detection Rule License 1.0",
+    "text_length": 1512,
+    "normalized_length": 1457
+  },
+  "DRL-1.1": {
+    "sha256": "4af4d127b6a7e5ae4da9fdcb5730a03521892276c89c2aa5cce18415adb3adfa",
+    "md5": "fb5128660bfe125a3395a0e475805b80",
+    "name": "Detection Rule License 1.1",
+    "text_length": 1883,
+    "normalized_length": 1812
+  },
+  "DSDP": {
+    "sha256": "098e4d2b6c1b683a296ae2a881f68a015e30bedfda1b81d91e87320f55e4bec3",
+    "md5": "d72b473c4d21a25f934c9812103c3f9e",
+    "name": "DSDP License",
+    "text_length": 2280,
+    "normalized_length": 2165
+  },
+  "dtoa": {
+    "sha256": "4de5e4a61077b78b2258bcc602fd7b6580a38aacfc836438670b3e6cdea80e79",
+    "md5": "642eb9d99b98c25aeb843d4ee09ef21f",
+    "name": "David M. Gay dtoa License",
+    "text_length": 685,
+    "normalized_length": 612
+  },
+  "dvipdfm": {
+    "sha256": "4862db989df1f138615316f5f6593aff5e0e067775f7d944a5b4c2b4c57364d4",
+    "md5": "a55839c58ec295c8a9db61f0d3a846ad",
+    "name": "dvipdfm License",
+    "text_length": 210,
+    "normalized_length": 202
+  },
+  "ECL-1.0": {
+    "sha256": "a26caf8fe303a74786aefce1c1ba0eabf393e87c191519f1d2932a1b08809761",
+    "md5": "d56480ba591a9b0b0c840ed2db7e5238",
+    "name": "Educational Community License v1.0",
+    "text_length": 2425,
+    "normalized_length": 2309
+  },
   "ECL-2.0": {
     "sha256": "189e048c6e444c829fc824030cccfc60d544bfe4b41505185750b1b67f6a561d",
     "md5": "c4a321a7007a505f8e74125613eb492a",
     "name": "Educational Community License v2.0",
     "text_length": 11111,
     "normalized_length": 10588
+  },
+  "eCos-2.0": {
+    "sha256": "9f3fdf85ae88ebe95b53d8819fb8473c6d6736ff09ca4840db2f3819a127aead",
+    "md5": "19d696d08b1656d3e5b59def537f54c0",
+    "name": "eCos license version 2.0",
+    "text_length": 1566,
+    "normalized_length": 1466
+  },
+  "EFL-1.0": {
+    "sha256": "fadd59d8df79c19202a35c4a51018340b4b2badc22928692aef08cf33a289828",
+    "md5": "b90d7f6c20a160eaf11592f9ad67ed21",
+    "name": "Eiffel Forum License v1.0",
+    "text_length": 919,
+    "normalized_length": 874
+  },
+  "EFL-2.0": {
+    "sha256": "b6b47ec66b9cf37357b4002585d0bdc2094c2613cdeb79fa53a39324197ea06f",
+    "md5": "ac1078f691c7a838cbfbf1998dc9c127",
+    "name": "Eiffel Forum License v2.0",
+    "text_length": 924,
+    "normalized_length": 883
+  },
+  "eGenix": {
+    "sha256": "3ee7043d3dbfcbba5a6f7c161393d7535118497ce646f4a1b9d216795c2b1850",
+    "md5": "9fb8e66bf622a01f4a7b9e27e14041e1",
+    "name": "eGenix.com Public License 1.1.0",
+    "text_length": 4235,
+    "normalized_length": 4101
+  },
+  "Elastic-2.0": {
+    "sha256": "0ca3d7b7bf4e38ab8819efddee4ed049c8703ea11d7c9cd8d7c856994428219e",
+    "md5": "8dd982ebb0dbdcec008401b41992248e",
+    "name": "Elastic License 2.0",
+    "text_length": 3800,
+    "normalized_length": 3641
+  },
+  "Entessa": {
+    "sha256": "b0dc5292a1aea1aa52976845cc90f17c17fbe2aed34ea4e92bbbe427dd7dfd3d",
+    "md5": "a5841f9c64edddc6da5d9a0644161c7d",
+    "name": "Entessa Public License v1.0",
+    "text_length": 2277,
+    "normalized_length": 2038
+  },
+  "EPICS": {
+    "sha256": "fab1ff00629c75525a85f9465700746450295e8dc9a237f4062a11411f1fb206",
+    "md5": "300bfd31f839cfce3ffe7b838468b0ce",
+    "name": "EPICS Open License",
+    "text_length": 3438,
+    "normalized_length": 3309
   },
   "EPL-1.0": {
     "sha256": "0e2a5b6b73064b6b975723f6574ccbdeab0d592f96cf936ac4a0a8f2138e6201",
@@ -125,12 +1777,467 @@
     "text_length": 13946,
     "normalized_length": 13590
   },
+  "ErlPL-1.1": {
+    "sha256": "b8a3c2d05ec4b97d7a0f4f3629dfbc2ec8334b429826a780936e051c4b3ae839",
+    "md5": "cbcdd7cf2f2b5991aa3a27e09de86642",
+    "name": "Erlang Public License v1.1",
+    "text_length": 13958,
+    "normalized_length": 13477
+  },
+  "ESA-PL-permissive-2.4": {
+    "sha256": "4733a780423cf5dd629e56d03a1639d4ab168a706b49d27186bac3ce914882be",
+    "md5": "f3e0cbaba34e60bd3d4639c647255f64",
+    "name": "European Space Agency Public License – v2.4 – Permissive (Type 3)",
+    "text_length": 12846,
+    "normalized_length": 12307
+  },
+  "ESA-PL-strong-copyleft-2.4": {
+    "sha256": "38b64008eaac85230a88f8b633b76621a7c4ff7c1c7997dd4e58971130fc7e7f",
+    "md5": "c7b433c72cb9f0dd4b4d1e837287172e",
+    "name": "European Space Agency Public License (ESA-PL) - V2.4 - Strong Copyleft (Type 1)",
+    "text_length": 15694,
+    "normalized_length": 15229
+  },
+  "ESA-PL-weak-copyleft-2.4": {
+    "sha256": "5cf32ae7dd03b0c6e0d05862b5f14a90d84e3e2adef6a15acf8e545f02c38674",
+    "md5": "115d7d6bdefff8d5b85b6d8b90f32724",
+    "name": "European Space Agency Public License – v2.4 – Weak Copyleft (Type 2)",
+    "text_length": 16533,
+    "normalized_length": 16030
+  },
+  "etalab-2.0": {
+    "sha256": "287ac45919c2f46e2536f6d6069b7d1dbdca8811681bbce53c076cbcea551884",
+    "md5": "0d5431bc22a1fe880557c93f5d55406e",
+    "name": "Etalab Open License 2.0",
+    "text_length": 7739,
+    "normalized_length": 7174
+  },
+  "EUDatagrid": {
+    "sha256": "e759d702a02d5ab3cbd2c177d819bf5c867e18dca1537a09b683874c66e9cf3d",
+    "md5": "5d4d44c1d468d12f043dfa790b619728",
+    "name": "EU DataGrid Software License",
+    "text_length": 3195,
+    "normalized_length": 2934
+  },
+  "EUPL-1.0": {
+    "sha256": "e20168fa9f83ca7bc250c82e2bff30b324386d9a6fc3e986876a1abd891c373c",
+    "md5": "bbfbea560d32cc5b6630f285641c68d1",
+    "name": "European Union Public License 1.0",
+    "text_length": 12927,
+    "normalized_length": 12460
+  },
+  "EUPL-1.1": {
+    "sha256": "c70daf30e6aee9bc812d9aafdec7140527826473b766e950d21eebf5ebb647ba",
+    "md5": "ad2a51e9875774f8584fb9984a589f0e",
+    "name": "European Union Public License 1.1",
+    "text_length": 13231,
+    "normalized_length": 12776
+  },
   "EUPL-1.2": {
     "sha256": "36c617cb174eb99d351359e62c4159f60bfaa635cfbbd1bf5e00c9d1497e2a36",
     "md5": "12403ddf8856b62e26d857513061e8c3",
     "name": "European Union Public License 1.2",
     "text_length": 13648,
     "normalized_length": 13195
+  },
+  "Eurosym": {
+    "sha256": "76c878d72ac0a6c0354dd0d8f68d210ba5d6205da9cbbe86839bddd33d0d0368",
+    "md5": "3d3f3215cdc5dc99c7e1058928eee65a",
+    "name": "Eurosym License",
+    "text_length": 1367,
+    "normalized_length": 1265
+  },
+  "Fair": {
+    "sha256": "e7a309085e10dcacf6e2d1aeaaf90a160aeeec14e2ec80e2d093e6d94f063538",
+    "md5": "994085702cfaae4991138e457b99b8ef",
+    "name": "Fair License",
+    "text_length": 245,
+    "normalized_length": 235
+  },
+  "FBM": {
+    "sha256": "c56d77d6bd7d5cdbad3bc904239563ae92ce5a56bcbe994499c5c8c171d26d17",
+    "md5": "bf0ff1b934b2226ed42bff50be026314",
+    "name": "Fuzzy Bitmap License",
+    "text_length": 330,
+    "normalized_length": 321
+  },
+  "FDK-AAC": {
+    "sha256": "cc618162f35a6a43d34caefe59aa8ef7b941480e625e5b65370475777580d572",
+    "md5": "293b90dc3ba941090944cef990195e66",
+    "name": "Fraunhofer FDK AAC Codec Library",
+    "text_length": 4445,
+    "normalized_length": 4300
+  },
+  "FDK-MPEG-H": {
+    "sha256": "2e7491294fe56a93859d1fd7edf5e540c59e8a7b65ed88ec599aa59c8c12d299",
+    "md5": "c71b1e302aa0b0274cc13424ddbdd82c",
+    "name": "Fraunhofer FDK MPEG-H Software",
+    "text_length": 3794,
+    "normalized_length": 3590
+  },
+  "Ferguson-Twofish": {
+    "sha256": "62e795466e9d95e8ec00204650608561f7b45cc89f48b103100c74127c195f44",
+    "md5": "03f48c47ca8bb7e488392a536c5e70e9",
+    "name": "Ferguson Twofish License",
+    "text_length": 806,
+    "normalized_length": 753
+  },
+  "Frameworx-1.0": {
+    "sha256": "a95fb02d6f61166e74c44209eff3b5d3a5940b9808a2ed789cc26d9bcb39f0db",
+    "md5": "807af39cd50847e13bb6f1d6129ef631",
+    "name": "Frameworx Open License 1.0",
+    "text_length": 9771,
+    "normalized_length": 9347
+  },
+  "FreeBSD-DOC": {
+    "sha256": "7d59fee66a65058b2f26cf6adb5156d312ebaff7a574b6889d526df2b4b4b585",
+    "md5": "ee1cf2f59e787d2e03730510b86932b2",
+    "name": "FreeBSD Documentation License",
+    "text_length": 2775,
+    "normalized_length": 2537
+  },
+  "FreeImage": {
+    "sha256": "83904672a4a61103f98982915ce84de73bacd04fdb97d7d6fdb7ecda89729e74",
+    "md5": "b7dd6fe84eb1cdc62b847ad5ca9f4c71",
+    "name": "FreeImage Public License v1.0",
+    "text_length": 17656,
+    "normalized_length": 16846
+  },
+  "FSFAP": {
+    "sha256": "6721faf07c8bb1cca79813e0533f093b0196834592e5049382d2f81a1ed0c0b6",
+    "md5": "8f4347d0e51ac1f56df62c3fe0896d5c",
+    "name": "FSF All Permissive License",
+    "text_length": 225,
+    "normalized_length": 218
+  },
+  "FSFAP-no-warranty-disclaimer": {
+    "sha256": "13ee61830db02a5e64c5c0325ddd41fe5a0e59fa55f4ec7bd7df6cb76cc8dbcf",
+    "md5": "d4ba61e75ab2a3a6a7f290ff9e874c84",
+    "name": "FSF All Permissive License (without Warranty)",
+    "text_length": 209,
+    "normalized_length": 170
+  },
+  "FSFUL": {
+    "sha256": "355d801f5e74ed3a547a99ead0b6fb0b52e0f51d25382c92c78ff0f85fbc826a",
+    "md5": "524ba9b233fb85ff23e56e50683cf81e",
+    "name": "FSF Unlimited License",
+    "text_length": 198,
+    "normalized_length": 127
+  },
+  "FSFULLR": {
+    "sha256": "89faaf9b33d54d7cc5385e108b8567bd1fbce1ea9cfa515565b23247fa9357d4",
+    "md5": "7fc0c8ac1bd972f942c47bbacc618bd7",
+    "name": "FSF Unlimited License (with License Retention)",
+    "text_length": 234,
+    "normalized_length": 177
+  },
+  "FSFULLRSD": {
+    "sha256": "c3af11ee68e162b35941b3fe0da34314bcc24ac55b4abaaa9b0d44a4a2bef17f",
+    "md5": "62bdcb15358b16a21bae4ee6a246c26b",
+    "name": "FSF Unlimited License (with License Retention and Short Disclaimer)",
+    "text_length": 232,
+    "normalized_length": 225
+  },
+  "FSFULLRWD": {
+    "sha256": "b00aa326a8d6cc91e98ff80f86c35e0779c8561b10865f0f32fa4c259503cfb6",
+    "md5": "6b09c601a2e63d6554c6018baffad006",
+    "name": "FSF Unlimited License (With License Retention and Warranty Disclaimer)",
+    "text_length": 544,
+    "normalized_length": 456
+  },
+  "FSL-1.1-ALv2": {
+    "sha256": "8d8e9e004142f00d90cc4492a08e76865e5ac00d51e38d3a0ea751843a2e2fc7",
+    "md5": "53d38de4fd31973e07b41f66931b907f",
+    "name": "Functional Source License, Version 1.1, ALv2 Future License",
+    "text_length": 3751,
+    "normalized_length": 3526
+  },
+  "FSL-1.1-MIT": {
+    "sha256": "8f3c68bf8d76ae193a6014f85b87f65b6c0ddf19c39e2ece0b966320b8255199",
+    "md5": "42be17cfe5326de1ac9d1f939717bb1b",
+    "name": "Functional Source License, Version 1.1, MIT Future License",
+    "text_length": 4219,
+    "normalized_length": 4022
+  },
+  "FTL": {
+    "sha256": "e2ec4fc7a847ad77ff2283e666bf94ef526d67827ed0500923ae1ccb1c5ab1c5",
+    "md5": "4c624f4bd33314d3f5469ae4d08e7016",
+    "name": "Freetype Project License",
+    "text_length": 5978,
+    "normalized_length": 5525
+  },
+  "Furuseth": {
+    "sha256": "ec709559ddcab10e9dd724b2442f413a3f53ef4429a421eebbe736863bc6e1be",
+    "md5": "d19d91a548d70b255704291ddb86acb7",
+    "name": "Furuseth License",
+    "text_length": 626,
+    "normalized_length": 606
+  },
+  "fwlw": {
+    "sha256": "93e780f990b9a67ed5512b0a11b58f6a853051d9232937f03b538ef401feab25",
+    "md5": "46a9c122b585691de4fbe66bb2736411",
+    "name": "fwlw License",
+    "text_length": 206,
+    "normalized_length": 139
+  },
+  "Game-Programming-Gems": {
+    "sha256": "a415ebb8ed436256cca0e0c469a90170a68e5661204a6369c6217f6009342487",
+    "md5": "bae39fcbccbd47c249d8065f0375266a",
+    "name": "Game Programming Gems License",
+    "text_length": 369,
+    "normalized_length": 352
+  },
+  "GCR-docs": {
+    "sha256": "63ba4ebcc31482e7a6b9bcc357c8737bc4edaf694e8848ff3dd04ae53af64c0f",
+    "md5": "ce1ae61f499210724e3dc6bdc0506f2a",
+    "name": "Gnome GCR Documentation License",
+    "text_length": 1697,
+    "normalized_length": 1656
+  },
+  "GD": {
+    "sha256": "81ab1515ead1bfff2aa94b0aeb5442a0803bef3695fc8cb8f6087d6d9de19419",
+    "md5": "f71ecd10b5eb67a9f3951f978d19ebfe",
+    "name": "GD License",
+    "text_length": 2939,
+    "normalized_length": 2686
+  },
+  "generic-xts": {
+    "sha256": "7a099c2b798357704ff1079f2d6201406d04eab2ca22de250442142f72009bd2",
+    "md5": "c4977e376239f7642a26552781b945dc",
+    "name": "Generic XTS License",
+    "text_length": 779,
+    "normalized_length": 697
+  },
+  "GFDL-1.1": {
+    "sha256": "bb278a7572b2c16e9040d8d8a97c2e34a2b5afa30141949c6ab6837a08c6301e",
+    "md5": "a9fa896e23d38b3a21f3694194353698",
+    "name": "GNU Free Documentation License v1.1",
+    "text_length": 17970,
+    "normalized_length": 17321
+  },
+  "GFDL-1.1-invariants-only": {
+    "sha256": "bb278a7572b2c16e9040d8d8a97c2e34a2b5afa30141949c6ab6837a08c6301e",
+    "md5": "a9fa896e23d38b3a21f3694194353698",
+    "name": "GNU Free Documentation License v1.1 only - invariants",
+    "text_length": 17970,
+    "normalized_length": 17321
+  },
+  "GFDL-1.1-invariants-or-later": {
+    "sha256": "bb278a7572b2c16e9040d8d8a97c2e34a2b5afa30141949c6ab6837a08c6301e",
+    "md5": "a9fa896e23d38b3a21f3694194353698",
+    "name": "GNU Free Documentation License v1.1 or later - invariants",
+    "text_length": 17970,
+    "normalized_length": 17321
+  },
+  "GFDL-1.1-no-invariants-only": {
+    "sha256": "bb278a7572b2c16e9040d8d8a97c2e34a2b5afa30141949c6ab6837a08c6301e",
+    "md5": "a9fa896e23d38b3a21f3694194353698",
+    "name": "GNU Free Documentation License v1.1 only - no invariants",
+    "text_length": 17970,
+    "normalized_length": 17321
+  },
+  "GFDL-1.1-no-invariants-or-later": {
+    "sha256": "bb278a7572b2c16e9040d8d8a97c2e34a2b5afa30141949c6ab6837a08c6301e",
+    "md5": "a9fa896e23d38b3a21f3694194353698",
+    "name": "GNU Free Documentation License v1.1 or later - no invariants",
+    "text_length": 17970,
+    "normalized_length": 17321
+  },
+  "GFDL-1.1-only": {
+    "sha256": "bb278a7572b2c16e9040d8d8a97c2e34a2b5afa30141949c6ab6837a08c6301e",
+    "md5": "a9fa896e23d38b3a21f3694194353698",
+    "name": "GNU Free Documentation License v1.1 only",
+    "text_length": 17970,
+    "normalized_length": 17321
+  },
+  "GFDL-1.1-or-later": {
+    "sha256": "bb278a7572b2c16e9040d8d8a97c2e34a2b5afa30141949c6ab6837a08c6301e",
+    "md5": "a9fa896e23d38b3a21f3694194353698",
+    "name": "GNU Free Documentation License v1.1 or later",
+    "text_length": 17970,
+    "normalized_length": 17321
+  },
+  "GFDL-1.2": {
+    "sha256": "d49d3a8493403a714ccbbb1932453002e0fe14d9c92d7e956433c58d1ad672f1",
+    "md5": "7bfc59526c4fa1c4039b3785fd04fcc3",
+    "name": "GNU Free Documentation License v1.2",
+    "text_length": 20272,
+    "normalized_length": 19533
+  },
+  "GFDL-1.2-invariants-only": {
+    "sha256": "d49d3a8493403a714ccbbb1932453002e0fe14d9c92d7e956433c58d1ad672f1",
+    "md5": "7bfc59526c4fa1c4039b3785fd04fcc3",
+    "name": "GNU Free Documentation License v1.2 only - invariants",
+    "text_length": 20272,
+    "normalized_length": 19533
+  },
+  "GFDL-1.2-invariants-or-later": {
+    "sha256": "d49d3a8493403a714ccbbb1932453002e0fe14d9c92d7e956433c58d1ad672f1",
+    "md5": "7bfc59526c4fa1c4039b3785fd04fcc3",
+    "name": "GNU Free Documentation License v1.2 or later - invariants",
+    "text_length": 20272,
+    "normalized_length": 19533
+  },
+  "GFDL-1.2-no-invariants-only": {
+    "sha256": "d49d3a8493403a714ccbbb1932453002e0fe14d9c92d7e956433c58d1ad672f1",
+    "md5": "7bfc59526c4fa1c4039b3785fd04fcc3",
+    "name": "GNU Free Documentation License v1.2 only - no invariants",
+    "text_length": 20272,
+    "normalized_length": 19533
+  },
+  "GFDL-1.2-no-invariants-or-later": {
+    "sha256": "d49d3a8493403a714ccbbb1932453002e0fe14d9c92d7e956433c58d1ad672f1",
+    "md5": "7bfc59526c4fa1c4039b3785fd04fcc3",
+    "name": "GNU Free Documentation License v1.2 or later - no invariants",
+    "text_length": 20272,
+    "normalized_length": 19533
+  },
+  "GFDL-1.2-only": {
+    "sha256": "d49d3a8493403a714ccbbb1932453002e0fe14d9c92d7e956433c58d1ad672f1",
+    "md5": "7bfc59526c4fa1c4039b3785fd04fcc3",
+    "name": "GNU Free Documentation License v1.2 only",
+    "text_length": 20272,
+    "normalized_length": 19533
+  },
+  "GFDL-1.2-or-later": {
+    "sha256": "d49d3a8493403a714ccbbb1932453002e0fe14d9c92d7e956433c58d1ad672f1",
+    "md5": "7bfc59526c4fa1c4039b3785fd04fcc3",
+    "name": "GNU Free Documentation License v1.2 or later",
+    "text_length": 20272,
+    "normalized_length": 19533
+  },
+  "GFDL-1.3": {
+    "sha256": "cf2d8ee299c32d82925026bbd7b646dd52c60e65fb719528f3ff4a15fd4a44ea",
+    "md5": "4dfcbe0e0131337b688b63b1a831b88a",
+    "name": "GNU Free Documentation License v1.3",
+    "text_length": 22791,
+    "normalized_length": 22007
+  },
+  "GFDL-1.3-invariants-only": {
+    "sha256": "cf2d8ee299c32d82925026bbd7b646dd52c60e65fb719528f3ff4a15fd4a44ea",
+    "md5": "4dfcbe0e0131337b688b63b1a831b88a",
+    "name": "GNU Free Documentation License v1.3 only - invariants",
+    "text_length": 22791,
+    "normalized_length": 22007
+  },
+  "GFDL-1.3-invariants-or-later": {
+    "sha256": "cf2d8ee299c32d82925026bbd7b646dd52c60e65fb719528f3ff4a15fd4a44ea",
+    "md5": "4dfcbe0e0131337b688b63b1a831b88a",
+    "name": "GNU Free Documentation License v1.3 or later - invariants",
+    "text_length": 22791,
+    "normalized_length": 22007
+  },
+  "GFDL-1.3-no-invariants-only": {
+    "sha256": "cf2d8ee299c32d82925026bbd7b646dd52c60e65fb719528f3ff4a15fd4a44ea",
+    "md5": "4dfcbe0e0131337b688b63b1a831b88a",
+    "name": "GNU Free Documentation License v1.3 only - no invariants",
+    "text_length": 22791,
+    "normalized_length": 22007
+  },
+  "GFDL-1.3-no-invariants-or-later": {
+    "sha256": "cf2d8ee299c32d82925026bbd7b646dd52c60e65fb719528f3ff4a15fd4a44ea",
+    "md5": "4dfcbe0e0131337b688b63b1a831b88a",
+    "name": "GNU Free Documentation License v1.3 or later - no invariants",
+    "text_length": 22791,
+    "normalized_length": 22007
+  },
+  "GFDL-1.3-only": {
+    "sha256": "cf2d8ee299c32d82925026bbd7b646dd52c60e65fb719528f3ff4a15fd4a44ea",
+    "md5": "4dfcbe0e0131337b688b63b1a831b88a",
+    "name": "GNU Free Documentation License v1.3 only",
+    "text_length": 22791,
+    "normalized_length": 22007
+  },
+  "GFDL-1.3-or-later": {
+    "sha256": "cf2d8ee299c32d82925026bbd7b646dd52c60e65fb719528f3ff4a15fd4a44ea",
+    "md5": "4dfcbe0e0131337b688b63b1a831b88a",
+    "name": "GNU Free Documentation License v1.3 or later",
+    "text_length": 22791,
+    "normalized_length": 22007
+  },
+  "Giftware": {
+    "sha256": "29b6ecbff6b7a315d0e3af35fe1b85ab64ca895feb7b751b5114b96e8b1b9d41",
+    "md5": "0e2565345c0c7705a82dc72c9d55e4bd",
+    "name": "Giftware License",
+    "text_length": 1352,
+    "normalized_length": 1311
+  },
+  "GL2PS": {
+    "sha256": "abe40b47d9462b2a72056b0ab56ad4b51c0555b6dafd0edff701cc979b1af309",
+    "md5": "90299deed2149ea51138cb23f5c39d22",
+    "name": "GL2PS License",
+    "text_length": 896,
+    "normalized_length": 833
+  },
+  "Glide": {
+    "sha256": "7fc78f7688da9a2d748950df8e62e65764e61826f8da523de9aa41db28063971",
+    "md5": "8e20ff00a31e18eccda6e62a7416deb7",
+    "name": "3dfx Glide License",
+    "text_length": 12253,
+    "normalized_length": 11519
+  },
+  "Glulxe": {
+    "sha256": "8a8cf3bcc5cfa8203d156cb1c01ee614704cd133455628c2661d259d99e56445",
+    "md5": "03a6d159c4708fc1e5189149a8997755",
+    "name": "Glulxe License",
+    "text_length": 462,
+    "normalized_length": 453
+  },
+  "GLWTPL": {
+    "sha256": "843fb5194ea4aceadc5ae2858ae442a21580bdb935d02210d9b70788058ab1e2",
+    "md5": "d0de319ff1e0147a7fba3e656065e910",
+    "name": "Good Luck With That Public License",
+    "text_length": 959,
+    "normalized_length": 844
+  },
+  "gnuplot": {
+    "sha256": "0db27c55e41d660d218bf8fa685286c4b5468c5edb3be8b0e10c86da02770152",
+    "md5": "f0fb8a08042d7783788b9aa4747b1465",
+    "name": "gnuplot License",
+    "text_length": 1407,
+    "normalized_length": 1297
+  },
+  "GPL-1.0": {
+    "sha256": "9ad87a3dff76524515f6dbcedd2fdbc4ea7efa7c05e65688a08a0d6cccc4aa31",
+    "md5": "f9462f935ee3cca3398885e215729afe",
+    "name": "GNU General Public License v1.0 only",
+    "text_length": 12235,
+    "normalized_length": 11712
+  },
+  "GPL-1.0+": {
+    "sha256": "9ad87a3dff76524515f6dbcedd2fdbc4ea7efa7c05e65688a08a0d6cccc4aa31",
+    "md5": "f9462f935ee3cca3398885e215729afe",
+    "name": "GNU General Public License v1.0 or later",
+    "text_length": 12248,
+    "normalized_length": 11712
+  },
+  "GPL-1.0-only": {
+    "sha256": "9ad87a3dff76524515f6dbcedd2fdbc4ea7efa7c05e65688a08a0d6cccc4aa31",
+    "md5": "f9462f935ee3cca3398885e215729afe",
+    "name": "GNU General Public License v1.0 only",
+    "text_length": 12235,
+    "normalized_length": 11712
+  },
+  "GPL-1.0-or-later": {
+    "sha256": "9ad87a3dff76524515f6dbcedd2fdbc4ea7efa7c05e65688a08a0d6cccc4aa31",
+    "md5": "f9462f935ee3cca3398885e215729afe",
+    "name": "GNU General Public License v1.0 or later",
+    "text_length": 12235,
+    "normalized_length": 11712
+  },
+  "GPL-2.0": {
+    "sha256": "7032a90ec8fe41363a672a24418ccc7dafc437cffc4a28dc42620ffbe143f16d",
+    "md5": "edd6ba3b274c93bfce432bbfcab2b38a",
+    "name": "GNU General Public License v2.0 only",
+    "text_length": 17337,
+    "normalized_length": 16793
+  },
+  "GPL-2.0+": {
+    "sha256": "e48e6ced778953abdb9929723b674c8a519eccbea4d46882f82b755cf53e317c",
+    "md5": "9aa6b0878f5b464174696c6c9f33001c",
+    "name": "GNU General Public License v2.0 or later",
+    "text_length": 17383,
+    "normalized_length": 16778
   },
   "GPL-2.0-only": {
     "sha256": "7032a90ec8fe41363a672a24418ccc7dafc437cffc4a28dc42620ffbe143f16d",
@@ -146,6 +2253,55 @@
     "text_length": 17337,
     "normalized_length": 16793
   },
+  "GPL-2.0-with-autoconf-exception": {
+    "sha256": "14a339aea7f7f0f63ac6e358e8a452bb24e8db48b69bb5749a84992ef3cd858e",
+    "md5": "a4ae77ce68f7504b8bae8fd782d96145",
+    "name": "GNU General Public License v2.0 w/Autoconf exception",
+    "text_length": 1627,
+    "normalized_length": 1589
+  },
+  "GPL-2.0-with-bison-exception": {
+    "sha256": "da8e7a5f129cc9a5332922a9abafdceefdd994209e3cfd75dcfe5800feef3001",
+    "md5": "156107a88b508da045ca2790cc497f92",
+    "name": "GNU General Public License v2.0 w/Bison exception",
+    "text_length": 673,
+    "normalized_length": 660
+  },
+  "GPL-2.0-with-classpath-exception": {
+    "sha256": "50ac5a17687e85e2ee9427b1e98d3eb3f52704f3c2ad5cebd8fc0d1e823e32e2",
+    "md5": "1aff31f091c50450b4a91a129f14d2c9",
+    "name": "GNU General Public License v2.0 w/Classpath exception",
+    "text_length": 975,
+    "normalized_length": 954
+  },
+  "GPL-2.0-with-font-exception": {
+    "sha256": "fbe0593eb2fb618c3d55af9432df754173aa552c17eeebe40a2d0fede2c21b12",
+    "md5": "5e960654d8ff380c1853c1e582a06b1d",
+    "name": "GNU General Public License v2.0 w/Font exception",
+    "text_length": 632,
+    "normalized_length": 618
+  },
+  "GPL-2.0-with-GCC-exception": {
+    "sha256": "19204e96a9c182b6070afbd5665c231e6077c7a2d59d7c118ab98ac85cfbf7e9",
+    "md5": "7e69c92cab8c439aa6326a16530bd197",
+    "name": "GNU General Public License v2.0 w/GCC Runtime Library exception",
+    "text_length": 538,
+    "normalized_length": 526
+  },
+  "GPL-3.0": {
+    "sha256": "80abd56d66b7dc8ddb33d7715d55066c649265066e313dc4d040214c64f7b24a",
+    "md5": "dccc03cf6bafd9c51cb250c291cc3962",
+    "name": "GNU General Public License v3.0 only",
+    "text_length": 34509,
+    "normalized_length": 33303
+  },
+  "GPL-3.0+": {
+    "sha256": "add3d06ed5865b8d16670f895b8af96d3403ba083f3f600f15a6980345922438",
+    "md5": "5de914ee10a18fa633c8df3e3e6d6497",
+    "name": "GNU General Public License v3.0 or later",
+    "text_length": 34682,
+    "normalized_length": 33330
+  },
   "GPL-3.0-only": {
     "sha256": "80abd56d66b7dc8ddb33d7715d55066c649265066e313dc4d040214c64f7b24a",
     "md5": "dccc03cf6bafd9c51cb250c291cc3962",
@@ -160,12 +2316,572 @@
     "text_length": 34509,
     "normalized_length": 33303
   },
+  "GPL-3.0-with-autoconf-exception": {
+    "sha256": "ec3fe25123ba414d1a1e7f382d0942d18a874f3073b49eb3bd933740f90f8fe0",
+    "md5": "0466ff174c55d5c593ea48d58a2a90c6",
+    "name": "GNU General Public License v3.0 w/Autoconf exception",
+    "text_length": 1871,
+    "normalized_length": 1721
+  },
+  "GPL-3.0-with-GCC-exception": {
+    "sha256": "847bfd74bee06f6d1a27a9025efda7f5e6c9c8fdb015f579bf0e45a4534f9ccf",
+    "md5": "9fbaf1396e7b390c0739859f81f30efe",
+    "name": "GNU General Public License v3.0 w/GCC Runtime Library exception",
+    "text_length": 3443,
+    "normalized_length": 3202
+  },
+  "Graphics-Gems": {
+    "sha256": "a8a95c5c6a3fce4a49c32f1450b2503b5c8858dbb8d3bdb23b4c8ad93a326ba7",
+    "md5": "e68962773a7b2634db48ddd9b00f0d3d",
+    "name": "Graphics Gems License",
+    "text_length": 707,
+    "normalized_length": 681
+  },
+  "gSOAP-1.3b": {
+    "sha256": "8830aa408de6cf7a901b9f4062f4850605b0f5d7583487ee7bed2f69c5546362",
+    "md5": "01868a605c387809857daf39cd81c771",
+    "name": "gSOAP Public License v1.3b",
+    "text_length": 20362,
+    "normalized_length": 19549
+  },
+  "gtkbook": {
+    "sha256": "cbbbeab6998899139b0744ff2af21aff11d763faf5e9fd9943a0e2b9b92a3772",
+    "md5": "ed687e1ba99ee1f24eb556ff87d3f9b1",
+    "name": "gtkbook License",
+    "text_length": 309,
+    "normalized_length": 255
+  },
+  "Gutmann": {
+    "sha256": "5f3edfeff40d0155739e855b313236ea7bb295dfc2c19925d45c0df17f332a5b",
+    "md5": "b59f6280b398e12811f8eabbe545874e",
+    "name": "Gutmann License",
+    "text_length": 96,
+    "normalized_length": 93
+  },
+  "HaskellReport": {
+    "sha256": "2d9013d3c02914e04500179f2186ac5b8fc9f4f82daea2df2ad5646c61351d0c",
+    "md5": "0235aba47dff26c73b3c60e01322b2b5",
+    "name": "Haskell Language Report License",
+    "text_length": 602,
+    "normalized_length": 555
+  },
+  "HDF5": {
+    "sha256": "715554240871f32a373555c7c33721d4685cb9871c91b1625b5fc4b36e7eaf8d",
+    "md5": "f93d5923e171a1e35e8084f659fa7161",
+    "name": "HDF5 License",
+    "text_length": 5022,
+    "normalized_length": 4690
+  },
+  "hdparm": {
+    "sha256": "8186484a94df8fb51a303253d19dd1fbeb9f61d5ea403ca112372cb9adbd74b0",
+    "md5": "f1dba67c9b0a1c2b2ee078a3d91c08bc",
+    "name": "hdparm License",
+    "text_length": 253,
+    "normalized_length": 224
+  },
+  "HIDAPI": {
+    "sha256": "70eaec661ccf60206ce39e4982e9ebb0224158a83957f4a4513eaef617b8fdc2",
+    "md5": "e3b131f6e753e23f3b7c86746ff29554",
+    "name": "HIDAPI License",
+    "text_length": 119,
+    "normalized_length": 117
+  },
+  "Hippocratic-2.1": {
+    "sha256": "d63919f733c2018afa7ab90b785494071f6318606d0ae287dbbd091e309c5931",
+    "md5": "1ef7d698d24efcc8d95bda7ef5e62a92",
+    "name": "Hippocratic License 2.1",
+    "text_length": 8368,
+    "normalized_length": 8037
+  },
+  "HP-1986": {
+    "sha256": "276a453e2b68280bea22118f79a8f36f4e81e6ab6ae9187e8fd14c2d994fdfd1",
+    "md5": "888de1a61087ca5669b520060ac868c2",
+    "name": "Hewlett-Packard 1986 License",
+    "text_length": 617,
+    "normalized_length": 594
+  },
+  "HP-1989": {
+    "sha256": "48d4c81cb5c0dad3deb8b28351d3aa709cf9ea7bc5a1e041a1946cfad579f408",
+    "md5": "f214662001652b528c58280779ccc9c6",
+    "name": "Hewlett-Packard 1989 License",
+    "text_length": 947,
+    "normalized_length": 768
+  },
+  "HPND": {
+    "sha256": "25fa507c7414b29a785d765933ec9aa4c3236388a1fc41dd439c54aa78dc6019",
+    "md5": "7a6f67d8237a0e4474ec7e34b3e7bccf",
+    "name": "Historical Permission Notice and Disclaimer",
+    "text_length": 1187,
+    "normalized_length": 1143
+  },
+  "HPND-DEC": {
+    "sha256": "8519c519e650a81981013642fec7f7563d5d32b044a45ad59d69004d5fe81e0e",
+    "md5": "c01953140e90741df29e1fb4a404968d",
+    "name": "Historical Permission Notice and Disclaimer - DEC variant",
+    "text_length": 1034,
+    "normalized_length": 999
+  },
+  "HPND-doc": {
+    "sha256": "bf1459062343959d1e5bb22dfda510fc27d1451e90e9e6a74bf94a7ff26c2a75",
+    "md5": "79943598fea87ad7fb1e4849713e5f03",
+    "name": "Historical Permission Notice and Disclaimer - documentation variant",
+    "text_length": 443,
+    "normalized_length": 418
+  },
+  "HPND-doc-sell": {
+    "sha256": "86129d3c2237f7f5d7595416c99b6db40ee5f5160a3ab46a237344e76f9d5403",
+    "md5": "261496b0920cbbe5c04cbe8496b9cb20",
+    "name": "Historical Permission Notice and Disclaimer - documentation sell variant",
+    "text_length": 442,
+    "normalized_length": 419
+  },
+  "HPND-export-US": {
+    "sha256": "673550200549d0715ad56eee3f7fb9323918f57e9d4246a9d48a6ed56007cb5d",
+    "md5": "ad8071d1c6294ae4e6b192b205c16924",
+    "name": "HPND with US Government export control warning",
+    "text_length": 944,
+    "normalized_length": 849
+  },
+  "HPND-export-US-acknowledgement": {
+    "sha256": "b1fc8e8d405d0adcc9f1ed05c13187bb67c95a7701f26e3661fd184773e8e903",
+    "md5": "2ca1771db7bcac9ef643edff76ef2782",
+    "name": "HPND with US Government export control warning and acknowledgment",
+    "text_length": 1184,
+    "normalized_length": 1086
+  },
+  "HPND-export-US-modify": {
+    "sha256": "88604aa3e42e3cbb34f1c59bfc653676b847750eaf7a35f5dd74685d94adf83c",
+    "md5": "55e24a061cb09dfe2632d1aeddbb5d18",
+    "name": "HPND with US Government export control warning and modification rqmt",
+    "text_length": 1272,
+    "normalized_length": 1150
+  },
+  "HPND-export2-US": {
+    "sha256": "778ab1d1ae24492cd736701b9487aa43b8822e933c9dd31651275c045e9a9035",
+    "md5": "94b366c89e487f3c24e5e4a7b8fbab23",
+    "name": "HPND with US Government export control and 2 disclaimers",
+    "text_length": 1136,
+    "normalized_length": 1043
+  },
+  "HPND-Fenneberg-Livingston": {
+    "sha256": "643dc0abad1cd1b29f4fb2e65e17b97a80a2cb6c2785718c41928360a3d60fe7",
+    "md5": "614e0bfc4e55d1326cb02324adc8c952",
+    "name": "Historical Permission Notice and Disclaimer - Fenneberg-Livingston variant",
+    "text_length": 700,
+    "normalized_length": 617
+  },
+  "HPND-INRIA-IMAG": {
+    "sha256": "1d26afa90d7785feeebe54e755fa2422d773b1757902791b68a9749c2d79262a",
+    "md5": "2b3cda895569c67617e040a8df1696f5",
+    "name": "Historical Permission Notice and Disclaimer    - INRIA-IMAG variant",
+    "text_length": 553,
+    "normalized_length": 538
+  },
+  "HPND-Intel": {
+    "sha256": "9acd57e5b2cd0870d47c65e5f3fc032703b1ebf0ffdfe846e60b53cacf2347fd",
+    "md5": "a61c3007b00a78c322a73ee81e48af8f",
+    "name": "Historical Permission Notice and Disclaimer - Intel variant",
+    "text_length": 1419,
+    "normalized_length": 1342
+  },
+  "HPND-Kevlin-Henney": {
+    "sha256": "eaaa770e43416caa552aa40f3ed3e166092f36f4b32798b6f867816f7a5feedb",
+    "md5": "e3628f00497decdffd8dd98f791a533d",
+    "name": "Historical Permission Notice and Disclaimer - Kevlin Henney variant",
+    "text_length": 421,
+    "normalized_length": 343
+  },
+  "HPND-Markus-Kuhn": {
+    "sha256": "53992d69b755607bc9d07d616b1b30cd2f8eb653c4cf89bf12879d25de180fc5",
+    "md5": "4f942c8e3cfb3263011f111803d64cfc",
+    "name": "Historical Permission Notice and Disclaimer - Markus Kuhn variant",
+    "text_length": 179,
+    "normalized_length": 173
+  },
+  "HPND-merchantability-variant": {
+    "sha256": "1cb63ddf36acb628e2cab258422f15cfec16881df34090b48f1058b0ddf792a3",
+    "md5": "04a32a1ce8ebb71fc7784617663604fb",
+    "name": "Historical Permission Notice and Disclaimer - merchantability variant",
+    "text_length": 385,
+    "normalized_length": 314
+  },
+  "HPND-MIT-disclaimer": {
+    "sha256": "d2b076645c15b023f701764de8fa90045bb9340aadbdf32a3a969a64c6c5b87c",
+    "md5": "35f7572dec668f772def55f3846ec6f5",
+    "name": "Historical Permission Notice and Disclaimer with MIT disclaimer",
+    "text_length": 950,
+    "normalized_length": 902
+  },
+  "HPND-Netrek": {
+    "sha256": "62ebcb25167b72277cfe813738da62afc490b2ceabcb82479973db54feef6142",
+    "md5": "9d61bc20d945a4a1947d5b785911f9fa",
+    "name": "Historical Permission Notice and Disclaimer - Netrek variant",
+    "text_length": 496,
+    "normalized_length": 430
+  },
+  "HPND-Pbmplus": {
+    "sha256": "f302cfe387dab0e2efd53a73f2f7a5d447942c5269e51822259f14a1c29688b3",
+    "md5": "e1ac915b1faa362974d1198611800a3c",
+    "name": "Historical Permission Notice and Disclaimer - Pbmplus variant",
+    "text_length": 406,
+    "normalized_length": 358
+  },
+  "HPND-sell-MIT-disclaimer-xserver": {
+    "sha256": "458bedc695bf6229218295c4da341d194300f4436d9f9300bde574b4df7b9c5c",
+    "md5": "261abd6b8d5ce2c469eafd512a43aa38",
+    "name": "Historical Permission Notice and Disclaimer - sell xserver variant with MIT disclaimer",
+    "text_length": 748,
+    "normalized_length": 724
+  },
+  "HPND-sell-regexpr": {
+    "sha256": "162b5652443215a37812e1ac4871c77ba1ffa65f1691e677f7e9a14ee86ebc04",
+    "md5": "9fb6f2a00055508612fb774b9256edb0",
+    "name": "Historical Permission Notice and Disclaimer - sell regexpr variant",
+    "text_length": 353,
+    "normalized_length": 280
+  },
+  "HPND-sell-variant": {
+    "sha256": "efe19e775ed2448827f78aac80d4db79da2f39a654316bfe62b53830d0879dcb",
+    "md5": "285e02ca4512a6c76192611306124bf5",
+    "name": "Historical Permission Notice and Disclaimer - sell variant",
+    "text_length": 1102,
+    "normalized_length": 1030
+  },
+  "HPND-sell-variant-critical-systems": {
+    "sha256": "cbbdf3db3014ce7d9df21b6c580c44b508663e7849cf5836d966806737171ca5",
+    "md5": "5749dc1769ca1fe709a071be01d12a2b",
+    "name": "HPND - sell variant with safety critical systems clause",
+    "text_length": 1195,
+    "normalized_length": 1152
+  },
+  "HPND-sell-variant-MIT-disclaimer": {
+    "sha256": "26202db3d68bf6de6cce992a4e7e3a47de3e4015b2a59cb2a8fcaea04a7ac8b5",
+    "md5": "5db729ac021f1f7b350ed049d192e01b",
+    "name": "HPND sell variant with MIT disclaimer",
+    "text_length": 891,
+    "normalized_length": 770
+  },
+  "HPND-sell-variant-MIT-disclaimer-rev": {
+    "sha256": "d6bba8a4d1a38a7216d4a189b73b328ac0a1689900799b9659c697da3253dc40",
+    "md5": "e52af7710c1faddf9d17e530660f1320",
+    "name": "HPND sell variant with MIT disclaimer - reverse",
+    "text_length": 763,
+    "normalized_length": 730
+  },
+  "HPND-SMC": {
+    "sha256": "06d0d1a07a2a5476480bdbfc84c67ab199d5ef7d2eab1f3a672b524b196309a5",
+    "md5": "e7978b9106c0b15616af340e5b68b3ef",
+    "name": "Historical Permission Notice and Disclaimer - SMC variant",
+    "text_length": 816,
+    "normalized_length": 491
+  },
+  "HPND-UC": {
+    "sha256": "2913fe1b93e6714abd0020d2917e04a64132507ed22a525b17fbfbc8da58963c",
+    "md5": "e1869f107e9f3304c93880a8e415de96",
+    "name": "Historical Permission Notice and Disclaimer - University of California variant",
+    "text_length": 425,
+    "normalized_length": 358
+  },
+  "HPND-UC-export-US": {
+    "sha256": "409e1c9bf3f15dbd7a4a73d58d4a7bfa6365c14e7593e79e6c04c0ad12dbd2f8",
+    "md5": "0753f0c6cc1757f69c507b4352960169",
+    "name": "Historical Permission Notice and Disclaimer - University of California, US export warning",
+    "text_length": 533,
+    "normalized_length": 452
+  },
+  "HTMLTIDY": {
+    "sha256": "c65caf81871be53652a8a9ddb30ab74ce0dfb1bcb1a5e0ee97d45e2d1ce5ec63",
+    "md5": "8ed42f6b295a64e24a942a1afe031636",
+    "name": "HTML Tidy License",
+    "text_length": 1460,
+    "normalized_length": 1406
+  },
+  "hyphen-bulgarian": {
+    "sha256": "d87d6dde5356b4aa178542f51380f1e8cdace3a3f0db6f915d8603f24acf4b03",
+    "md5": "519ec385c850a8d669f946a2f2e0e827",
+    "name": "hyphen-bulgarian License",
+    "text_length": 490,
+    "normalized_length": 476
+  },
+  "IBM-pibs": {
+    "sha256": "23f065aeb6b442cb4d4dd25de277af1d945b575642dfbcb58960b5002ad4b28a",
+    "md5": "78f9739d94f917205872e967a30f4877",
+    "name": "IBM PowerPC Initialization and Boot Software",
+    "text_length": 849,
+    "normalized_length": 793
+  },
+  "ICU": {
+    "sha256": "4d6f50cc0baf9e696e1b51b29da859512e6945dfc306365c9329402731e03a48",
+    "md5": "688845f54e173f346f6bbbb083cc236d",
+    "name": "ICU License",
+    "text_length": 1597,
+    "normalized_length": 1475
+  },
+  "IEC-Code-Components-EULA": {
+    "sha256": "e1e5c0ab0d986b5534ebd5bb1bb0cd4536183279f1c97caab2767b2131cb2735",
+    "md5": "9b390918dcee6f8370f8dda7ff692682",
+    "name": "IEC    Code Components End-user licence agreement",
+    "text_length": 2318,
+    "normalized_length": 2249
+  },
+  "IJG": {
+    "sha256": "1e33785e86481605cd3f7f32324b14d13d47cfb983a78b1e445d05ecff82d388",
+    "md5": "08cb60c61ffdd9f362c52f27b68c6dce",
+    "name": "Independent JPEG Group License",
+    "text_length": 4244,
+    "normalized_length": 4081
+  },
+  "IJG-short": {
+    "sha256": "550e4d457a934b14f7a3e4b0ad0b51184605ac2421cbae60b007180651219f53",
+    "md5": "e2d3aaea28888db3a9d502d33bd88416",
+    "name": "Independent JPEG Group License - short",
+    "text_length": 1640,
+    "normalized_length": 1573
+  },
+  "ImageMagick": {
+    "sha256": "ed93f66294bca8414015177a908c3a9a622e6c000c2729550b79f76093afb77a",
+    "md5": "c20c4f118bb3c9a7b822b6c8d78bce18",
+    "name": "ImageMagick License",
+    "text_length": 12506,
+    "normalized_length": 11787
+  },
+  "iMatix": {
+    "sha256": "021dd1b8c75c637d9447b76b903480f39cc0d983463c04a1b1f1e68a861fa271",
+    "md5": "8e3bb608d3c6479c367b7768c0e86b28",
+    "name": "iMatix Standard Function Library Agreement",
+    "text_length": 3471,
+    "normalized_length": 3301
+  },
+  "Imlib2": {
+    "sha256": "e455dec1c81ec80453fdf5e9f2a4a4bafaaf3e2d92938bd0a3a776d079ae9dd9",
+    "md5": "f96bb948f57110a37c42a79c4553232f",
+    "name": "Imlib2 License",
+    "text_length": 2002,
+    "normalized_length": 1950
+  },
+  "Info-ZIP": {
+    "sha256": "5ab949e8310e69b72b149f747b4525a50683dd6f5595ecfe94368cfbc29d398d",
+    "md5": "8f15ac5580a455c1ae7600cc7a7e2241",
+    "name": "Info-ZIP License",
+    "text_length": 3171,
+    "normalized_length": 2950
+  },
+  "Informatica": {
+    "sha256": "680760c3883af49f67bee2109152ff0632f696fefbf85263696b74310532c1f2",
+    "md5": "f2f43b5fd3a60794418d9beeacb9f2be",
+    "name": "Informatica License",
+    "text_length": 737,
+    "normalized_length": 714
+  },
+  "Inner-Net-2.0": {
+    "sha256": "3ec4bdbd3961cb35aa8d898a2300174bf582e8229146eafa6c5b497bae38fefb",
+    "md5": "c39c1537924a13a0df92039b3d5bbb71",
+    "name": "Inner Net License v2.0",
+    "text_length": 1996,
+    "normalized_length": 1902
+  },
+  "InnoSetup": {
+    "sha256": "c872bb552f5200001f70758cf10b3b9d08c3c11560e56ef3b65e66aa467562a2",
+    "md5": "02bea22800f9e6ec72a858c0c71e3636",
+    "name": "Inno Setup License",
+    "text_length": 1424,
+    "normalized_length": 1289
+  },
+  "Intel": {
+    "sha256": "7e23f8c68e9bb1d5f7cf605be177c2a9a036d6cc027cf84efe91c38caaf60b43",
+    "md5": "4c88fa184eee1ad4e8e4baf1d5434bc5",
+    "name": "Intel Open Source License",
+    "text_length": 2078,
+    "normalized_length": 1937
+  },
+  "Intel-ACPI": {
+    "sha256": "1f21eb77a02a8f17bd89587c2003b4bb00ccb32a4524cb4692871a662c232877",
+    "md5": "cd90cf15ef0a442b80472da35ba92da3",
+    "name": "Intel ACPI Software License Agreement",
+    "text_length": 6131,
+    "normalized_length": 5921
+  },
+  "Interbase-1.0": {
+    "sha256": "273b2a40252896ad69349ec251e44dd88ea052c306c06b34bacbe89572da212d",
+    "md5": "8d1290a3ee02ccf0f7ffabe14d8dc9f2",
+    "name": "Interbase Public License v1.0",
+    "text_length": 24344,
+    "normalized_length": 23425
+  },
+  "IPA": {
+    "sha256": "e3783282df4d96abe892a44640bfc45a3ffe2de38234fa3587baffcf96a3d7da",
+    "md5": "5908eed471c9c7578421d5f04685936a",
+    "name": "IPA Font License",
+    "text_length": 9093,
+    "normalized_length": 8767
+  },
+  "IPL-1.0": {
+    "sha256": "24a7a697b6ee4c026c1ba93f457750552d06d0842ae83911791b82a20180b6d6",
+    "md5": "c13c951323d391886dd2bcf5ca844ebf",
+    "name": "IBM Public License v1.0",
+    "text_length": 11409,
+    "normalized_length": 10991
+  },
   "ISC": {
     "sha256": "3d522e40b21fe47f1c0b4ba98d2813c76a08e24b8869559e32371e837ae9fa78",
     "md5": "3ec1bfd7fe1689a668c1506c0a8c5715",
     "name": "ISC License",
     "text_length": 823,
     "normalized_length": 677
+  },
+  "ISC-Veillard": {
+    "sha256": "cfbe3e57ea8b61f0ae9b6e741f4c7f9dfa977b116c5ab7991919ee528bc1684d",
+    "md5": "fc1f540192b2549d62d59b03727cabc2",
+    "name": "ISC Veillard variant",
+    "text_length": 522,
+    "normalized_length": 467
+  },
+  "ISO-permission": {
+    "sha256": "c1e5174fec1a43bcf7d55d3931ffb34ba31426bb6353b75c86921b46f5147959",
+    "md5": "e1aa41170c14e670e26e0c63b842ada1",
+    "name": "ISO permission notice",
+    "text_length": 225,
+    "normalized_length": 219
+  },
+  "Jam": {
+    "sha256": "f76ff0c48dbc336484221e3b0e9a7a5a737469935f88269c4805b87388dd47ca",
+    "md5": "1086aecf1d7fd38df718f0c3cdccbc80",
+    "name": "Jam License",
+    "text_length": 195,
+    "normalized_length": 190
+  },
+  "JasPer-2.0": {
+    "sha256": "edf0a73b2a4defad26d025ca2052e217922ba732094104b2a5a2ed816e00e93e",
+    "md5": "428d335d4e457573934446efce28250e",
+    "name": "JasPer License",
+    "text_length": 2741,
+    "normalized_length": 2519
+  },
+  "jove": {
+    "sha256": "83f28256368504c150df25f52571c653a58cf9229d86ed013aba9edce2f52306",
+    "md5": "b8388631deab93d891f2183a93c13f36",
+    "name": "Jove License",
+    "text_length": 268,
+    "normalized_length": 257
+  },
+  "JPL-image": {
+    "sha256": "6278058b4d7790737c5ed794f25ca8c7398b2a16ddbd618b483d8b0795b43988",
+    "md5": "e0cc10ba5d05b970972744b2c0f633b7",
+    "name": "JPL Image Use Policy",
+    "text_length": 3158,
+    "normalized_length": 2997
+  },
+  "JPNIC": {
+    "sha256": "bc1fdea9acb0026298cb060fa0055c9fc0ee2cad2bb43e6a542b68d5ad4f1006",
+    "md5": "39298f972ff9fea7ae753f18e2a7f993",
+    "name": "Japan Network Information Center License",
+    "text_length": 2086,
+    "normalized_length": 1845
+  },
+  "JSON": {
+    "sha256": "ed76b9572f1ebb6901e7dff2c806ca318e7c1a7991e15a15941de4d324a92045",
+    "md5": "1e38dcb3f9249d898e316aadf93383cb",
+    "name": "JSON License",
+    "text_length": 1114,
+    "normalized_length": 1046
+  },
+  "Kastrup": {
+    "sha256": "cd1d412f8173deb3b22fe0eebfb54c6d69e3cd0a000062b329bd27b1ade9990a",
+    "md5": "fc8a95c342346876aabc992f9ce32aee",
+    "name": "Kastrup License",
+    "text_length": 128,
+    "normalized_length": 90
+  },
+  "Kazlib": {
+    "sha256": "15e256d8f4bad0e281c526e51d45c9c530d4e0ce00d420b2f16c36f9f343bbc2",
+    "md5": "11e3503c8f227093ce535005ad660b53",
+    "name": "Kazlib License",
+    "text_length": 683,
+    "normalized_length": 638
+  },
+  "Knuth-CTAN": {
+    "sha256": "e72a18ccd3a3bb338554131dff22b57ad4f42a5593060bb0a7ae89543bcfd82a",
+    "md5": "899e05a8d59d85d4ab057631ff4bd6a9",
+    "name": "Knuth CTAN License",
+    "text_length": 296,
+    "normalized_length": 289
+  },
+  "LAL-1.2": {
+    "sha256": "816c1062cf970ec2cd223c4e1f8b1668d174bc837cba3b3105b9d49775a5e204",
+    "md5": "11443ccb70ae83a4e45bf30853dc0eb8",
+    "name": "Licence Art Libre 1.2",
+    "text_length": 6613,
+    "normalized_length": 6419
+  },
+  "LAL-1.3": {
+    "sha256": "2a610dfec32d4899bed2bccf549fcd9bd616772bab731aadbfdd204e736eedcc",
+    "md5": "c8d6e09416126d8a1edb84f076b45c6f",
+    "name": "Licence Art Libre 1.3",
+    "text_length": 7847,
+    "normalized_length": 7562
+  },
+  "Latex2e": {
+    "sha256": "531d8145da5ed4071eaba54fc103e3ccbc59e91ecf0c90db4b63461393330935",
+    "md5": "e92237645e95b09c7d619407bbd76fb5",
+    "name": "Latex2e License",
+    "text_length": 704,
+    "normalized_length": 548
+  },
+  "Latex2e-translated-notice": {
+    "sha256": "eb0e3b542b61fb4f03511246208b49c3110f19b186f6d6e52b3c48cecea4a4a5",
+    "md5": "a76c8c2a3c587bd22df682dab5093625",
+    "name": "Latex2e with translated notice permission",
+    "text_length": 980,
+    "normalized_length": 656
+  },
+  "Leptonica": {
+    "sha256": "6b0abe3ea5c08c4d0120003021dc6d019f7590256c7c7d20ee3ba29c482947b6",
+    "md5": "5a8b7f62c1c89e1621dc70e4a6269116",
+    "name": "Leptonica License",
+    "text_length": 734,
+    "normalized_length": 659
+  },
+  "LGPL-2.0": {
+    "sha256": "b077dc91b3b462bba463730f92d20ae07340d923ff604be2a02ce52db49db06d",
+    "md5": "dbaf27cce59522a3c931869fdec9c8a1",
+    "name": "GNU Library General Public License v2 only",
+    "text_length": 24877,
+    "normalized_length": 24150
+  },
+  "LGPL-2.0+": {
+    "sha256": "b077dc91b3b462bba463730f92d20ae07340d923ff604be2a02ce52db49db06d",
+    "md5": "dbaf27cce59522a3c931869fdec9c8a1",
+    "name": "GNU Library General Public License v2 or later",
+    "text_length": 24964,
+    "normalized_length": 24150
+  },
+  "LGPL-2.0-only": {
+    "sha256": "b077dc91b3b462bba463730f92d20ae07340d923ff604be2a02ce52db49db06d",
+    "md5": "dbaf27cce59522a3c931869fdec9c8a1",
+    "name": "GNU Library General Public License v2 only",
+    "text_length": 24877,
+    "normalized_length": 24150
+  },
+  "LGPL-2.0-or-later": {
+    "sha256": "b077dc91b3b462bba463730f92d20ae07340d923ff604be2a02ce52db49db06d",
+    "md5": "dbaf27cce59522a3c931869fdec9c8a1",
+    "name": "GNU Library General Public License v2 or later",
+    "text_length": 24877,
+    "normalized_length": 24150
+  },
+  "LGPL-2.1": {
+    "sha256": "e86c6753743621ffae728dc831bb4649af2d223956ceafec4b3aed31421293c5",
+    "md5": "7faacad72fd8a2e960ec380f3b50d19c",
+    "name": "GNU Lesser General Public License v2.1 only",
+    "text_length": 26001,
+    "normalized_length": 25247
+  },
+  "LGPL-2.1+": {
+    "sha256": "36dea0b6f7b94a8d13073d94096adae4ac4b152134662d5ba8018b7f71bb1cda",
+    "md5": "90b163d4af25d20259a7fc5c38918d40",
+    "name": "GNU Lesser General Public License v2.1 or later",
+    "text_length": 26090,
+    "normalized_length": 25227
   },
   "LGPL-2.1-only": {
     "sha256": "e86c6753743621ffae728dc831bb4649af2d223956ceafec4b3aed31421293c5",
@@ -181,6 +2897,20 @@
     "text_length": 26001,
     "normalized_length": 25247
   },
+  "LGPL-3.0": {
+    "sha256": "f4685061a0d4e8d8028cd7db168ec7ab68e770778752069df7819c72faa14428",
+    "md5": "413ff7f131a3e78a9f2512d00ac61742",
+    "name": "GNU Lesser General Public License v3.0 only",
+    "text_length": 41933,
+    "normalized_length": 40408
+  },
+  "LGPL-3.0+": {
+    "sha256": "2cd95baf3c52a5adf895585eed92cf9ee15d04e538cc1acf49ba8f167e36eee5",
+    "md5": "1df4fa4f7a7bfd38b097ec96cd11192b",
+    "name": "GNU Lesser General Public License v3.0 or later",
+    "text_length": 42200,
+    "normalized_length": 40435
+  },
   "LGPL-3.0-only": {
     "sha256": "f4685061a0d4e8d8028cd7db168ec7ab68e770778752069df7819c72faa14428",
     "md5": "413ff7f131a3e78a9f2512d00ac61742",
@@ -194,6 +2924,286 @@
     "name": "GNU Lesser General Public License v3.0 or later",
     "text_length": 41933,
     "normalized_length": 40408
+  },
+  "LGPLLR": {
+    "sha256": "32bab087be1f01beff557aeb906c42a3782a8c7e2efa40bd6d40565e17e573b9",
+    "md5": "0d899915068b8ff941fb6f5af43520fc",
+    "name": "Lesser General Public License For Linguistic Resources",
+    "text_length": 14556,
+    "normalized_length": 14193
+  },
+  "Libpng": {
+    "sha256": "23149b32a79c8bfd0b169161ac229f7aad073513f77731a6d07848deaceb91fe",
+    "md5": "04ea2358e5621a5c650088198429af75",
+    "name": "libpng License",
+    "text_length": 4218,
+    "normalized_length": 3458
+  },
+  "libpng-1.6.35": {
+    "sha256": "8be1f6462334e92dabcb987c3f830055bc5bbe9e7d6842c20d3f0103b09728a1",
+    "md5": "110e0a98c34011a6cce938dbd8c8ec94",
+    "name": "PNG Reference Library License v1 (for libpng 0.5 through 1.6.35)",
+    "text_length": 3702,
+    "normalized_length": 3200
+  },
+  "libpng-2.0": {
+    "sha256": "fb4bde1589666ab68c3f71698e64689011b5a11c9779476530994680f11fded2",
+    "md5": "9e7483e7909387ab09f25c1fae14d308",
+    "name": "PNG Reference Library version 2",
+    "text_length": 1551,
+    "normalized_length": 1445
+  },
+  "libselinux-1.0": {
+    "sha256": "6a8b02d1ffe526100b0ad3981312dd2d18ee9d5351e146f6c99ad0400e40fbab",
+    "md5": "005b4c73476d6050e0f9f529012b3a1d",
+    "name": "libselinux public domain notice",
+    "text_length": 1034,
+    "normalized_length": 999
+  },
+  "libtiff": {
+    "sha256": "96c2eef28a25695ffa77e0d328040cf7b72e098ef86b76d53a8c7184cbef53b2",
+    "md5": "0d2ab5678b0655e92e9a3efc077a3a60",
+    "name": "libtiff License",
+    "text_length": 1139,
+    "normalized_length": 1025
+  },
+  "libutil-David-Nugent": {
+    "sha256": "16ec1c21b2c876e9c02e81009d3faf1ff8a10ff836dec0956529b9fdfecf3480",
+    "md5": "14f7b73962f52315e1eb791fccfc536d",
+    "name": "libutil David Nugent License",
+    "text_length": 915,
+    "normalized_length": 834
+  },
+  "LiLiQ-P-1.1": {
+    "sha256": "6fc3fada9e715eb10d7c019456d8d6d19a9927e11b3e564d0a57cf03b5f34ec6",
+    "md5": "0eec82f4276608af550fd1257daa6318",
+    "name": "Licence Libre du Québec – Permissive version 1.1",
+    "text_length": 6351,
+    "normalized_length": 6090
+  },
+  "LiLiQ-R-1.1": {
+    "sha256": "99fe1b53ec0e5ddc93bbd17978440265b8accb287c5cfed110f8dc0c849ec202",
+    "md5": "9c5169a29fd9cb8da3395e89ee0077c7",
+    "name": "Licence Libre du Québec – Réciprocité version 1.1",
+    "text_length": 8392,
+    "normalized_length": 8022
+  },
+  "LiLiQ-Rplus-1.1": {
+    "sha256": "9c2237bdb406f4908a86a4666429520a418348fc49dc8e31bcaba084e461c85b",
+    "md5": "51ccd5bbe5c3c5b7f5c90b0d8ed1e14d",
+    "name": "Licence Libre du Québec – Réciprocité forte version 1.1",
+    "text_length": 8043,
+    "normalized_length": 7714
+  },
+  "Linux-man-pages-1-para": {
+    "sha256": "64ccaeefa071aadf1055ba2af4ddca32d8b1bba43193442839e4953dd17e6eb9",
+    "md5": "696330c9ca30ad040ec4701609602053",
+    "name": "Linux man-pages - 1 paragraph",
+    "text_length": 215,
+    "normalized_length": 212
+  },
+  "Linux-man-pages-copyleft": {
+    "sha256": "28e404bbc49004f9e19b08dfb30f9683a4019597d69fb1597694ace6f88bb709",
+    "md5": "9814c5dd3f6273d66403d66d7afe6423",
+    "name": "Linux man-pages Copyleft",
+    "text_length": 1019,
+    "normalized_length": 985
+  },
+  "Linux-man-pages-copyleft-2-para": {
+    "sha256": "8de46d166d7408ce8bc43fffb76d80cf0e27800d4b3a1e6ce375747e9ad43369",
+    "md5": "9724b4f8e426001c9fc252b2ee1a6be7",
+    "name": "Linux man-pages Copyleft - 2 paragraphs",
+    "text_length": 409,
+    "normalized_length": 404
+  },
+  "Linux-man-pages-copyleft-var": {
+    "sha256": "e954f1769b5f6d4ea4ac4fedc7fe2265f22a1ccc69fa329c69cab208f2e18f81",
+    "md5": "55ccd1d41eefee5d6fc5e2bb38fb9e57",
+    "name": "Linux man-pages Copyleft Variant",
+    "text_length": 808,
+    "normalized_length": 784
+  },
+  "Linux-OpenIB": {
+    "sha256": "8698736858fdc57395d9d882aca1aeb6b0ebd4c7bfecda9f3fafbebde67d80fe",
+    "md5": "fef422f693412f2bfbe7c6e1a1fde7fe",
+    "name": "Linux Kernel Variant of OpenIB.org license",
+    "text_length": 939,
+    "normalized_length": 915
+  },
+  "LOOP": {
+    "sha256": "0a46b85803ee5623fcf16e65dda546b9c842a789fc31dc95f4e160ca9aca73c9",
+    "md5": "f14092430866aff521b0d901d0c8be24",
+    "name": "Common Lisp LOOP License",
+    "text_length": 2054,
+    "normalized_length": 1981
+  },
+  "LPD-document": {
+    "sha256": "91ea6894ed86f7457db75ce321576cda9ce3d62ad8464374a1cf26d873b972a5",
+    "md5": "86332fd0c1e8d2ec96cd21cb1f3a3053",
+    "name": "LPD Documentation License",
+    "text_length": 363,
+    "normalized_length": 321
+  },
+  "LPL-1.0": {
+    "sha256": "4243122af725d6cad7c1ddd046c088570e91b08ba30ab27920c8f0e4552947fa",
+    "md5": "21b923740f76888327029bb9c7546354",
+    "name": "Lucent Public License Version 1.0",
+    "text_length": 11948,
+    "normalized_length": 11414
+  },
+  "LPL-1.02": {
+    "sha256": "04bfef95dfc6f7f0fe9fcf256662b7e65031cfb4a5536aef350e7361941b8f15",
+    "md5": "3b1c91d2f9f897bee68cf5af1c03ae7f",
+    "name": "Lucent Public License v1.02",
+    "text_length": 11824,
+    "normalized_length": 11274
+  },
+  "LPPL-1.0": {
+    "sha256": "db449f5976a235dbc32a9d3ab3365722614feed63c7fd47dabf970099c3f9a5d",
+    "md5": "1f4b8b12010c8a93909618dfd1c53cc4",
+    "name": "LaTeX Project Public License v1.0",
+    "text_length": 8929,
+    "normalized_length": 8325
+  },
+  "LPPL-1.1": {
+    "sha256": "10cb087a6cf2efda271c5ed26223e96b6e7a67f90e99a9f1eeeb268c979edee0",
+    "md5": "243722b0c0c26f3f73c61c6b80ce6cb7",
+    "name": "LaTeX Project Public License v1.1",
+    "text_length": 14026,
+    "normalized_length": 13317
+  },
+  "LPPL-1.2": {
+    "sha256": "8851ec37b35e41be85e047b341db6b51f389998db708beee21f47bc10025ff41",
+    "md5": "d8571c0ee3c04e86f01cd18917c7c5c2",
+    "name": "LaTeX Project Public License v1.2",
+    "text_length": 14115,
+    "normalized_length": 13395
+  },
+  "LPPL-1.3a": {
+    "sha256": "915bee249d089614672bf7d79c5fb104dc8f00214c7194aeccff158f27f7466d",
+    "md5": "8f3afc758aa2a21709af65d2eef330b4",
+    "name": "LaTeX Project Public License v1.3a",
+    "text_length": 18012,
+    "normalized_length": 17108
+  },
+  "LPPL-1.3c": {
+    "sha256": "e8beecb4ae11803c9776019a0058f0f058b88f72d80cd6b1f790d5ab96495c32",
+    "md5": "0f2b6d3bbc3afa589799c2b912c35045",
+    "name": "LaTeX Project Public License v1.3c",
+    "text_length": 18575,
+    "normalized_length": 17678
+  },
+  "lsof": {
+    "sha256": "df9ffc57ace7a2496a2d8dfa87827956829fc8806447c6fca4d9096884868c6d",
+    "md5": "f0f5360804816030976f9ea4381df964",
+    "name": "lsof License",
+    "text_length": 920,
+    "normalized_length": 818
+  },
+  "Lucida-Bitmap-Fonts": {
+    "sha256": "12d0d7bf1987eef94c6e72975842ba19d0b446701356b45dd973f765bc5d1cb0",
+    "md5": "322efb55bcb8419f08abf65c502ce9e6",
+    "name": "Lucida Bitmap Fonts License",
+    "text_length": 2868,
+    "normalized_length": 2712
+  },
+  "LZMA-SDK-9.11-to-9.20": {
+    "sha256": "8c417651a920be9168cfb3ba4c6ac3deb0cde2b09a215c397196c69864e88ef8",
+    "md5": "02f24605498692f3db53b3a787a7d74c",
+    "name": "LZMA SDK License (versions 9.11 to 9.20)",
+    "text_length": 240,
+    "normalized_length": 221
+  },
+  "LZMA-SDK-9.22": {
+    "sha256": "95dcb7a96f444b7eda68fc71035e534deac07daf881dd31d7730b6312bc9725d",
+    "md5": "3f62bb81df249a8591551ff240a56217",
+    "name": "LZMA SDK License (versions 9.22 and beyond)",
+    "text_length": 582,
+    "normalized_length": 547
+  },
+  "Mackerras-3-Clause": {
+    "sha256": "f735dc4fb36cb9d453cf21d5ae42e640cae549a8daad63138bebdc921db748de",
+    "md5": "3620613dd3311899a8eb1788c1a90cfb",
+    "name": "Mackerras 3-Clause License",
+    "text_length": 1240,
+    "normalized_length": 1071
+  },
+  "Mackerras-3-Clause-acknowledgment": {
+    "sha256": "e849033a1442d41609f054748e982f0e9d812bc9068da589103d90ef5bb22df3",
+    "md5": "e944b3e45553476542c7a1ee6e1e2d06",
+    "name": "Mackerras 3-Clause - acknowledgment variant",
+    "text_length": 1144,
+    "normalized_length": 1009
+  },
+  "magaz": {
+    "sha256": "13bb6ead0f8272645604e7d29e8b8391e7d210e8a765a34aee49d3ff8169b342",
+    "md5": "d0da06e5d0fcaedc399b491536863652",
+    "name": "magaz License",
+    "text_length": 216,
+    "normalized_length": 134
+  },
+  "mailprio": {
+    "sha256": "d2d73c46b84639068e71f203a58f7374ce6cd4ac21a2d4ea7ec16c64e0355f01",
+    "md5": "534c4bb97cd66f278bb71f535fe99fc9",
+    "name": "mailprio License",
+    "text_length": 415,
+    "normalized_length": 350
+  },
+  "MakeIndex": {
+    "sha256": "c8dced7a7eb05d35aef2f4211748aa38380a17f8e977b2483ec33bde4d7e0439",
+    "md5": "72f8a4c43d7e8cc00d411455958b7117",
+    "name": "MakeIndex License",
+    "text_length": 1974,
+    "normalized_length": 1724
+  },
+  "man2html": {
+    "sha256": "c0302ae742d57b7d4ddbe6bd2dc3d8c94352af537e861d590cad1c214d3538e3",
+    "md5": "0335c53684ba655995a56085126be435",
+    "name": "man2html License",
+    "text_length": 116,
+    "normalized_length": 113
+  },
+  "Martin-Birgmeier": {
+    "sha256": "b272ff6654de8fb7832fe7ebd3866089039f86d8441d86c198a1f9680a7e2c01",
+    "md5": "6cf29f759640337fb8e6635356fbcfa8",
+    "name": "Martin Birgmeier License",
+    "text_length": 407,
+    "normalized_length": 337
+  },
+  "McPhee-slideshow": {
+    "sha256": "40a7d49d59060b456007fa57f5fc2d6b0ff6f3e30d413621ba83faac17912d92",
+    "md5": "59aab7abe11fe65f81bd452277f655c0",
+    "name": "McPhee Slideshow License",
+    "text_length": 323,
+    "normalized_length": 283
+  },
+  "metamail": {
+    "sha256": "241992c687ce818d872c0cf092a85078905ad7b658ea07d03ffb24abc16be3b0",
+    "md5": "64d6a9ae972bdbb7e48cba62a8f9e3c4",
+    "name": "metamail License",
+    "text_length": 629,
+    "normalized_length": 549
+  },
+  "Minpack": {
+    "sha256": "50eb89ef1bc66619a8aedbfdca70d4ae3bf7e08d2bd1c042a99b47e2bf922c79",
+    "md5": "4fc4d4dd44512e89aa85e691d66cff17",
+    "name": "Minpack License",
+    "text_length": 2193,
+    "normalized_length": 2106
+  },
+  "MIPS": {
+    "sha256": "a2193a073dfc61abc7df7a427e3d30a235c3719d0e795539eca211cbd3e60f05",
+    "md5": "b5bcd494f8d0d007a53c0d0f2356cdec",
+    "name": "MIPS License",
+    "text_length": 192,
+    "normalized_length": 128
+  },
+  "MirOS": {
+    "sha256": "14a650bffc2a014e66d03b0dfc56c5da3681ef0dda26820734f039fd1c7bf5b1",
+    "md5": "9be09e5e03f10b9c149dd57605c5528e",
+    "name": "The MirOS Licence",
+    "text_length": 888,
+    "normalized_length": 848
   },
   "MIT": {
     "sha256": "62a715c94922ee92d707e8dbca1640e25618aad818eefa0fcbc2d37d474a0806",
@@ -209,12 +3219,180 @@
     "text_length": 915,
     "normalized_length": 872
   },
+  "MIT-advertising": {
+    "sha256": "dd72c08302296f0b65a82abc01c51567aab646e7e57963ba1b125d519b1fe30f",
+    "md5": "964e21ce7ee581bfc89c448f277a6d31",
+    "name": "Enlightenment License (e16)",
+    "text_length": 1270,
+    "normalized_length": 1110
+  },
+  "MIT-Click": {
+    "sha256": "f1916417310b55dc5e708fbef33e18fe9c4ea323c4fc79c9ee70afc17f766870",
+    "md5": "2b01107f4ff5cb96fe0253bd0881b6db",
+    "name": "MIT Click License",
+    "text_length": 1695,
+    "normalized_length": 1568
+  },
+  "MIT-CMU": {
+    "sha256": "6d0ef82399856495c3cb9b58c0e13c8685acde79f60a6869d16ea1ab4c178331",
+    "md5": "32e353fb7ac234d75c59f9afad6baebf",
+    "name": "CMU License",
+    "text_length": 1150,
+    "normalized_length": 1122
+  },
+  "MIT-enna": {
+    "sha256": "44ca706d6183b6108419846fc6de9d4f7f1e117715bf1ad18bd4d7dcc63bfff9",
+    "md5": "0627e834f3304794e9130e307075d338",
+    "name": "enna License",
+    "text_length": 1668,
+    "normalized_length": 1547
+  },
+  "MIT-feh": {
+    "sha256": "93b540de157e696f86248b9e4eeebd11b0a184c2c31b2b9b50b46975f0c37077",
+    "md5": "3cb8c38d854e28bafcad80e2a9cb7791",
+    "name": "feh License",
+    "text_length": 1105,
+    "normalized_length": 1070
+  },
+  "MIT-Festival": {
+    "sha256": "1dfabc5090f156ea37ef7184d963e594b0f2262551241a6dd5c9af327c6ad438",
+    "md5": "812c0b0f771ec1205c320f5b739e87e8",
+    "name": "MIT Festival Variant",
+    "text_length": 1228,
+    "normalized_length": 1195
+  },
+  "MIT-Khronos-old": {
+    "sha256": "b4e0ece2e379a196e0a879c2b9944592069e52d8d4ffd616c5c57c6dcc0d4143",
+    "md5": "49a66d1af81cb3ec126f953b7c32d5dc",
+    "name": "MIT Khronos - old variant",
+    "text_length": 1305,
+    "normalized_length": 1186
+  },
+  "MIT-Modern-Variant": {
+    "sha256": "273eb9aea8a2dbefa30f5bae89fc8eeb7a824e30326aa1e2a46af27d5d9f33f1",
+    "md5": "90e8d54d83ad748b1d919193cfc49586",
+    "name": "MIT License Modern Variant",
+    "text_length": 917,
+    "normalized_length": 888
+  },
+  "MIT-open-group": {
+    "sha256": "72ef2420f57d291fc5cbc47a301b5b7ad5b16181de7e23b324ea9ec73ee03b3e",
+    "md5": "ddd08bd28f78bc3eb13a2841f585b73a",
+    "name": "MIT Open Group variant",
+    "text_length": 1136,
+    "normalized_length": 1105
+  },
+  "MIT-STK": {
+    "sha256": "0d422a60d18e3280a3287d8cbdb7cb2314aa05be8752b7fa70292629543e7867",
+    "md5": "6fe5d5a9e088d7fafdef5113ef151982",
+    "name": "MIT-STK License",
+    "text_length": 1364,
+    "normalized_length": 1259
+  },
+  "MIT-testregex": {
+    "sha256": "70391bd1bf5f668604f39df0bc3885f3145482861ed8bf51b46336d4b09455a7",
+    "md5": "11a0947548b5b160585faa4b4698960f",
+    "name": "MIT testregex Variant",
+    "text_length": 1134,
+    "normalized_length": 1037
+  },
+  "MIT-Wu": {
+    "sha256": "d443e296348ffd4902553749251d36adaa2cec9d676030e5dabe16af84bcfac4",
+    "md5": "76faea3749c8cd53ab9f6d357be76dc1",
+    "name": "MIT Tom Wu Variant",
+    "text_length": 1295,
+    "normalized_length": 1218
+  },
+  "MITNFA": {
+    "sha256": "236b2e6751a50c0ba85a670aa62b158525255219e912c90e7d491bcce0b10f00",
+    "md5": "a0e01d9111d04a9b792d30367ffb4113",
+    "name": "MIT +no-false-attribs license",
+    "text_length": 1531,
+    "normalized_length": 1488
+  },
+  "MMIXware": {
+    "sha256": "31ba531fc2e88bd80c7878713f79f1216a93e4d0614abee3519f68d61067b43a",
+    "md5": "c7cfeb37a8023913f1275018b2466d5b",
+    "name": "MMIXware License",
+    "text_length": 865,
+    "normalized_length": 810
+  },
+  "MMPL-1.0.1": {
+    "sha256": "0b01d909b3709b210fcd34db6035a8c6e386b6c78f5c31024f7876a7d4b05083",
+    "md5": "30da5c1cd8a591a9a9ccb8c58b0d4457",
+    "name": "Minecraft Mod Public License v1.0.1",
+    "text_length": 3105,
+    "normalized_length": 2961
+  },
+  "Motosoto": {
+    "sha256": "43e1f20a6574167506ea49ce0df961359e01b38dfd94497f815d39151413ee94",
+    "md5": "a8cc3c0a1f9f6111191f2131e26ee541",
+    "name": "Motosoto License",
+    "text_length": 25626,
+    "normalized_length": 24462
+  },
+  "MPEG-SSG": {
+    "sha256": "2df24a19b288aa80325510bab89fae8d6d237bd55bc3e9f2ce637f9c0431c55b",
+    "md5": "6b68a39377d12642dbb2e96e4864fa77",
+    "name": "MPEG Software Simulation",
+    "text_length": 1128,
+    "normalized_length": 1006
+  },
+  "mpi-permissive": {
+    "sha256": "1edeb4c1a51bb00fe2b425d2d89586c98ab504fb07fbc1ca957ef4744f9a827d",
+    "md5": "11757e944f4b9995c23c83fcd97ad7bf",
+    "name": "mpi Permissive License",
+    "text_length": 583,
+    "normalized_length": 493
+  },
+  "mpich2": {
+    "sha256": "9ae344156d7c29cbf9fe81dc8648ebde07222365d37fac2f205f261e70883079",
+    "md5": "1aa83496283bdfb80ff9d79ae36c9dbe",
+    "name": "mpich2 License",
+    "text_length": 1424,
+    "normalized_length": 1381
+  },
+  "MPL-1.0": {
+    "sha256": "5c5a9077aa426e43306afdeb8ad363feda4b42917f90a544b528d5c8147a24d5",
+    "md5": "fb37a1c86d7ff999d79c0c5ffb632dea",
+    "name": "Mozilla Public License 1.0",
+    "text_length": 18272,
+    "normalized_length": 17410
+  },
+  "MPL-1.1": {
+    "sha256": "d7f47da70b2a7bdd50906eb109c4cd372c6f1164ca56ff9c86adc311d9707f8e",
+    "md5": "ad72bca117475bafdb540d7b73c4f7b4",
+    "name": "Mozilla Public License 1.1",
+    "text_length": 23669,
+    "normalized_length": 22644
+  },
   "MPL-2.0": {
     "sha256": "2dca7d683e87805d62e1f72361720ec82686dacb7dfa3ced22495d6d26f60b5b",
     "md5": "3d6677a301986226da2453bea05be593",
     "name": "Mozilla Public License 2.0",
     "text_length": 16727,
     "normalized_length": 14669
+  },
+  "MPL-2.0-no-copyleft-exception": {
+    "sha256": "2dca7d683e87805d62e1f72361720ec82686dacb7dfa3ced22495d6d26f60b5b",
+    "md5": "3d6677a301986226da2453bea05be593",
+    "name": "Mozilla Public License 2.0 (no copyleft exception)",
+    "text_length": 16727,
+    "normalized_length": 14669
+  },
+  "mplus": {
+    "sha256": "87b95e8d123ab86a62fc264f99bfe72bfa1f53df97f6f593ee35b757a1a4f266",
+    "md5": "420d29fbe752f54a4517a1ad093db646",
+    "name": "mplus Font License",
+    "text_length": 226,
+    "normalized_length": 209
+  },
+  "MS-LPL": {
+    "sha256": "47b86e8d893b94f887fce828b9a6ffb936f55ac3b3614f61913d73121b6b4d59",
+    "md5": "a888dd8195c784e5b3e940d02c1c7b7e",
+    "name": "Microsoft Limited Public License",
+    "text_length": 2870,
+    "normalized_length": 2718
   },
   "MS-PL": {
     "sha256": "d2f1bd54087205863a85abefb5ab87471c1022fef187ef042c77c440d28c6024",
@@ -230,12 +3408,551 @@
     "text_length": 3058,
     "normalized_length": 2902
   },
+  "MTLL": {
+    "sha256": "fa25dce3ae8ead8cfc2ed8444d32e9b222891ebdcb82d77c9f0f3631d3358394",
+    "md5": "fb5ba1cbe86651a2324a5257c5657bec",
+    "name": "Matrix Template Library License",
+    "text_length": 3238,
+    "normalized_length": 3053
+  },
+  "MulanPSL-1.0": {
+    "sha256": "5b97f855324a64d947d774db6b82495f3f5497a059cb259f8cf914f1428bc97a",
+    "md5": "407817fe2eac090936e07e09fb6bc9c3",
+    "name": "Mulan Permissive Software License, Version 1",
+    "text_length": 6570,
+    "normalized_length": 6092
+  },
+  "MulanPSL-2.0": {
+    "sha256": "18f68f38162a6c7794ba500247611029e3a52ef5399f5aa2737d4d11a92fbf9e",
+    "md5": "78130cc2458ae3f7eb2da364178564cd",
+    "name": "Mulan Permissive Software License, Version 2",
+    "text_length": 6850,
+    "normalized_length": 6413
+  },
+  "Multics": {
+    "sha256": "892058f16aca603a2c3672119fad222e7e2a57504ef25c1e1204913a6dfd2d2e",
+    "md5": "9f9fe88697c36a7b307663fb7a7633e7",
+    "name": "Multics License",
+    "text_length": 2040,
+    "normalized_length": 1809
+  },
+  "Mup": {
+    "sha256": "acac131311544a6429520018c8d3af0050a4ad6555b627adf88a47257c7e3d42",
+    "md5": "85ad50e8a7b3d224f6236305540ffad9",
+    "name": "Mup License",
+    "text_length": 1459,
+    "normalized_length": 1344
+  },
+  "MVT-1.1": {
+    "sha256": "1f66cbe70c25e922131dc94f30cc4de85a2fe48b36958f826c995bb2980cd9c8",
+    "md5": "5f005a39d77603c3a6d22a506308bdc8",
+    "name": "MVT License 1.1",
+    "text_length": 17791,
+    "normalized_length": 15666
+  },
+  "NAIST-2003": {
+    "sha256": "71bafed8074a0f3cd19292a8c17ae1048ea9bbdb93240718b7633f544ea87157",
+    "md5": "6f625308c047075d4022c676226b1817",
+    "name": "Nara Institute of Science and Technology License (2003)",
+    "text_length": 3792,
+    "normalized_length": 3632
+  },
+  "NASA-1.3": {
+    "sha256": "ebcd3f74a9a37183fafcc56114772e063ede47214cc52cc9645a2265ab8998d5",
+    "md5": "f32775023eb61d44d65092dfc89d0ab2",
+    "name": "NASA Open Source Agreement 1.3",
+    "text_length": 13778,
+    "normalized_length": 13309
+  },
+  "Naumen": {
+    "sha256": "8917e060fff47b49b3d4cbf7d20eb89b709be33053b42e1e5567cc329353670e",
+    "md5": "e8acbb81511d1cbcabfa8743fcb4deaa",
+    "name": "Naumen Public License",
+    "text_length": 1953,
+    "normalized_length": 1883
+  },
+  "NBPL-1.0": {
+    "sha256": "80f083860690adc2f02097057ec8ea3e63573660f41d4121a3a5ef56433be1cc",
+    "md5": "cc39eb4ca483cb148c7cc466c7f1866b",
+    "name": "Net Boolean Public License v1",
+    "text_length": 5425,
+    "normalized_length": 5206
+  },
+  "NCBI-PD": {
+    "sha256": "6a2e512ad71c639c0e789b6cf2a4e5497aa38a7ec2b1235b06782f6e5131f150",
+    "md5": "621043959348af0a26e2c4118115e118",
+    "name": "NCBI Public Domain Notice",
+    "text_length": 964,
+    "normalized_length": 941
+  },
+  "NCGL-UK-2.0": {
+    "sha256": "35e088c9abe34351e15a6031bdbc29628ca4a71db7761f8a564012fab359c588",
+    "md5": "a7ae1b3b54d839b5e39b0cc6cd3a5102",
+    "name": "Non-Commercial Government Licence",
+    "text_length": 5482,
+    "normalized_length": 5319
+  },
+  "NCL": {
+    "sha256": "73ca3a29bf07c8c66002e7fa808a49f08365621fd840bfd8d1e5f160d8b21c92",
+    "md5": "9c4cf214fab409fe51c5ae784b86b24b",
+    "name": "NCL Source Code License",
+    "text_length": 1508,
+    "normalized_length": 1401
+  },
   "NCSA": {
     "sha256": "2150bf5085954117928ad386648827ab58a4b3b191e6caf03984722a3d4e69fb",
     "md5": "a40e1db1119d00db18fc0970a4510ecd",
     "name": "University of Illinois/NCSA Open Source License",
     "text_length": 1700,
     "normalized_length": 1611
+  },
+  "Net-SNMP": {
+    "sha256": "4479e253031dd5a3fd65f14f9e1eba8f286633e6a3a25d71b5bf1711348fcfe5",
+    "md5": "02eb17ecc76efd6ad5696293da995578",
+    "name": "Net-SNMP License",
+    "text_length": 14236,
+    "normalized_length": 12431
+  },
+  "NetCDF": {
+    "sha256": "edf47f16d2264e4dadf89094f04bfaca8331b28af5ad5c317e4580e224311c82",
+    "md5": "28cb248411d08cbaf58e640dc723bef5",
+    "name": "NetCDF license",
+    "text_length": 1881,
+    "normalized_length": 1761
+  },
+  "Newsletr": {
+    "sha256": "c6526dc00f312ce5edbe9b549fc5127f6a512a55b17219a0ad7259aba597281d",
+    "md5": "016c087f74f8d81571a9301215eb8235",
+    "name": "Newsletr License",
+    "text_length": 510,
+    "normalized_length": 451
+  },
+  "NGPL": {
+    "sha256": "74560df4390f4f0d92e2ea473a82f5a768fbe05d902db885c64eed5112a7befc",
+    "md5": "9c8498804442004d11e24d1fe277565f",
+    "name": "Nethack General Public License",
+    "text_length": 4703,
+    "normalized_length": 4561
+  },
+  "ngrep": {
+    "sha256": "1b7aeef347aaf20b8917bf7b0c10a68683332d49dfe28beb2a49d47b168f31c0",
+    "md5": "bd49997c8f897179dc45b0471925aae3",
+    "name": "ngrep License",
+    "text_length": 1840,
+    "normalized_length": 1695
+  },
+  "NICTA-1.0": {
+    "sha256": "12e4d57739b523e1ac5744707b4b2d49e98bd7f70b7ebb9ba34e1b505bba2332",
+    "md5": "f7bfaffafd71b3a44a93fe1653ac748b",
+    "name": "NICTA Public Software License, Version 1.0",
+    "text_length": 2976,
+    "normalized_length": 2796
+  },
+  "NIST-PD": {
+    "sha256": "0f69f349f8765e8763968e7e9af0104b4e61b93156506bb2a202408e23d8678f",
+    "md5": "8b2681cc21d8dc1eb0d4ef853f269404",
+    "name": "NIST Public Domain Notice",
+    "text_length": 890,
+    "normalized_length": 863
+  },
+  "NIST-PD-fallback": {
+    "sha256": "0a010d2ecdfe19ba0cab61f2f47fdc1cf6c142687624a615e3619496a69c9b79",
+    "md5": "bb101e61efcc3ef94c641d8690ffc12f",
+    "name": "NIST Public Domain Notice with license fallback",
+    "text_length": 1644,
+    "normalized_length": 1594
+  },
+  "NIST-PD-TNT": {
+    "sha256": "f37398b1a32964f83371eec2840ace3d7fef782e01834c396fcbaeababd59026",
+    "md5": "53b85f511dd56807baaea9670b8239a2",
+    "name": "NIST    Public Domain Notice TNT variant",
+    "text_length": 604,
+    "normalized_length": 591
+  },
+  "NIST-Software": {
+    "sha256": "a46a666bfeb9208d0737817f30d15c7fa885bd14b930684b0be77be4e9f759a1",
+    "md5": "e66c9886fbffc07713bee656b24b1fa0",
+    "name": "NIST Software License",
+    "text_length": 1852,
+    "normalized_length": 1786
+  },
+  "NLOD-1.0": {
+    "sha256": "1da9d58f5e5f3e5c352ad34d32a6a2ff48fa8c9f2955333fb7289961e66250ea",
+    "md5": "ca91679a7175b9bbddfb0e0c33b06ccc",
+    "name": "Norwegian Licence for Open Government Data (NLOD) 1.0",
+    "text_length": 8690,
+    "normalized_length": 8382
+  },
+  "NLOD-2.0": {
+    "sha256": "dedfc6820027049d2d488e0797db23bae051a109f3e9926b012165b8c47c14e8",
+    "md5": "1eb7c5db2475e8a09593975f098ae6b9",
+    "name": "Norwegian Licence for Open Government Data (NLOD) 2.0",
+    "text_length": 8776,
+    "normalized_length": 8466
+  },
+  "NLPL": {
+    "sha256": "e2cb474e2606794bb6cff40f899b5c9212de19fbcbac2c06fb16d49964b56f0c",
+    "md5": "d45d324d1c75c27bf852b82bc51a9e9f",
+    "name": "No Limit Public License",
+    "text_length": 268,
+    "normalized_length": 247
+  },
+  "Nokia": {
+    "sha256": "7e2eb8c39d957ad3c4bfe6333ed298eef7250d1a04f1d139e7b8eb79a1ffef3e",
+    "md5": "f6d0aad8b14542bbfae848cbd4112dca",
+    "name": "Nokia Open Source License",
+    "text_length": 21002,
+    "normalized_length": 20202
+  },
+  "NOSL": {
+    "sha256": "09129aab76b6e77bb399a8c2dac4f8520ecff19fcaa62adc286ad55b0b457419",
+    "md5": "bb0a219e899ebd07f9cc6e2bef166105",
+    "name": "Netizen Open Source License",
+    "text_length": 24490,
+    "normalized_length": 23363
+  },
+  "Noweb": {
+    "sha256": "eea4a3ecca20ca32c7b51743b3c5be9be80ecbaf3071f75eef6e31b8fb7e59c1",
+    "md5": "e05ddcf34af2fccf9639dea4fb29f077",
+    "name": "Noweb License",
+    "text_length": 1126,
+    "normalized_length": 1097
+  },
+  "NPL-1.0": {
+    "sha256": "d2bd6301270ee38707d2e1dd79faec49898b09a313833c9c9c7e2c6b1e89af2d",
+    "md5": "eef3c2da819c3d06e566d49d28486a54",
+    "name": "Netscape Public License v1.0",
+    "text_length": 21050,
+    "normalized_length": 20127
+  },
+  "NPL-1.1": {
+    "sha256": "9dfcfa27137decaaba8edf6f1563953a19a3391197cf358e10a7c636c33ae0d4",
+    "md5": "29b65cb2fdc60d755bb7af14f6fad408",
+    "name": "Netscape Public License v1.1",
+    "text_length": 28009,
+    "normalized_length": 26704
+  },
+  "NPOSL-3.0": {
+    "sha256": "95ad7de567b98425957e20219e6759744e54f4e58a2a8726551189d1b6f39b84",
+    "md5": "e5d8bad722aa6c49348bff6ed70774cf",
+    "name": "Non-Profit Open Software License 3.0",
+    "text_length": 11799,
+    "normalized_length": 11396
+  },
+  "NRL": {
+    "sha256": "be252d0eb0c8c75f724dda6aae6dcd2414b3814699c7684ab147e6c3f6d4f625",
+    "md5": "5b68a8a3d6a0a0390e731d89e465da47",
+    "name": "NRL License",
+    "text_length": 3298,
+    "normalized_length": 3173
+  },
+  "NTIA-PD": {
+    "sha256": "ee1c42ddf25053bed678118441479bbf18d135f73d4602a04eeab01a39668524",
+    "md5": "0ed80139ce6bd72fd73dfb2f157c9432",
+    "name": "NTIA Public Domain Notice",
+    "text_length": 2080,
+    "normalized_length": 2026
+  },
+  "NTP": {
+    "sha256": "c5d1d82f9202cc06f45c1545ac6f196260fc72b99d867722283a753323e2b868",
+    "md5": "95b3c09bfd05dfd486540bb88ea5ae53",
+    "name": "NTP License",
+    "text_length": 714,
+    "normalized_length": 688
+  },
+  "NTP-0": {
+    "sha256": "4bd4f75706ec0c1dd2902e9c2fa67ca761a9a3552fba0bd0ae4707f458d9b09e",
+    "md5": "37dce3cc85fc37a734ba524ef8134dcb",
+    "name": "NTP No Attribution",
+    "text_length": 528,
+    "normalized_length": 505
+  },
+  "Nunit": {
+    "sha256": "84a533e42fbacb0475fef37132845eae2ad5f2e15f2c4585b6dbd9984cd19407",
+    "md5": "e33fb53d59d69b531a1a2db0b590b0c8",
+    "name": "Nunit License",
+    "text_length": 1071,
+    "normalized_length": 903
+  },
+  "O-UDA-1.0": {
+    "sha256": "515d3e2cc5589d113ce8ed00c982d05e759eb620668d88278ce3fee03920af72",
+    "md5": "85700fbb9ca9b2369615299f8b6cedee",
+    "name": "Open Use of Data Agreement v1.0",
+    "text_length": 3430,
+    "normalized_length": 3228
+  },
+  "OAR": {
+    "sha256": "46f35bf439911c21ca80633fef7ebf6a30f8fba23ab61ca19f0cf525351d653c",
+    "md5": "b271c4b6bc274881d739458dff368cf9",
+    "name": "OAR License",
+    "text_length": 577,
+    "normalized_length": 527
+  },
+  "OCCT-PL": {
+    "sha256": "4e6f394f51b02f4cd97a66e750d2e54a488d501bd12191a6d57e8b68e2813f40",
+    "md5": "06f93af2d1a4225b448da9fb9fcf6a58",
+    "name": "Open CASCADE Technology Public License",
+    "text_length": 13996,
+    "normalized_length": 13522
+  },
+  "OCLC-2.0": {
+    "sha256": "e3c354c9ddf1b9adc6547ffd9f83e359ce96568f0a35a9d8183f9f214dd2896b",
+    "md5": "e27ac0ab4f37f0779a67215df23d475b",
+    "name": "OCLC Research Public License 2.0",
+    "text_length": 11121,
+    "normalized_length": 10666
+  },
+  "ODbL-1.0": {
+    "sha256": "840262f4c224694a014e15b2fd781d0db656fd04a9fb6889960fd36e6b58e5ca",
+    "md5": "3d4c5362a70fdd1df3edec85b4c161e1",
+    "name": "Open Data Commons Open Database License v1.0",
+    "text_length": 25255,
+    "normalized_length": 24142
+  },
+  "ODC-By-1.0": {
+    "sha256": "a9bd98a36156350c9383f2f7fa9a36759feefb98bcf48c4ea288d8e496783a78",
+    "md5": "0323eea21cbdbaf1601c5639f3f2a72a",
+    "name": "Open Data Commons Attribution License v1.0",
+    "text_length": 19774,
+    "normalized_length": 19135
+  },
+  "OFFIS": {
+    "sha256": "9640d3cc747c577e5e31d133b5f0a27d36b8fc7d9113197a4bf5c169d666353c",
+    "md5": "95d2d239c3a002d8a3b04867a43d0758",
+    "name": "OFFIS License",
+    "text_length": 1007,
+    "normalized_length": 920
+  },
+  "OFL-1.0": {
+    "sha256": "749d95bca77aa65c5cd8526f2f25705a3d1886a39f0e63d35edc85905b3015ba",
+    "md5": "faa0a35a7a589cb844f5ebc4a274a1e2",
+    "name": "SIL Open Font License 1.0",
+    "text_length": 3856,
+    "normalized_length": 3701
+  },
+  "OFL-1.0-no-RFN": {
+    "sha256": "749d95bca77aa65c5cd8526f2f25705a3d1886a39f0e63d35edc85905b3015ba",
+    "md5": "faa0a35a7a589cb844f5ebc4a274a1e2",
+    "name": "SIL Open Font License 1.0 with no Reserved Font Name",
+    "text_length": 3856,
+    "normalized_length": 3701
+  },
+  "OFL-1.0-RFN": {
+    "sha256": "749d95bca77aa65c5cd8526f2f25705a3d1886a39f0e63d35edc85905b3015ba",
+    "md5": "faa0a35a7a589cb844f5ebc4a274a1e2",
+    "name": "SIL Open Font License 1.0 with Reserved Font Name",
+    "text_length": 3856,
+    "normalized_length": 3701
+  },
+  "OFL-1.1": {
+    "sha256": "ebeec8484b997ed28cd397319626f039b9a9352d43c91f0762800ebf23cf35af",
+    "md5": "82057ad6d0ea7c6b8229204e3ef07de8",
+    "name": "SIL Open Font License 1.1",
+    "text_length": 4012,
+    "normalized_length": 3876
+  },
+  "OFL-1.1-no-RFN": {
+    "sha256": "ebeec8484b997ed28cd397319626f039b9a9352d43c91f0762800ebf23cf35af",
+    "md5": "82057ad6d0ea7c6b8229204e3ef07de8",
+    "name": "SIL Open Font License 1.1 with no Reserved Font Name",
+    "text_length": 4012,
+    "normalized_length": 3876
+  },
+  "OFL-1.1-RFN": {
+    "sha256": "ebeec8484b997ed28cd397319626f039b9a9352d43c91f0762800ebf23cf35af",
+    "md5": "82057ad6d0ea7c6b8229204e3ef07de8",
+    "name": "SIL Open Font License 1.1 with Reserved Font Name",
+    "text_length": 4012,
+    "normalized_length": 3876
+  },
+  "OGC-1.0": {
+    "sha256": "e1242114247123981a8dd09d509626dc7bbfa521a39e02f5eac7d4a7147aa50b",
+    "md5": "e95ef9e9e3c20eb1234953555694b398",
+    "name": "OGC Software License, Version 1.0",
+    "text_length": 2178,
+    "normalized_length": 2074
+  },
+  "OGDL-Taiwan-1.0": {
+    "sha256": "651268f91b293c42a34a674569c6af1ac57d0ce6961e501766d4b2b36ab27c0d",
+    "md5": "4d28e1330efed6510c4e51fbf2f05a4e",
+    "name": "Taiwan Open Government Data License, version 1.0",
+    "text_length": 8656,
+    "normalized_length": 8273
+  },
+  "OGL-Canada-2.0": {
+    "sha256": "185672ed7dca39f065d703783cd5b00ca19b1839ade10e38a2a95b31859b15e6",
+    "md5": "1cece796f601f93087e4a7fa25e3bfd7",
+    "name": "Open Government Licence - Canada",
+    "text_length": 3663,
+    "normalized_length": 3530
+  },
+  "OGL-UK-1.0": {
+    "sha256": "fc6d905b585bef45d2695cfaf50811d4176f396359f15687a22691451a2c26c4",
+    "md5": "8d9721ebb192d4ecc66d99057681ad36",
+    "name": "Open Government Licence v1.0",
+    "text_length": 6025,
+    "normalized_length": 5860
+  },
+  "OGL-UK-2.0": {
+    "sha256": "55abb1e5ededb4fb29f0a2407e9710a91563b284a99437e83417f5737633cc95",
+    "md5": "dbdff47c9bc85faa90d799a4ad55d4ae",
+    "name": "Open Government Licence v2.0",
+    "text_length": 5946,
+    "normalized_length": 5810
+  },
+  "OGL-UK-3.0": {
+    "sha256": "f1beb5f637f4beebcb0bbdb009af43acba9f21e8400ab78de320d1a64a4ace5f",
+    "md5": "f625e6b01ac3b786d22ffbe5eef175e0",
+    "name": "Open Government Licence v3.0",
+    "text_length": 6220,
+    "normalized_length": 6078
+  },
+  "OGTSL": {
+    "sha256": "44742571dc2c052e3dddb65e75bbc0d379693c3a866d19b399714f03ea46b305",
+    "md5": "9593fb86bf7a421dd8f1a9986bd37a43",
+    "name": "Open Group Test Suite License",
+    "text_length": 5277,
+    "normalized_length": 5107
+  },
+  "OLDAP-1.1": {
+    "sha256": "a9ba76049c5abd8b947cf8db570ac96b8d5125c48a3fe3577dea6e2927162ee4",
+    "md5": "4b9fc1490cee80d42aa9d1ab86b5d262",
+    "name": "Open LDAP Public License v1.1",
+    "text_length": 5393,
+    "normalized_length": 5117
+  },
+  "OLDAP-1.2": {
+    "sha256": "0870c6049dd92d08807832b257d9eb001da6add70d68d63c68969211324b6298",
+    "md5": "9850d6f520cc81c94f8cb6df85bce87d",
+    "name": "Open LDAP Public License v1.2",
+    "text_length": 5396,
+    "normalized_length": 5121
+  },
+  "OLDAP-1.3": {
+    "sha256": "89f88458aa489d5e75dd2ac21e98c38fae373bcc346ee632a7d1ccf4fe5fd6e8",
+    "md5": "7e6570d343220d8d3c456f96c9baed1e",
+    "name": "Open LDAP Public License v1.3",
+    "text_length": 5795,
+    "normalized_length": 5511
+  },
+  "OLDAP-1.4": {
+    "sha256": "93485a396261a61be01b8844ad6793a7d101f346f1b716e3f94d5b03c1a9de05",
+    "md5": "1eb61ea64b56dc90d5e8a0dd4fb1497a",
+    "name": "Open LDAP Public License v1.4",
+    "text_length": 5873,
+    "normalized_length": 5589
+  },
+  "OLDAP-2.0": {
+    "sha256": "ff2fac4510498e602ce6f64dcfd9af69e6a4662943c677851a7833eeff8a06b1",
+    "md5": "1e940f9d369a0b5e804fb62b75712651",
+    "name": "Open LDAP Public License v2.0 (or possibly 2.0A and 2.0B)",
+    "text_length": 1981,
+    "normalized_length": 1771
+  },
+  "OLDAP-2.0.1": {
+    "sha256": "71fc172acdb1445aef1d80e822c341de928f4ac431fed083f50bd42445deb825",
+    "md5": "2b0b2f663b5e96a505f1feb965d1c503",
+    "name": "Open LDAP Public License v2.0.1",
+    "text_length": 1977,
+    "normalized_length": 1767
+  },
+  "OLDAP-2.1": {
+    "sha256": "785178cd4d190de8e5502b1e15823171242f03c2ea0333d8996e5df2d7de6906",
+    "md5": "6513bc95d39307ab5583178dbf42d14c",
+    "name": "Open LDAP Public License v2.1",
+    "text_length": 2220,
+    "normalized_length": 2000
+  },
+  "OLDAP-2.2": {
+    "sha256": "b47e72841debf5ab6d2780c44fffe25e36248dde69885cf61b680f74e18ba5c0",
+    "md5": "692a76497cd89b8a3e53c4a81dda7f13",
+    "name": "Open LDAP Public License v2.2",
+    "text_length": 2228,
+    "normalized_length": 1953
+  },
+  "OLDAP-2.2.1": {
+    "sha256": "907f63a8f50d219fb7704102f549f45ed465222e22002c3399be90b3c57ee8dd",
+    "md5": "1da4932945e053d8763a8785c472ec30",
+    "name": "Open LDAP Public License v2.2.1",
+    "text_length": 2241,
+    "normalized_length": 1967
+  },
+  "OLDAP-2.2.2": {
+    "sha256": "09d5a88654071adba5f7adf42d8f2938be65b19973a513f153d6b0f4f1fed794",
+    "md5": "7f23657a423a58131d277a886b2fb893",
+    "name": "Open LDAP Public License 2.2.2",
+    "text_length": 2267,
+    "normalized_length": 1990
+  },
+  "OLDAP-2.3": {
+    "sha256": "1a7ba96cff54441f22f1c4617559d75a0d03f3011614b1ddb2dfbb1fd17a44c9",
+    "md5": "ff7c1f6b46bf0044ed6f1aeea4609f43",
+    "name": "Open LDAP Public License v2.3",
+    "text_length": 2265,
+    "normalized_length": 1988
+  },
+  "OLDAP-2.4": {
+    "sha256": "df64aefa9e492478aae9eb2cbed3515063c6bb14a2b30788fdd04d8bba5a7c61",
+    "md5": "1146ccea99d64f89d73e1dcd430f8e73",
+    "name": "Open LDAP Public License v2.4",
+    "text_length": 2124,
+    "normalized_length": 1881
+  },
+  "OLDAP-2.5": {
+    "sha256": "ccdc7e76df64588af155346c48d718a60fa9c353d1f6a110564d3416b7d3fc76",
+    "md5": "7b1e2283c2708dcbc5ce75bf4bbf549d",
+    "name": "Open LDAP Public License v2.5",
+    "text_length": 2171,
+    "normalized_length": 1924
+  },
+  "OLDAP-2.6": {
+    "sha256": "5d041177728182db358c9c59d7e4cb6c768f44f6e992b8110ff15f4d401e7ef0",
+    "md5": "0a35f42a5cd17115b962c9134533383c",
+    "name": "Open LDAP Public License v2.6",
+    "text_length": 2109,
+    "normalized_length": 1865
+  },
+  "OLDAP-2.7": {
+    "sha256": "ad9117280da64f7f2eee04bdf46414df8ee3d756bb52be0935a98631fca8ccc2",
+    "md5": "e8ce05464c080803a4c1b876c5586df6",
+    "name": "Open LDAP Public License v2.7",
+    "text_length": 2197,
+    "normalized_length": 1955
+  },
+  "OLDAP-2.8": {
+    "sha256": "eacdee6c34d179ec0b5965c17ad6387e27acdfb6b8a3e8b0638633281797aabc",
+    "md5": "5c71504ce25f82f8796ba12884ca4348",
+    "name": "Open LDAP Public License v2.8",
+    "text_length": 2195,
+    "normalized_length": 1953
+  },
+  "OLFL-1.3": {
+    "sha256": "933210d1eb7bb00edaa31942cc1832f8d7a3834642a8f82a20eb268e1b8cb7eb",
+    "md5": "3b05701074619f1df616add8d550aebc",
+    "name": "Open Logistics Foundation License Version 1.3",
+    "text_length": 11401,
+    "normalized_length": 11023
+  },
+  "OML": {
+    "sha256": "f74fce90352be33d15c394bd362db7adfc5b7cd314652ce95b01066718006c6c",
+    "md5": "00c4e2609c15dd4b70fd0ce495eeefa3",
+    "name": "Open Market License",
+    "text_length": 1689,
+    "normalized_length": 1644
+  },
+  "OpenMDW-1.0": {
+    "sha256": "4f72ba8fc25c4a19bc63a8b791a7bdaa5145116af7afae6cfe3b05e86ce500ed",
+    "md5": "c1959667ffaf65c4eea6547e4cc84ceb",
+    "name": "OpenMDW License Agreement v1.0",
+    "text_length": 2606,
+    "normalized_length": 2521
+  },
+  "OpenPBS-2.3": {
+    "sha256": "4ffdff642396a542be48807520f2dff88e928308a5db0bbba925b072f686ec17",
+    "md5": "f1d63c03748593f52f115b6d17578b11",
+    "name": "OpenPBS v2.3 Software License",
+    "text_length": 3963,
+    "normalized_length": 3639
   },
   "OpenSSL": {
     "sha256": "88a607f5447586b4aa85e93e859347561b81002ad01e8b435bd9551fd3528957",
@@ -244,12 +3961,187 @@
     "text_length": 5309,
     "normalized_length": 4805
   },
+  "OpenSSL-standalone": {
+    "sha256": "7153efc3356fd946cfbde87e948ddc9e7b0d6e3ad9c271f4726d2b1f066fb3a7",
+    "md5": "ed352edbb88be80ecfbe85cebc60d5f0",
+    "name": "OpenSSL License - standalone",
+    "text_length": 2502,
+    "normalized_length": 2041
+  },
+  "OpenVision": {
+    "sha256": "f6f35d2d6818ade82e9fce19a262b1ecf04b766e874ae2e30c43b99c3e282fc5",
+    "md5": "b39f4df39efd67e6deaac8e83c727509",
+    "name": "OpenVision License",
+    "text_length": 1680,
+    "normalized_length": 1575
+  },
+  "OPL-1.0": {
+    "sha256": "888def809ae9ab0b2fba51936b975442b1a0e9e613262dd8f05fe7736a488ffb",
+    "md5": "81362cf9d29dfaeafe65fd704cbe46b3",
+    "name": "Open Public License v1.0",
+    "text_length": 20309,
+    "normalized_length": 19454
+  },
+  "OPL-UK-3.0": {
+    "sha256": "0bd070bda5dad04a04881d55c45bd3f6247f786a9ae9d89f1e565d57024c66a6",
+    "md5": "6a8dcd1d78b3b413299dcf190e730257",
+    "name": "United    Kingdom Open Parliament Licence v3.0",
+    "text_length": 4439,
+    "normalized_length": 4218
+  },
+  "OPUBL-1.0": {
+    "sha256": "bc915c969c9feb9192c00c77ae0a8e8658091d3a16d584e8a7d3cd52b7319f9f",
+    "md5": "f8cf2232d216929f7c03fedda5ff723d",
+    "name": "Open Publication License v1.0",
+    "text_length": 6148,
+    "normalized_length": 5752
+  },
+  "OSC-1.0": {
+    "sha256": "3ab1146dfc3a565a6225eefcd0b1d5a20e3222e26466321d1d8b3465824118c7",
+    "md5": "0d2cdba987c56047da55872e9a632fe2",
+    "name": "OSC License 1.0",
+    "text_length": 1386,
+    "normalized_length": 1341
+  },
+  "OSET-PL-2.1": {
+    "sha256": "ff080bf907582311b41fff77f23ad61f90ce10cd6060b21cab94bc1ca8d59559",
+    "md5": "69191840851aead9f67326fef6c84256",
+    "name": "OSET Public License version 2.1",
+    "text_length": 19840,
+    "normalized_length": 18931
+  },
+  "OSL-1.0": {
+    "sha256": "55a4e9487de71f5c382da52008b2525154bb3dd931456c7a497c13631a9757d5",
+    "md5": "dc7396f552f9ed5222e3ebd93ea79aca",
+    "name": "Open Software License 1.0",
+    "text_length": 8920,
+    "normalized_length": 8646
+  },
+  "OSL-1.1": {
+    "sha256": "5b7fd184cd7dbf21d1dea45b790400557a7531e85e91df06e55cb29bbad21db6",
+    "md5": "36f70ed1ad9fd33d2b7e517469b872db",
+    "name": "Open Software License 1.1",
+    "text_length": 9661,
+    "normalized_length": 9376
+  },
+  "OSL-2.0": {
+    "sha256": "55e7339d3c7638195f1e4989f19c3407981d78949c358a23b814b8e205aab83b",
+    "md5": "e91876585bec67aa0089946786139b72",
+    "name": "Open Software License 2.0",
+    "text_length": 9880,
+    "normalized_length": 9595
+  },
+  "OSL-2.1": {
+    "sha256": "259bd90cd9ef1baba2da8f3e9d3afc64a369eb45873cb8c85ab5bbe43ae140f7",
+    "md5": "25c3db8a68badf25ee9c4a306589dd6d",
+    "name": "Open Software License 2.1",
+    "text_length": 9871,
+    "normalized_length": 9589
+  },
+  "OSL-3.0": {
+    "sha256": "689215b34acaff0bc429cda7bb66684727bb99d1c69712dc87c52d3372925e86",
+    "md5": "2620c288a7ddf288dab41c6bbd93519e",
+    "name": "Open Software License 3.0",
+    "text_length": 10309,
+    "normalized_length": 9990
+  },
+  "OSSP": {
+    "sha256": "f4a6c9fa2c5fc2586ed7f75df3b4415533eff959009a3c2f760d0307ebe899f6",
+    "md5": "06f896e2f946f4f9f68ca2e7b6366e8c",
+    "name": "OSSP License",
+    "text_length": 1321,
+    "normalized_length": 1014
+  },
+  "PADL": {
+    "sha256": "af6fbe0f5c564f99d7f99ec9c64b315a556641c28e3894091578e6fba7464fa9",
+    "md5": "b574f0a67adb58dae2aa16dec5bb2a4a",
+    "name": "PADL License",
+    "text_length": 314,
+    "normalized_length": 301
+  },
+  "ParaType-Free-Font-1.3": {
+    "sha256": "0ca01588fa1a29ef967e9fd83174bcdc6d5ee9a81bcec4d4a245dce5b7b7732f",
+    "md5": "da1374e518a7be19489a0f5cccf91d5b",
+    "name": "ParaType Free Font Licensing Agreement v1.3",
+    "text_length": 1940,
+    "normalized_length": 1831
+  },
+  "Parity-6.0.0": {
+    "sha256": "f5ae45be4b54cc00b4446c386a4443d8a885cdec403895a9dc758696fd667547",
+    "md5": "2755267c9aa6c1489684e2eeb47a33e9",
+    "name": "The Parity Public License 6.0.0",
+    "text_length": 1704,
+    "normalized_length": 1593
+  },
+  "Parity-7.0.0": {
+    "sha256": "e3e8462a228e75dad156b916a7823d387845c7302b0301e5e21abff3de3d1bbd",
+    "md5": "83af7a594d9c7cd9594a33934937c59c",
+    "name": "The Parity Public License 7.0.0",
+    "text_length": 3524,
+    "normalized_length": 3098
+  },
+  "PDDL-1.0": {
+    "sha256": "44cbd5b607ce44ab201441187b6b9a41d0013445c0b563f7c28ccc56bab7f188",
+    "md5": "3858a4de095e6e6d42cfa1e074e111a1",
+    "name": "Open Data Commons Public Domain Dedication & License 1.0",
+    "text_length": 15481,
+    "normalized_length": 15062
+  },
+  "PHP-3.0": {
+    "sha256": "96306ffdff577c3748596980939c30b482a0de84a2d39da7d417363dd077e801",
+    "md5": "3ee294288ebfd8bd9508546f81e08e10",
+    "name": "PHP License v3.0",
+    "text_length": 2846,
+    "normalized_length": 2585
+  },
   "PHP-3.01": {
     "sha256": "fb81c250d5df64d88748bc70c24eb8a4eeaae44bb186eea32643c5d4c5af9615",
     "md5": "c37876c23c66486d4fb3f7133c2f9144",
     "name": "PHP License v3.01",
     "text_length": 2855,
     "normalized_length": 2586
+  },
+  "Pixar": {
+    "sha256": "a9351536ca77ebd364c95cad985f650a667c5e9911fc672c68a4dae7ce7f03b5",
+    "md5": "ecbb61c72b0ce96522e10dffaaa12b2a",
+    "name": "Pixar License",
+    "text_length": 10039,
+    "normalized_length": 8789
+  },
+  "pkgconf": {
+    "sha256": "eeca338125bf5c93f31d22f3fb0c56a32061229682573c6681d7a51934fdcfd7",
+    "md5": "453fee7146da3ddbbdd4f6d91c92e300",
+    "name": "pkgconf License",
+    "text_length": 387,
+    "normalized_length": 374
+  },
+  "Plexus": {
+    "sha256": "4953f9a00d212f247f0473f4ae227c5bbf0b0348986f4e970c4b3d4c256699be",
+    "md5": "b7fdfc4570136feb653065d6f6d0681d",
+    "name": "Plexus Classworlds License",
+    "text_length": 1841,
+    "normalized_length": 1668
+  },
+  "pnmstitch": {
+    "sha256": "57f93918faab94c877cbd4ca532878b57d983a6c5fb47cb620adca35fc85b94e",
+    "md5": "abbc800bb501f4c334a477265208c0ee",
+    "name": "pnmstitch License",
+    "text_length": 1105,
+    "normalized_length": 1035
+  },
+  "PolyForm-Noncommercial-1.0.0": {
+    "sha256": "1ac3bf32d33dca42dce237539bd922c5755479e2c4830e59119c988f957480c5",
+    "md5": "98555c1072e2321f3a8acba36ae6d5e6",
+    "name": "PolyForm Noncommercial License 1.0.0",
+    "text_length": 4563,
+    "normalized_length": 4268
+  },
+  "PolyForm-Small-Business-1.0.0": {
+    "sha256": "205fec15c0f3a116972fffb1d27286a49eb8236e98b22ecdc075922c88aa1915",
+    "md5": "19d670509a8f78b10706e29554e8a4d6",
+    "name": "PolyForm Small Business License 1.0.0",
+    "text_length": 4387,
+    "normalized_length": 4106
   },
   "PostgreSQL": {
     "sha256": "1a42b2e1b17a586db16615a9dfef6636039b4d6b6a3effb32635a98458257b51",
@@ -258,12 +4150,131 @@
     "text_length": 1195,
     "normalized_length": 1153
   },
+  "PPL": {
+    "sha256": "c4dcbe9c2abdc35c3eaff1a5d29be90849243b8b4ffadd9707a90bec7cc7643d",
+    "md5": "32cca4bf0882dc8cf80d67fe4f41542c",
+    "name": "Peer Production License",
+    "text_length": 18878,
+    "normalized_length": 18189
+  },
   "PSF-2.0": {
     "sha256": "196cf4ffc8636c1585739d2b14bb1a77570ef611b79cbaa31bccc2a34349bc90",
     "md5": "dd6a50285bc7e6d3905062c5b43d823d",
     "name": "Python Software Foundation License 2.0",
     "text_length": 2427,
     "normalized_length": 2327
+  },
+  "psfrag": {
+    "sha256": "7471baabca8fca2bd086f9981acc26a8cb119c31c55eee94836288ba3ab26d66",
+    "md5": "70e89f8bbd068bc8b48b9d8834127e2c",
+    "name": "psfrag License",
+    "text_length": 480,
+    "normalized_length": 397
+  },
+  "psutils": {
+    "sha256": "eb05dbb9412f4ce3918a028df93ebe626027b425742243a2a415f6903c19b9a4",
+    "md5": "51613800b8f835df33b4106d185c20a6",
+    "name": "psutils License",
+    "text_length": 1961,
+    "normalized_length": 1737
+  },
+  "Python-2.0": {
+    "sha256": "1183fec06cc309a90527631d3e40af04b6c66220cf30295edd23220b64553158",
+    "md5": "2067b4e9dcf71d7bf7131453f878a5d1",
+    "name": "Python License 2.0",
+    "text_length": 9411,
+    "normalized_length": 8807
+  },
+  "Python-2.0.1": {
+    "sha256": "31b3b65376cf452e8b6dca76ec6b13ed5e67e30db5b62a055f1d5782d8f32c13",
+    "md5": "d6392f6e74b514782621dfd021e34862",
+    "name": "Python License 2.0.1",
+    "text_length": 9916,
+    "normalized_length": 9440
+  },
+  "python-ldap": {
+    "sha256": "4638ee79cbe65d794c9816c300a60b9600cf9ae2e03492c20ebb0f7fa82ec974",
+    "md5": "cb6b6526dcfcdc31efde8e078f20ecb8",
+    "name": "Python ldap License",
+    "text_length": 550,
+    "normalized_length": 513
+  },
+  "Qhull": {
+    "sha256": "575f82092ba1ad3292d33f7b9c5a6c3324ed4bc5b3a8c72dd951f4e3c76ed814",
+    "md5": "28fc6f90c7f03a8997f1cb65d040d0f9",
+    "name": "Qhull License",
+    "text_length": 1304,
+    "normalized_length": 1225
+  },
+  "QPL-1.0": {
+    "sha256": "9066d93b3df9de47431684ad2fadfc9606675b8e31de5cc7229685cbbdca47fa",
+    "md5": "ab2cdbf9e9c9eb7037e229c55b99fdff",
+    "name": "Q Public License 1.0",
+    "text_length": 4364,
+    "normalized_length": 4189
+  },
+  "QPL-1.0-INRIA-2004": {
+    "sha256": "305fb5b420fd43ba2ed9e50f9fc615983b37c9e3df93bb65f109b9d764d32f2e",
+    "md5": "9051295cad5f14dec5dd63ceba206daa",
+    "name": "Q Public License 1.0 - INRIA 2004 variant",
+    "text_length": 4641,
+    "normalized_length": 4144
+  },
+  "radvd": {
+    "sha256": "7e168151fb99c47cce08af3b3bcae462487e4c717393d752fa252d8f17290431",
+    "md5": "a861babb5a77d1f781bf4985bde108fc",
+    "name": "radvd License",
+    "text_length": 2188,
+    "normalized_length": 2076
+  },
+  "Rdisc": {
+    "sha256": "f20670d9cd0a7dd7ca89c6b8521379bea487d43b61eecf2986c5d5f8404dda84",
+    "md5": "d938ed56d01c743f0493a08ea3e09913",
+    "name": "Rdisc License",
+    "text_length": 1107,
+    "normalized_length": 1061
+  },
+  "RHeCos-1.1": {
+    "sha256": "a327bd721d40a92a9124a69ab72c9f4919ba02b59713edbcbe69e42922c9cd5d",
+    "md5": "4aa1bf5a7866046e0ade63cbd5c973ea",
+    "name": "Red Hat eCos Public License v1.1",
+    "text_length": 21641,
+    "normalized_length": 20761
+  },
+  "RPL-1.1": {
+    "sha256": "4af7acc15df785f8f95b0559b69ee3f0ea87fa54e906adfce895b4806e05e263",
+    "md5": "50f6c72495150486ea21829ae9e36905",
+    "name": "Reciprocal Public License 1.1",
+    "text_length": 33931,
+    "normalized_length": 32647
+  },
+  "RPL-1.5": {
+    "sha256": "ed1bb0749bb3f61269e7a728391e8e172e0829bc64beda07b21d8f965e04bef9",
+    "md5": "d398dcadd5a6f20c679cd1293873dd94",
+    "name": "Reciprocal Public License 1.5",
+    "text_length": 32009,
+    "normalized_length": 30870
+  },
+  "RPSL-1.0": {
+    "sha256": "1bed85d74905864949b39d99f3d05ff54f1ff285401f7ad6a53a0b2cc0d9f10c",
+    "md5": "9b6a9ebe659c4f737aec407fd7b55171",
+    "name": "RealNetworks Public Source License v1.0",
+    "text_length": 30267,
+    "normalized_length": 28997
+  },
+  "RSA-MD": {
+    "sha256": "dd96cd622ff895737be4c21d9a4bcd36ac93c10ab257acf3491a705726720fbd",
+    "md5": "4c865adffa4dbf160970ef2caec15f6b",
+    "name": "RSA Message-Digest License",
+    "text_length": 869,
+    "normalized_length": 766
+  },
+  "RSCPL": {
+    "sha256": "b711581e94d0305e10ea8df0f80799cd275b34d6eedfc86b0be22b85392b96c2",
+    "md5": "67aaf00eb0e95039099e63f2893c6499",
+    "name": "Ricoh Source Code Public License",
+    "text_length": 21050,
+    "normalized_length": 20156
   },
   "Ruby": {
     "sha256": "682b20d24fc038dcaf0821c87635217fc65eaa355b01c7e562b1ac79c5ab5fea",
@@ -272,12 +4283,579 @@
     "text_length": 2137,
     "normalized_length": 2030
   },
+  "Ruby-pty": {
+    "sha256": "62e63663d2dfd9eb4dad52107fd0bc784074a714c5597255f9a5d64496f0e7c2",
+    "md5": "7db734659ce4ae9e051e30e82c32d4b5",
+    "name": "Ruby pty extension license",
+    "text_length": 497,
+    "normalized_length": 479
+  },
+  "SAX-PD": {
+    "sha256": "a84d9e94cd5910873517bb4b5170dd9dbd2f7b89fa213e8e8a8ed32d70c6d7c4",
+    "md5": "ca016495f34dada4c3d33b36f576d400",
+    "name": "Sax Public Domain Notice",
+    "text_length": 2315,
+    "normalized_length": 2248
+  },
+  "SAX-PD-2.0": {
+    "sha256": "9301856f4c1085ccb975e3defde78436cd5c427f503a7885e8c5872422dd9353",
+    "md5": "631a1e0b574e7966d32fc001dab4c8e0",
+    "name": "Sax Public Domain Notice 2.0",
+    "text_length": 338,
+    "normalized_length": 306
+  },
+  "Saxpath": {
+    "sha256": "e218fa2f38973d7e0391f3e5ea4d7820864ac6a73afde4e09f42ceddae18977a",
+    "md5": "aeb3a46bb2bd42d8d2a6f3a642d29c82",
+    "name": "Saxpath License",
+    "text_length": 2133,
+    "normalized_length": 1885
+  },
+  "SCEA": {
+    "sha256": "dd986dc647d44bcddd21d43ce523a87468c6a121df0a8efd7675936b5af125a4",
+    "md5": "5650ff22c7eb8eb10252fdfa084a3146",
+    "name": "SCEA Shared Source License",
+    "text_length": 6638,
+    "normalized_length": 6322
+  },
+  "SchemeReport": {
+    "sha256": "16202b030e55f8ce42eda14b81116dc85765e8f5797d52f2481e43819bdf8bdb",
+    "md5": "73533c1fcb79576f241ee171459732b7",
+    "name": "Scheme Language Report License",
+    "text_length": 290,
+    "normalized_length": 283
+  },
+  "Sendmail": {
+    "sha256": "d165e17b474c58db784afc278bc087bd87c294c6488239ae8b1e231d753e4b89",
+    "md5": "54a9cf256bb7e84c4031e0081e20ce9e",
+    "name": "Sendmail License",
+    "text_length": 3948,
+    "normalized_length": 3730
+  },
+  "Sendmail-8.23": {
+    "sha256": "db26683f0cc46d8b68107981c667efeaf467464a166e08dc33da1bc15d4152f3",
+    "md5": "13f17c6707dc31585936ee92dfc4817d",
+    "name": "Sendmail License 8.23",
+    "text_length": 4020,
+    "normalized_length": 3791
+  },
+  "Sendmail-Open-Source-1.1": {
+    "sha256": "c7a67f9af3ba19e6536df53a7b4bf6f0e2babd9e4e35eff207702ebc45c91a87",
+    "md5": "b2bd1d6a5e8916ab6119a74fce242cdd",
+    "name": "Sendmail Open Source License v1.1",
+    "text_length": 4317,
+    "normalized_length": 3984
+  },
+  "SGI-B-1.0": {
+    "sha256": "928312a3ff3a62f5e291a5a2e26e5b4fbb3f87b4298d85e33c2d511fc4b90719",
+    "md5": "ea34e02083594e5840a2669ba5dd28cb",
+    "name": "SGI Free Software License B v1.0",
+    "text_length": 13545,
+    "normalized_length": 12973
+  },
+  "SGI-B-1.1": {
+    "sha256": "8020bcf71c2755823c380df28cdd63828533dcb7652d8c9973cb15bcdf91b4a5",
+    "md5": "353437c930ada2b36a05208f928564fa",
+    "name": "SGI Free Software License B v1.1",
+    "text_length": 14548,
+    "normalized_length": 13959
+  },
+  "SGI-B-2.0": {
+    "sha256": "6c23791d3cf841d43743154b17374f7fb4410338549620a6d6d26b59369d0340",
+    "md5": "0da2785de6c65ce8c9c1d0f66588593d",
+    "name": "SGI Free Software License B v2.0",
+    "text_length": 1503,
+    "normalized_length": 1410
+  },
+  "SGI-OpenGL": {
+    "sha256": "a5477d15d41ba85229ba278bd1631686c38142ccf4e9457a4b5977bb88d471d2",
+    "md5": "717e235127392458b31ca532e6012ba4",
+    "name": "SGI OpenGL License",
+    "text_length": 1843,
+    "normalized_length": 1774
+  },
+  "SGMLUG-PM": {
+    "sha256": "e5ca05c5e239f54760d6287b3e13146dc40df534f0f066d32fbb170b4d283245",
+    "md5": "8563a7eda24218f194f67c4284afc997",
+    "name": "SGMLUG Parser Materials License",
+    "text_length": 2188,
+    "normalized_length": 2035
+  },
+  "SGP4": {
+    "sha256": "53814fd6993cf1e59615f5af3e161491d8e925029f03c1f4c72645c524c703d2",
+    "md5": "df0a989ed1f52a78405e0b05ae58dc01",
+    "name": "SGP4 Permission Notice",
+    "text_length": 343,
+    "normalized_length": 339
+  },
+  "SHL-0.5": {
+    "sha256": "ae6c98afda05bdf41ec263aa96aba45eb79d62d19fbd65614e515896e153c163",
+    "md5": "d8beeaa8e6e0f087d6658c4472fac534",
+    "name": "Solderpad Hardware License v0.5",
+    "text_length": 11382,
+    "normalized_length": 10923
+  },
+  "SHL-0.51": {
+    "sha256": "df9ecdb9635adf68337dc97dde418ab39e9705f60453e93b629acfbe07be5f12",
+    "md5": "2b7fdc1ff61818064fac55f92ddc08f8",
+    "name": "Solderpad Hardware License, Version 0.51",
+    "text_length": 11399,
+    "normalized_length": 10922
+  },
+  "SimPL-2.0": {
+    "sha256": "2b29008317e33b254903d95b5e47f1d5272e05e7bb0ae7f6e9ff6b3afc7362f1",
+    "md5": "36c44b8827752ff4d4fea632edbb7c86",
+    "name": "Simple Public License 2.0",
+    "text_length": 2529,
+    "normalized_length": 2437
+  },
+  "SISSL": {
+    "sha256": "8c3e445a409630528caf8b8109ee3063f555725d71da9277c90a25e278323f88",
+    "md5": "4f4aa21266087227572b514701857dfc",
+    "name": "Sun Industry Standards Source License v1.1",
+    "text_length": 14490,
+    "normalized_length": 13865
+  },
+  "SISSL-1.2": {
+    "sha256": "3f45d5b23a06ae6c14b8dfbc62ed3c0d524a71c921edc4d17bad3e4c596f6e9c",
+    "md5": "43203f893ed464864121d37aa0e3d5fb",
+    "name": "Sun Industry Standards Source License v1.2",
+    "text_length": 12475,
+    "normalized_length": 11974
+  },
+  "SL": {
+    "sha256": "24f3478dc64cfa8f66e8208de25c86c8887988c93b7c3dcc72d8fc13ca1af4c5",
+    "md5": "3730700f4ec4e7939117108ef62ff7f1",
+    "name": "SL License",
+    "text_length": 275,
+    "normalized_length": 266
+  },
+  "Sleepycat": {
+    "sha256": "55bc1be7c4f3076d4389ac523345697a32bff2959ec0619b09258df8d5700d43",
+    "md5": "0c5857266a7ccca2d0f9fe05f131ef86",
+    "name": "Sleepycat License",
+    "text_length": 4995,
+    "normalized_length": 4612
+  },
+  "SMAIL-GPL": {
+    "sha256": "1ae18d4151edf0bd4d1e3830038061c8d5ccf77c998ff68cf5913d4097128662",
+    "md5": "f0162f3b15c961d34cc1ed8a891139a2",
+    "name": "SMAIL General Public License",
+    "text_length": 7386,
+    "normalized_length": 6939
+  },
+  "SMLNJ": {
+    "sha256": "6b873e33a10483b259ca8098f9bc7e1a9ec1275c78a2d3b550d94fc408153b6a",
+    "md5": "0cb1f6603157ca37a4eb793f8640e1ff",
+    "name": "Standard ML of New Jersey License",
+    "text_length": 1122,
+    "normalized_length": 1001
+  },
+  "SMPPL": {
+    "sha256": "15b405eb09b7feb367d733d928fb7d1d1260fabeb42aef61ec9506351a35a977",
+    "md5": "87f9d7d77c5ece0e73988109e9e070de",
+    "name": "Secure Messaging Protocol Public License",
+    "text_length": 3176,
+    "normalized_length": 3030
+  },
+  "SNIA": {
+    "sha256": "ca7cedb5e5362620fccf95dac563c96c3553fab1b66a82c5bad38ae1b40f6689",
+    "md5": "703cfd48d752f31b8de64feb5f970a7b",
+    "name": "SNIA Public License 1.1",
+    "text_length": 21717,
+    "normalized_length": 21014
+  },
+  "snprintf": {
+    "sha256": "097b60527d398a594a070d0581e1a2a7eb7bea31e033bbfe6e274dc49c58c8fc",
+    "md5": "a95b089ae02227567c36f29ce66a736c",
+    "name": "snprintf License",
+    "text_length": 209,
+    "normalized_length": 154
+  },
+  "SOFA": {
+    "sha256": "9372383cdf2705790e1af685a35fc421f35ffb55aaab73c30fb26e8824eba231",
+    "md5": "6966d7df64e79d7392c3e5b88ef47e2c",
+    "name": "SOFA Software License",
+    "text_length": 3869,
+    "normalized_length": 3330
+  },
+  "softSurfer": {
+    "sha256": "809142d51cc89bac0ab529147362c2a23e64d12f5382375534b9083e7927bf87",
+    "md5": "96de22ef64a524053339e83b1fa2f03d",
+    "name": "softSurfer License",
+    "text_length": 484,
+    "normalized_length": 303
+  },
+  "Soundex": {
+    "sha256": "ba96f9fc6c77982281af5d03922084e3496b718e0f00ad6bb4ce08414a77dfbe",
+    "md5": "3d6f64952ec1a09e0dd9b905369e5f8d",
+    "name": "Soundex License",
+    "text_length": 404,
+    "normalized_length": 371
+  },
+  "Spencer-86": {
+    "sha256": "fdda0af67a262c49a50d2bf3ab2ec61fd72b8e14f7ab30a3375ae76880255522",
+    "md5": "f7ab4e3be623fe780a97a791ddf55e7c",
+    "name": "Spencer License 86",
+    "text_length": 628,
+    "normalized_length": 503
+  },
+  "Spencer-94": {
+    "sha256": "5fba3f127d8e31705595b738332e7f9bd1dc5ea536d50d9eb788239794c614c1",
+    "md5": "e92eb2285e3191681d3c3c12cadbd66c",
+    "name": "Spencer License 94",
+    "text_length": 935,
+    "normalized_length": 843
+  },
+  "Spencer-99": {
+    "sha256": "cd0ccfde1ae3108df3da1956031c99104a844cc0d513434feaa74396d6a4a379",
+    "md5": "b75e85b37248b36a14c48a976b0f5001",
+    "name": "Spencer License 99",
+    "text_length": 1376,
+    "normalized_length": 1267
+  },
+  "SPL-1.0": {
+    "sha256": "865104343828c74d54dadab1642d6cb422b7ac575059a0c89ac03090c585f121",
+    "md5": "807376cfbb9db41e47ab477c642dcbca",
+    "name": "Sun Public License v1.0",
+    "text_length": 23398,
+    "normalized_length": 22329
+  },
+  "ssh-keyscan": {
+    "sha256": "d014a5d64918fa89368bb3315c389153e0218ce85aff54c9e72a169cc6e893c4",
+    "md5": "eb84d7ba322592987c2f38897c7f5400",
+    "name": "ssh-keyscan License",
+    "text_length": 252,
+    "normalized_length": 221
+  },
+  "SSH-OpenSSH": {
+    "sha256": "d577075c62a43ab588e22609e89d53e231fea28c63406ef96f6c1d644bde6c0b",
+    "md5": "8e1214aa0a3e6792b3ccbeea915df78f",
+    "name": "SSH OpenSSH license",
+    "text_length": 3399,
+    "normalized_length": 3207
+  },
+  "SSH-short": {
+    "sha256": "6031a824dd5060d96137c8dd56078ed5489be757b2c9622a1a3f8d088f981209",
+    "md5": "f531c17d4de23c146bde35c3c10d0558",
+    "name": "SSH short notice",
+    "text_length": 326,
+    "normalized_length": 315
+  },
+  "SSLeay-standalone": {
+    "sha256": "af2e08d83991c441ce018f26737894cb65771070dc9e123572936b541bd29663",
+    "md5": "dab78aefcbc18debc91c9f2ed01a33d6",
+    "name": "SSLeay License - standalone",
+    "text_length": 3154,
+    "normalized_length": 2791
+  },
+  "SSPL-1.0": {
+    "sha256": "d6f05cf52e9d6bd817ff175bb0e074456b590a4acd5dfc1a43ab52b2105ba008",
+    "md5": "423d4a2e09c40328f68ec90755e782ef",
+    "name": "Server Side Public License, v 1",
+    "text_length": 30452,
+    "normalized_length": 28501
+  },
+  "StandardML-NJ": {
+    "sha256": "6b873e33a10483b259ca8098f9bc7e1a9ec1275c78a2d3b550d94fc408153b6a",
+    "md5": "0cb1f6603157ca37a4eb793f8640e1ff",
+    "name": "Standard ML of New Jersey License",
+    "text_length": 1123,
+    "normalized_length": 1001
+  },
+  "SugarCRM-1.1.3": {
+    "sha256": "3864712d0b1a61c9e86dc1ed0bb268e05282380a5ae6c4a0b247e3a73ed09ce1",
+    "md5": "00db3c87fceb9e8cc726127c4b80de41",
+    "name": "SugarCRM Public License v1.1.3",
+    "text_length": 22087,
+    "normalized_length": 21099
+  },
+  "SUL-1.0": {
+    "sha256": "e29cb6566a4933047c2be7ce9fc320ec1329724e96f06f5200d8659e9765896c",
+    "md5": "914f31ed6c89e13d104b4d78a8bd322b",
+    "name": "Sustainable Use License v1.0",
+    "text_length": 3570,
+    "normalized_length": 3457
+  },
+  "Sun-PPP": {
+    "sha256": "81d17fb9e17879865d6bc60d45d0863bfb091d8bc036845b390e25de37dc055d",
+    "md5": "737f0b361e3e6143394ab1ff4b5e1fa4",
+    "name": "Sun PPP License",
+    "text_length": 616,
+    "normalized_length": 551
+  },
+  "Sun-PPP-2000": {
+    "sha256": "358a7ba642b711e55004ea37309855a3b61e8bf6d4245ff7ffd694090df00700",
+    "md5": "6db17d8026e3d7b29169efe92bbc4868",
+    "name": "Sun PPP License (2000)",
+    "text_length": 614,
+    "normalized_length": 552
+  },
+  "SunPro": {
+    "sha256": "9cd66feaf5c2a36e66d43b8325b8cdfdd524863b04464f455506a3aa6c2282c0",
+    "md5": "808da31b329a52975abd61bfb76956fd",
+    "name": "SunPro License",
+    "text_length": 246,
+    "normalized_length": 168
+  },
+  "SWL": {
+    "sha256": "264975858e6b478e2c7f2703bece3cde4f651d58beff659c94c7d322b2669cbe",
+    "md5": "b9b1eb2c3f8b13e1104558e33a45882e",
+    "name": "Scheme Widget Library (SWL) Software License Agreement",
+    "text_length": 2129,
+    "normalized_length": 2063
+  },
+  "swrule": {
+    "sha256": "d699f2202b647386acc2a4dec07a6584c27c70f1c280330dc2b617a0d261e7b5",
+    "md5": "43207ed490dd9fade4aa957e48227bcd",
+    "name": "swrule License",
+    "text_length": 248,
+    "normalized_length": 243
+  },
+  "Symlinks": {
+    "sha256": "5b80f55cf3580835735ef87b6d60158ff6ceb76642aef902a48f2a02b8d05080",
+    "md5": "d2c18ad6575308836e2aa04f0855baca",
+    "name": "Symlinks License",
+    "text_length": 515,
+    "normalized_length": 490
+  },
+  "TAPR-OHL-1.0": {
+    "sha256": "e032b174ab11a0d1364fbbff7fdec2861265ee6cc68c07b6d21307357e9352ae",
+    "md5": "abf7ff9b95a59dc11a0a3dc2bb89228e",
+    "name": "TAPR Open Hardware License v1.0",
+    "text_length": 13932,
+    "normalized_length": 12948
+  },
+  "TCL": {
+    "sha256": "a04ace62d1ec93683bd5c918368d199a4a447e796ba25549c5ca44f2b334613f",
+    "md5": "21c1f56064e55299aa1ea8328c67cc30",
+    "name": "TCL/TK License",
+    "text_length": 2251,
+    "normalized_length": 2181
+  },
+  "TCP-wrappers": {
+    "sha256": "ca839cad96e7a398570a56736de5c418572738b795798d60016c7e34fb5053f9",
+    "md5": "23fe2cc0ac7b34cd0701a943229a09ac",
+    "name": "TCP Wrappers License",
+    "text_length": 648,
+    "normalized_length": 516
+  },
+  "TekHVC": {
+    "sha256": "5c04b347dbad10c0e8cde2430c7fa4010d8c9ca2ebcf3b3d04e160c3654d1f51",
+    "md5": "69a012e17724b390a577cbca44dacf65",
+    "name": "TekHVC License",
+    "text_length": 1875,
+    "normalized_length": 1785
+  },
+  "TermReadKey": {
+    "sha256": "8579b5844c75bf79d68a07709155a22345fb68106b05b43ce6074d68f0dd8cc6",
+    "md5": "2f52564f4bd878556a9e9d7c454d1170",
+    "name": "TermReadKey License",
+    "text_length": 103,
+    "normalized_length": 101
+  },
+  "TGPPL-1.0": {
+    "sha256": "fcfa5e47ad464001354c3a10d062bd52fc01953c9286c2f3882dd9d82755fd4d",
+    "md5": "a0efcddd5c3c1276c1b78e5cef9649eb",
+    "name": "Transitive Grace Period Public Licence 1.0",
+    "text_length": 10970,
+    "normalized_length": 9939
+  },
+  "ThirdEye": {
+    "sha256": "b73b876e45d6e6b14436be8ddade242325d04d2cffc642915078dfeae161e4b6",
+    "md5": "7912188dfaa2cef6e768097ba875db4b",
+    "name": "ThirdEye License",
+    "text_length": 271,
+    "normalized_length": 259
+  },
+  "threeparttable": {
+    "sha256": "3cfbdca09a52b836e1a76879174d69a85be0328351b206102668fbac76929382",
+    "md5": "e52ae2d8a378e3336af12e4a034e4d69",
+    "name": "threeparttable License",
+    "text_length": 195,
+    "normalized_length": 184
+  },
+  "TMate": {
+    "sha256": "c1636ac8e5a7051b17c17c0da853dee127de79f675997fd2587e89648f6fcfe1",
+    "md5": "d253665679c6a88040c49383696a4944",
+    "name": "TMate Open Source License",
+    "text_length": 2537,
+    "normalized_length": 2365
+  },
+  "TORQUE-1.1": {
+    "sha256": "2e884b375733431263e30275bc831a7cb2486984653c5e03efece7c849bbcb1a",
+    "md5": "7b5078514160ea251c8c552c8bf501a1",
+    "name": "TORQUE v2.5+ Software License v1.1",
+    "text_length": 3996,
+    "normalized_length": 3606
+  },
+  "TOSL": {
+    "sha256": "628e912762d4baa671c213b26eb001ccfd757a6fb0e6f73d960cdeaec241bbe2",
+    "md5": "53994fec9f56feed05eb1aa10c634335",
+    "name": "Trusster Open Source License",
+    "text_length": 2074,
+    "normalized_length": 1999
+  },
+  "TPDL": {
+    "sha256": "ec2a7ec1ab911b353c804847406a385339ed135494c25d30a4a4f0be53413fa1",
+    "md5": "3b950947ebf5314fe674afa8647dc7dd",
+    "name": "Time::ParseDate License",
+    "text_length": 233,
+    "normalized_length": 128
+  },
+  "TPL-1.0": {
+    "sha256": "49c772fbf36001dc521c73357b72296b9c0ee9f059c69cf98dc25c506d9669da",
+    "md5": "23f7607a937e2f51f147989a5ca4cb38",
+    "name": "THOR Public License 1.0",
+    "text_length": 23787,
+    "normalized_length": 23030
+  },
+  "TrustedQSL": {
+    "sha256": "b75c86535e9eecfbd85b2d57623638a407206b9f68b4567c02e3aff30dc3269c",
+    "md5": "256467f60a41c952959c09349ffd300f",
+    "name": "TrustedQSL License",
+    "text_length": 2446,
+    "normalized_length": 2281
+  },
+  "TTWL": {
+    "sha256": "a3ca9a79bec1ded0fa823f98d6a11a66b12f73f50bec9931ebc1397d56d0b3f5",
+    "md5": "85e9ae71a553173f34c91c4235aa93b4",
+    "name": "Text-Tabs+Wrap License",
+    "text_length": 406,
+    "normalized_length": 260
+  },
+  "TTYP0": {
+    "sha256": "4560c7e089e7eceb831802c91ac6801c70c0c777f33a7b9ffff284510a37962a",
+    "md5": "1f1485a794ba27fea151e7834f82f6c3",
+    "name": "TTYP0 License",
+    "text_length": 1522,
+    "normalized_length": 1432
+  },
+  "TU-Berlin-1.0": {
+    "sha256": "2383d64af048c562e3eb6730e537f56436190efa23f96d70eb8ac5c5fdce1935",
+    "md5": "c455d2857e75fc947238dc46014e4ee4",
+    "name": "Technische Universitaet Berlin License 1.0",
+    "text_length": 678,
+    "normalized_length": 613
+  },
+  "TU-Berlin-2.0": {
+    "sha256": "fcf02d2c6de1b17e7c91026079f4340af04efc13a0ebb542540e4417cc7dab1e",
+    "md5": "0ddc4fc2943fb7373893ae4edf019823",
+    "name": "Technische Universitaet Berlin License 2.0",
+    "text_length": 1369,
+    "normalized_length": 1278
+  },
+  "Ubuntu-font-1.0": {
+    "sha256": "331a01cacadbbca7442b011fea6e0d548754c6e8d6413d28b36d89d88ecfba17",
+    "md5": "055cefb774a2073895e3e666efef6d2e",
+    "name": "Ubuntu Font Licence v1.0",
+    "text_length": 4673,
+    "normalized_length": 4532
+  },
+  "UCAR": {
+    "sha256": "589da454e65017c6df94d26d13eec8cbd8be92946feda6f59a1666b13fd5986f",
+    "md5": "edcc650a058bfb05ef870948a974f113",
+    "name": "UCAR License",
+    "text_length": 1948,
+    "normalized_length": 1719
+  },
+  "UCL-1.0": {
+    "sha256": "5ce8bb637d931bdcffe4119535220f5e1a22d0fc4bcc9932dc6ba80d28cc759e",
+    "md5": "58f2b67ce50fa6588c2acfdb964d62b8",
+    "name": "Upstream Compatibility License v1.0",
+    "text_length": 10556,
+    "normalized_length": 10226
+  },
+  "ulem": {
+    "sha256": "c4392aa2ee32c8274920f1033044ed4c8fc6c7e6e9beef1a32f45ad185514083",
+    "md5": "21f7d172e4daa61f75ddda2a3373c007",
+    "name": "ulem License",
+    "text_length": 209,
+    "normalized_length": 129
+  },
+  "UMich-Merit": {
+    "sha256": "8abf7c32cd9febefeb6de3970fc1c30c591233e4b3ae74a3e700747b78c7196a",
+    "md5": "f4fb8c3a13c73e933b4bc410e480d6a9",
+    "name": "Michigan/Merit Networks License",
+    "text_length": 1164,
+    "normalized_length": 1133
+  },
+  "Unicode-3.0": {
+    "sha256": "53113a39b79251016cf92b8348f303cee44e4faee1f232536754abc669dd32c8",
+    "md5": "54046d17efe4d32144d4f78efeafa3d0",
+    "name": "Unicode License v3",
+    "text_length": 1994,
+    "normalized_length": 1894
+  },
+  "Unicode-DFS-2015": {
+    "sha256": "656e037488bea1f9a65986152355c258942ae4e1c0eb73961549de71dcf8c525",
+    "md5": "253c31aa55cecf9547a698757f392850",
+    "name": "Unicode License Agreement - Data Files and Software (2015)",
+    "text_length": 2872,
+    "normalized_length": 2411
+  },
+  "Unicode-DFS-2016": {
+    "sha256": "57a527ec90c52cde3ff199c3294e37eef2c00c14aae2484d2fdd0ce8eccfeca0",
+    "md5": "3499591052a919ea191accc3e55d1c8e",
+    "name": "Unicode License Agreement - Data Files and Software (2016)",
+    "text_length": 2857,
+    "normalized_length": 2227
+  },
+  "Unicode-TOU": {
+    "sha256": "8242b3935c7355e69214fb070fd6621fce16a3c5dfd92e21f8db6fbe93684d68",
+    "md5": "07063f09b21e04ba8f29c9943e6c9029",
+    "name": "Unicode Terms of Use",
+    "text_length": 6240,
+    "normalized_length": 5950
+  },
+  "UnixCrypt": {
+    "sha256": "bdbc7d7be909c5a35d6609cc73871797370adc9097db2c847fe81abd51ef3509",
+    "md5": "2d783febefa86c61977954cc26759c50",
+    "name": "UnixCrypt License",
+    "text_length": 250,
+    "normalized_length": 192
+  },
   "Unlicense": {
     "sha256": "ed9b6060ae16cbd402713f8b0ec78a04a6c5f5303753bee047d45757befb45d7",
     "md5": "a184ac831fade57cabf2f8d22378ac8d",
     "name": "The Unlicense",
     "text_length": 1211,
     "normalized_length": 1152
+  },
+  "Unlicense-libtelnet": {
+    "sha256": "c65c7d29735e28b2ace04e4f2fd625701c75ca4ea0077ed0cc45c5961b9c15f3",
+    "md5": "b73f9e6b382f4acb2c76a65cede6a73f",
+    "name": "Unlicense - libtelnet variant",
+    "text_length": 367,
+    "normalized_length": 363
+  },
+  "Unlicense-libwhirlpool": {
+    "sha256": "203c08c60058ff9933d92ce292b810a250c3869b7beb97e0ba7eb20bb504d86e",
+    "md5": "3b4b21d214c9140a39b6e3c6ece28401",
+    "name": "Unlicense - libwhirlpool variant",
+    "text_length": 482,
+    "normalized_length": 461
+  },
+  "UnRAR": {
+    "sha256": "f737ee0db6c0df30e113141d847e1f18a422bc742c66fd2a777e0cc20140fc2a",
+    "md5": "5ba858ebbd10d6bdfc65b35387d5f224",
+    "name": "UnRAR License",
+    "text_length": 1974,
+    "normalized_length": 1470
+  },
+  "UPL-1.0": {
+    "sha256": "3bea5fab738d84ee4d6277924b51c39b1a5ca14e37eda902d6dde145ecddcdef",
+    "md5": "82e935c6865855180729e00a60ce17c6",
+    "name": "Universal Permissive License v1.0",
+    "text_length": 1833,
+    "normalized_length": 1754
+  },
+  "URT-RLE": {
+    "sha256": "13ecb3996e463146907c70ab586b4d90108ef6b71fce27433b3693c0de10b481",
+    "md5": "73267be4db2082a07a32180a03ad0fe0",
+    "name": "Utah Raster Toolkit Run Length Encoded License",
+    "text_length": 771,
+    "normalized_length": 706
   },
   "Vim": {
     "sha256": "94313e256dcee79498765622acb4c794d7b0eceb9c2a64de173f2256621736b9",
@@ -286,12 +4864,89 @@
     "text_length": 4525,
     "normalized_length": 4275
   },
+  "Vixie-Cron": {
+    "sha256": "2683c984d7e9810fddd93e592f2a351b9128c4906695301841303b01ff32ec05",
+    "md5": "fc0f01eb108cd70204a4427660205a43",
+    "name": "Vixie Cron License",
+    "text_length": 543,
+    "normalized_length": 485
+  },
+  "VOSTROM": {
+    "sha256": "eaacaa0ad48a754f52e9e906a80ab88e87d499b603185ff111f00eb6bad0bf7b",
+    "md5": "37093b5ac8a3c8b2a09ea622c46e032b",
+    "name": "VOSTROM Public License for Open Source",
+    "text_length": 3058,
+    "normalized_length": 2902
+  },
+  "VSL-1.0": {
+    "sha256": "bec897f510b3b260b0b158f9b112f69c569cc0cb4dca3d22d9448040d67f7666",
+    "md5": "afb8de245afff3c5330c9f7c3550dddb",
+    "name": "Vovida Software License v1.0",
+    "text_length": 2065,
+    "normalized_length": 1910
+  },
   "W3C": {
     "sha256": "f371ea12d4027c915e2c7fb191e8e757fe4fe576f094c1f0fe939f72f46ac1bb",
     "md5": "7cc05b37897116424b03105aaeb218df",
     "name": "W3C Software Notice and License (2002-12-31)",
     "text_length": 2701,
     "normalized_length": 2545
+  },
+  "W3C-19980720": {
+    "sha256": "0f3640aac4b22a1705a17e50f253ca29b3cbdc915de7c9746d0b26f48c686c55",
+    "md5": "604c42d4dfffbdd4e4e493fbfe7cc9b9",
+    "name": "W3C Software Notice and License (1998-07-20)",
+    "text_length": 3113,
+    "normalized_length": 2721
+  },
+  "W3C-20150513": {
+    "sha256": "503a05236c6082847e6e8e27d97d51fa70d5f67c0c4bbdf7fc69b2255cda52b4",
+    "md5": "719a4148a660a47206dfbb51c47a9401",
+    "name": "W3C Software Notice and Document License (2015-05-13)",
+    "text_length": 1800,
+    "normalized_length": 1715
+  },
+  "w3m": {
+    "sha256": "1a2cf7e0f12d67878cf4d1c3de9906d0f768d9a3ac70aef7dccb3342dea8c91e",
+    "md5": "d1fe2fc0c598e1230bf5cc51666717ec",
+    "name": "w3m License",
+    "text_length": 568,
+    "normalized_length": 547
+  },
+  "Watcom-1.0": {
+    "sha256": "e41d2f117b6ba49940aab1d3e8f46a93683ba668bab6f13ae17f04468b69ae0b",
+    "md5": "53744b57d71ecce6475f642f08ed7581",
+    "name": "Sybase Open Watcom Public License 1.0",
+    "text_length": 20968,
+    "normalized_length": 20162
+  },
+  "Widget-Workshop": {
+    "sha256": "d1e15ecd02f5ccc5d8a6b29816bf0265c01f0eef39ca879b8dbbf37aa09cf220",
+    "md5": "4882e41a9ea57aaa945f458b6992fd79",
+    "name": "Widget Workshop License",
+    "text_length": 1270,
+    "normalized_length": 1163
+  },
+  "WordNet": {
+    "sha256": "d69309eef209b9ded5a278cf64f8ea6945bc445483c686f04db1c191df1af547",
+    "md5": "804d569cb12d6cd43c92af5956e0386f",
+    "name": "WordNet License",
+    "text_length": 1563,
+    "normalized_length": 1525
+  },
+  "Wsuipa": {
+    "sha256": "25bd4fd39c7b3e27bcaa12546df62ebe2e19628019f240f3192c7e8650380036",
+    "md5": "d216e1cffb2c1240d75b2614f5071d91",
+    "name": "Wsuipa License",
+    "text_length": 529,
+    "normalized_length": 514
+  },
+  "WTFNMFPL": {
+    "sha256": "8ddaba15074ffabbe3dd875c48a33c004630a8ce3c211c43871cd50acb67cfd2",
+    "md5": "c98d60525edb166c8bb092fd2041797b",
+    "name": "Do What The F*ck You Want To But It's Not My Fault Public License",
+    "text_length": 668,
+    "normalized_length": 552
   },
   "WTFPL": {
     "sha256": "a9f26b707eeeb4f283af763733744ef1082c9b86fd7e5e8c65bcd4dde8927be0",
@@ -300,6 +4955,20 @@
     "text_length": 432,
     "normalized_length": 370
   },
+  "wwl": {
+    "sha256": "8ecb098f20c7ac518f53de127b8e958a7e70808e55d182cc06197a4a8250d284",
+    "md5": "7613b6b92c74848f7232a3a278cbe08f",
+    "name": "WWL License",
+    "text_length": 261,
+    "normalized_length": 240
+  },
+  "wxWindows": {
+    "sha256": "0879a7c65f9b7a5eb27507fe2b5c1ea038868964df3fc634bf8f78ba555b28d8",
+    "md5": "52511740cde27d882d611afdb5eaa8d3",
+    "name": "wxWindows Library License",
+    "text_length": 1275,
+    "normalized_length": 1238
+  },
   "X11": {
     "sha256": "bb8f1f1f40cab4df42e61a903e17af1dec2252f77b0b7c3631b33f51a38390b4",
     "md5": "f1a11638df40f89b52a94895f5a6c4be",
@@ -307,12 +4976,180 @@
     "text_length": 1338,
     "normalized_length": 1262
   },
+  "X11-distribute-modifications-variant": {
+    "sha256": "5fc1fffd616073f5d2731e375183ad745026ad8ca6a3c4c78db9320995b9fcd0",
+    "md5": "6fdac777b099567637f5333b02a08c99",
+    "name": "X11 License Distribution Modification Variant",
+    "text_length": 1314,
+    "normalized_length": 1261
+  },
+  "X11-no-permit-persons": {
+    "sha256": "a2e9dd1a9e61e59ebb6cef8bea0ff5585b8527a5569eb1493df776887948a63f",
+    "md5": "53d176214f38dcd1ebe30f7180f0b669",
+    "name": "X11 no permit persons clause",
+    "text_length": 1324,
+    "normalized_length": 1202
+  },
+  "X11-swapped": {
+    "sha256": "7cd9660250932ab7f8fcdef0844422311e73cd9b79543de4de4db61c2f0db96c",
+    "md5": "faf8953f82a65ee9d1d2b34c3afa227e",
+    "name": "X11 swapped final paragraphs",
+    "text_length": 1312,
+    "normalized_length": 1206
+  },
+  "Xdebug-1.03": {
+    "sha256": "c70299e5494274d7d741ace186384ae5be506f4e6e4e1c6bb4f1dd692b20d3bd",
+    "md5": "d5ea7496f2b2e4c2114e0190ba8c66fb",
+    "name": "Xdebug License v 1.03",
+    "text_length": 3027,
+    "normalized_length": 2638
+  },
+  "Xerox": {
+    "sha256": "40ca6e66876a4593726c485778c73f1ccb2de19e6f4bdf0c29829dd9c306cb91",
+    "md5": "1642b498c2c96bf40345817d1d948cd2",
+    "name": "Xerox License",
+    "text_length": 963,
+    "normalized_length": 880
+  },
+  "Xfig": {
+    "sha256": "6b3036b719f63cb6f303f2b79be0c2c1a56ecd511d6cd6a33c30260de5d76785",
+    "md5": "88e5ee138b74508d3a1b4d4a6c0c286c",
+    "name": "Xfig License",
+    "text_length": 510,
+    "normalized_length": 485
+  },
+  "XFree86-1.1": {
+    "sha256": "1611871954fdafa2851f988772d3d6a5617f3def2c97a731553609c8fd2b0c4e",
+    "md5": "f2f9b342189cf7f71bcef24d6c12249c",
+    "name": "XFree86 License 1.1",
+    "text_length": 2398,
+    "normalized_length": 2217
+  },
+  "xinetd": {
+    "sha256": "f5a8c4df4959b04896c0691b5822687e3b9d8fe40486dbba42fa4e9ebc558395",
+    "md5": "8e45574cd2bb26049dbc44b966ecf557",
+    "name": "xinetd License",
+    "text_length": 2030,
+    "normalized_length": 1948
+  },
+  "xkeyboard-config-Zinoviev": {
+    "sha256": "6815a21d2fde67c84d3c9c37454d6b4f9974c6880a5edaf9947da5f4e4ba047d",
+    "md5": "3068085b35849c3f93d7d32e2eb9a536",
+    "name": "xkeyboard-config Zinoviev License",
+    "text_length": 685,
+    "normalized_length": 607
+  },
+  "xlock": {
+    "sha256": "4fbd3d00e4d710687c5b5bf00d499140ffa589433d5a22c53ef6ebfeb38cb9ff",
+    "md5": "3b965a23d53c0a8007ffe88f14950a97",
+    "name": "xlock License",
+    "text_length": 734,
+    "normalized_length": 641
+  },
+  "Xnet": {
+    "sha256": "c6a731876fbd954a5a395c9e74346224a8ad3482ce4d106a109b214ffc94c641",
+    "md5": "72dea9ad59e94106ab294de62883cb3b",
+    "name": "X.Net License",
+    "text_length": 1250,
+    "normalized_length": 1146
+  },
+  "xpp": {
+    "sha256": "56d56e4933b651478cf7488e5e8ede68f671cf635ed327c14ea4291a1cd5b7c8",
+    "md5": "e6eff11310c9a05fe4eb4066e3363c30",
+    "name": "XPP License",
+    "text_length": 2482,
+    "normalized_length": 2264
+  },
+  "XSkat": {
+    "sha256": "8ae3d0554fb83cb047c9d2ca3fe8d5e6472aa1f22857db133a517a86af6aaf50",
+    "md5": "54b52ce5ba470e40754da910fa2810b8",
+    "name": "XSkat License",
+    "text_length": 535,
+    "normalized_length": 511
+  },
+  "xzoom": {
+    "sha256": "241ad6b6ffe5159d19cffcaa11b442853944b814b822ab83c66e60bd40488bb2",
+    "md5": "eab40dd30a7757e4cde8d04d45667cdb",
+    "name": "xzoom License",
+    "text_length": 538,
+    "normalized_length": 479
+  },
+  "YPL-1.0": {
+    "sha256": "620844fa3777764277c33c9fc2389951dcfdec31b0f556e7eaedb577a76fe1ca",
+    "md5": "df6fd18e852207a6c75f159d69b48247",
+    "name": "Yahoo! Public License v1.0",
+    "text_length": 9010,
+    "normalized_length": 8702
+  },
+  "YPL-1.1": {
+    "sha256": "b439e90e419ba22ad8ff67824a860b48e4cc6b5b66e02ee2f25fd92bb25a6ff7",
+    "md5": "cb39c09d75de3981ae6dab0f4ea70ef7",
+    "name": "Yahoo! Public License v1.1",
+    "text_length": 8988,
+    "normalized_length": 8687
+  },
+  "Zed": {
+    "sha256": "48fd10a664ea8374ed26c7e340830746acb62ec13b672868a288d87c7a56c881",
+    "md5": "dce267f23fc46c875fabb44dda9887ca",
+    "name": "Zed License",
+    "text_length": 259,
+    "normalized_length": 221
+  },
+  "Zeeff": {
+    "sha256": "a071ec93d86e7a806e317b0a77137c31b3a32fbee8a438d282137a9c424594a7",
+    "md5": "84c44b31ef1b8dd95ffb5e8cc557c873",
+    "name": "Zeeff License",
+    "text_length": 187,
+    "normalized_length": 125
+  },
+  "Zend-2.0": {
+    "sha256": "3643c99f16da25358412ca96f4ed31f55919e30e3b84ae34a7f41d9e36bbd42b",
+    "md5": "68748c095b44c686d59e6793682f59cb",
+    "name": "Zend License v2.0",
+    "text_length": 2490,
+    "normalized_length": 2260
+  },
+  "Zimbra-1.3": {
+    "sha256": "d1d58b05eab9d5e63df1d49b435b17736f3122ecb31a7e16b5610ce2090caf62",
+    "md5": "dc6f1a34a4f3dfca381a3fab8aad9bff",
+    "name": "Zimbra Public License v1.3",
+    "text_length": 8994,
+    "normalized_length": 8714
+  },
+  "Zimbra-1.4": {
+    "sha256": "cc0109112f273341ed5b57c3bd4efcc931b5e53967b4dc8088b05df7d6853631",
+    "md5": "1c5b308cceaf00d2f145bd8ad8d6b937",
+    "name": "Zimbra Public License v1.4",
+    "text_length": 8901,
+    "normalized_length": 8614
+  },
   "Zlib": {
     "sha256": "10b5050570f690180e31ddf8532be780ee7bac869d01b6c46710af9659829402",
     "md5": "d4e5b0a61927a16e2f12f817eb60bf2d",
     "name": "zlib License",
     "text_length": 838,
     "normalized_length": 797
+  },
+  "zlib-acknowledgement": {
+    "sha256": "f3627e7676f64ddbb767efb76706b12d29f2d92f18896ae923d808058e624c34",
+    "md5": "b0bd3526737bd611e47e46ac1f365b71",
+    "name": "zlib/libpng License with Acknowledgement",
+    "text_length": 1133,
+    "normalized_length": 932
+  },
+  "ZPL-1.1": {
+    "sha256": "139e78e7d8dd4f07d154578b8ef9e95d828c8ed69b72b21d1fd2b69af1bcf460",
+    "md5": "222b45b9f0ef379bd462b10ec66585fb",
+    "name": "Zope Public License 1.1",
+    "text_length": 2924,
+    "normalized_length": 2735
+  },
+  "ZPL-2.0": {
+    "sha256": "931bc5d14e7daa79b2c48167c817b969f75af4aa5e8cfcc0ea26191d98270d63",
+    "md5": "e265e3345cf67f56c611b37b7b15a17e",
+    "name": "Zope Public License 2.0",
+    "text_length": 2275,
+    "normalized_length": 2141
   },
   "ZPL-2.1": {
     "sha256": "ccdae1c7006151bab38c2a243c37f85603dedb820ee0622917c03884e03ae0ca",

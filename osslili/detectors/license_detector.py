@@ -567,6 +567,7 @@ class LicenseDetector:
         self.regex_matcher = RegexPatternMatcher()
         
         # License filename patterns
+        self._licence_bigram_cache = None
         self.license_patterns = self._compile_filename_patterns()
         
         # SPDX tag patterns
@@ -3021,6 +3022,38 @@ class LicenseDetector:
         
         return None
     
+    # The floor the tier will accept at all. Also what makes the length
+    # pre-filter above sound: below it, no overlap can rescue a candidate.
+    DICE_FLOOR = 0.9
+
+    def _licence_bigrams(self):
+        """Every bundled licence text as bigrams, built once.
+
+        Normalising and bigramming each licence per file scanned was fine
+        while 46 licences shipped text. With the whole SPDX list bundled
+        (#126) it is the cost of the scan.
+        """
+        cache = self._licence_bigram_cache
+        if cache is None:
+            cache = self._licence_bigram_cache = {}
+
+        # Topped up rather than built once and frozen. A licence with no text
+        # when the cache was built is simply absent from it, and osslili can
+        # acquire a text later; a cache built once would never look at that
+        # licence again. Re-checking is a dict lookup per licence.
+        for license_id in self.spdx_data.get_all_license_ids():
+            if license_id in cache:
+                continue
+            license_text = self.spdx_data.get_license_text(license_id)
+            if not license_text:
+                continue
+            bigrams = self._create_bigrams(
+                self.spdx_data._normalize_text(license_text)
+            )
+            if bigrams:
+                cache[license_id] = bigrams
+        return cache
+
     def _tier1_dice_sorensen(self, text: str, file_path: Path) -> Optional[DetectedLicense]:
         """
         Tier 1: Dice-Sørensen similarity matching.
@@ -3042,25 +3075,26 @@ class LicenseDetector:
         
         # Keep track of all matches to handle ties
         matches = []
-        
-        # Compare with known licenses
-        for license_id in self.spdx_data.get_all_license_ids():
-            # Get license text
-            license_text = self.spdx_data.get_license_text(license_id)
-            if not license_text:
+
+        # Compare with known licenses. The bigrams of each licence are built
+        # once for the life of the detector rather than per file: they do not
+        # depend on what is being scanned, and rebuilding all of them for
+        # every file read is what made bundling the whole SPDX list expensive.
+        input_size = len(input_bigrams)
+        for license_id, license_bigrams in self._licence_bigrams().items():
+            # Dice is 2|A n B| / (|A| + |B|), so it cannot exceed
+            # 2*min(|A|,|B|) / (|A| + |B|) however well the two overlap. A
+            # licence whose length is far from the scanned text cannot reach
+            # the floor, and is skipped without comparing a single bigram.
+            licence_size = len(license_bigrams)
+            ceiling = (2 * min(input_size, licence_size)) / (input_size + licence_size)
+            if ceiling < self.DICE_FLOOR:
                 continue
-            
-            # Normalize and create bigrams
-            normalized_license = self.spdx_data._normalize_text(license_text)
-            license_bigrams = self._create_bigrams(normalized_license)
-            
-            if not license_bigrams:
-                continue
-            
+
             # Calculate Dice-Sørensen coefficient
             score = self._dice_coefficient(input_bigrams, license_bigrams)
-            
-            if score >= 0.9:  # Only keep high-scoring matches
+
+            if score >= self.DICE_FLOOR:  # Only keep high-scoring matches
                 matches.append((license_id, score))
         
         if not matches:

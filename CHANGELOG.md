@@ -5,6 +5,26 @@ All notable changes to osslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- **The text of every licence on the SPDX list is bundled** (Issue #126). 46 of 703 entries carried their text, so the tiers that compare text covered 6.5% of the list and the regex tier answered for the rest. It did not answer "unknown"; it named a licence:
+
+  | full licence text scanned | before | now |
+  |---|---|---|
+  | `Sleepycat` | `BSD-3-Clause` @ 0.6 | `Sleepycat` @ 1.0 |
+  | `BSD-4-Clause` | `BSD-3-Clause` @ 0.6 | `BSD-4-Clause` @ 1.0 |
+  | `OFL-1.1` | `MIT` | `OFL-1.1` @ 1.0 |
+
+  Sleepycat is copyleft and BSD-3-Clause is permissive. BSD-4-Clause is BSD-3-Clause plus the advertising clause, which is the whole difference between them.
+
+  - The list is now 737 licences, all with text. 34 entries were added by SPDX since the last bundle and none were removed, so nothing previously reportable stops being reportable
+  - Exact hashes go from 46 to 737, and the TLSH hashes from 699 to 737, so all three text tiers cover the whole list
+  - `standardLicenseTemplate` is no longer stored. Nothing read it and it is roughly the size of the text again. The wheel goes from 0.40 MB to 1.20 MB
+  - Scanning is faster per file, not slower. The bigrams of each licence were rebuilt for every file read; they are built once now, and a licence whose length is too far from the scanned text is skipped without comparing a bigram, which is sound because Dice cannot exceed `2*min/(a+b)`. A small package went from 0.13s to 0.02s once the licence data is warm, against a one-off 0.5s to build it
+  - **TLSH no longer asserts a licence its own text contradicts.** The tier fell back to an uncorroborated match when corroboration failed, which was right when most entries shipped no text and most proposals could not be checked at all. Now that every entry carries its text, a failed corroboration means the text was read and disagreed, and asserting over that would be the fallback overruling the evidence. The fallback is kept only for a candidate with no text to check
+  - **The TLSH near-neighbour cutoff was too tight to see its own answer.** Measured over 675 licences, taking the canonical text with a project's copyright line on top: at distance 30 the true licence was among the candidates only 76% of the time. A BSD-3-Clause file sits at 35 from BSD-3-Clause and 29 from BSD-4-Clause, so the tier proposed only the neighbour a clause away. The cutoff is 60 now, covering 91%. Widening cannot cost precision, because corroboration keeps the candidate whose real text scores highest; it costs candidates to compare, and the median licence file has 2 of 737
+
 ## [1.8.0] - 2026-08-30
 
 Accuracy work across the detectors, plus per-category scan targets. Several
