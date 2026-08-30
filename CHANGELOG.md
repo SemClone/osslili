@@ -5,9 +5,29 @@ All notable changes to osslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.8.0] - 2026-08-30
+
+Two months of accuracy work. The theme is the same one throughout: a guess had
+been standing in for a reading, and each entry below replaces one with the
+other. Several change what a scan reports — see **Behaviour changes**.
+
+### Added
+- **Fine-grained scan targets** (Issue #79, PR #128). Each category of file a scan reads can be turned on or off on its own, rather than only through a preset: `--license-files`, `--notice-files`, `--package-metadata`, `--documentation`, `--source-files`, and `--text-similarity` for the full licence text comparison. Scanning modes are presets over these, so any part of a mode can be adjusted
+  - What asked for it: a scanner running inside a pipeline that already reads declared licences from package metadata, such as ORT, repeated that step for nothing and could not turn it off
+  - The categories are decided in one place, so the licence detector and the copyright extractor agree. They did not, and a scan told to read only licence files still reported the copyright out of a README
 
 ### Fixed
+- **An SPDX expression is read by its grammar** (PR #127). The hand-written reader took the string apart with patterns, so every shape had to be thought of separately, and each one that was not either reported a licence the file does not grant or dropped one it does. It is read with the SPDX expression parser now, built from the 703 identifiers osslili ships so only the grammar comes from outside
+  - `AGPL-3.0+` was reported as `GPL-3.0-only` — a different licence, and the opposite grant (Issue #118)
+  - A term that is not an identifier was resolved to whichever one it resembled: `MIT AND BSD-compatible` reported BSD-3-Clause, a clause the author never wrote down (Issue #119)
+  - `Dual license: GPL-2.0 or MIT` lost the MIT; `MIT or GPL-2.0 or later` reported the opposite permission
+- **A header line carries an expression, not its first term** (Issue #113, PR #120). The pattern stopped at the first space, so `SPDX-License-Identifier: MIT OR Apache-2.0` was reported as MIT alone, dropping a choice the licensor offered, and `GPL-2.0-only WITH Classpath-exception-2.0` dropped the exception the form exists for — both at confidence 1.0
+- **A licence named in a sentence is a reference, not a declaration** (Issue #109, PR #117). "the bundled minifier is licensed under the Apache License" was reported exactly like `SPDX-License-Identifier: Apache-2.0`: confidence 1.0, category `declared`. A consumer that wanted to trust declarations had to refuse both, and one that trusted them read an MIT package as Apache-2.0 because its README credited something. Prose is `referenced` now, with a match type of its own
+- **An identifier a file states is the identifier reported back** (Issue #108, PR #114). A file saying `SPDX-License-Identifier: BSD-2-Clause` was reported as BSD-3-Clause at confidence 1.0. `BSD-4-Clause` came back as BSD-3-Clause too, and `LGPL-2.1-or-later` as `LGPL-2.1-only`. Normalisation is for turning vague input into an identifier; an exact identifier is not vague input
+- **A scan of a directory answers the same way every time** (Issue #110, PR #123). Copyright statements were extracted concurrently and merged as the threads finished, so the same scan returned the same statements arranged differently on each run, and which file a repeated statement was attributed to depended on the race. A record whose content depends on the run cannot be diffed against a previous release or attested to
+- **A scan lists its licence evidence the same way every time** (Issue #122, PR #124). The sibling of the above in the other half of the scanner: four runs gave three orderings, and five hash seeds gave five answers, because the files were chosen from a set
+- **CI tested only one of the two installations** (PR #115). Two tests cover the tier-two band that only exists when `python-tlsh` is installed, and CI installed without extras, so `main` had been red for a fortnight and a real failure would have looked the same. The matrix runs both now — detection genuinely differs between them, and it differs quietly
+
 - **A document scored differently depending on whether it or its directory was scanned** (Issue #111). Which window was measured followed from how the scan was *started* rather than from what the file is
 
   | a README carrying the whole MIT text | before | now |
@@ -57,6 +77,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - The name is spelled with forward slashes on every platform, because that is how tar and zip spell their own entries; the local separator would report `proj-2.0\LICENSE` on Windows for a member stored as `proj-2.0/LICENSE`
   - Counting a file now takes the scan it belongs to into account. A member path is unique inside its own archive but not across archives: two packages that each carry `pkg/LICENSE` are two files, and `total_files_scanned` and `files_with_licenses` reported one. `generate_evidence()` takes a list of results, so this is reachable from the library; the CLI scans one path at a time. Sources recorded as `unknown` collided the same way before this
   - Both paths are resolved before they are compared. `mkdtemp` answers with `/var/...` on macOS while the scan walks its way to `/private/var/...`; comparing them as written finds no common prefix and would have left every path untouched
+
+### Behaviour changes
+
+Each of these is a scan reporting something different from 1.7.5. All are cases
+where the previous answer was wrong; they are listed because a consumer pinning
+on the old output will see the change.
+
+| what | 1.7.5 | 1.8.0 |
+|---|---|---|
+| `SPDX-License-Identifier: AGPL-3.0+` | `GPL-3.0-only` | `AGPL-3.0-or-later` |
+| `SPDX-License-Identifier: MIT OR Apache-2.0` | `MIT` | `MIT`, `Apache-2.0` |
+| `SPDX-License-Identifier: BSD-2-Clause` | `BSD-3-Clause` | `BSD-2-Clause` |
+| a README crediting a dependency | `declared` @ 1.0 | `referenced` |
+| `bundle.js` | a licence file | a source file |
+| `docs/license-policy.md` | a licence declaration | documentation |
+| evidence inside an archive | a temporary path, new each run | the path inside the archive |
+| `extract_package_metadata()` on `GPL-2.0` | `GPL-2.0` | `GPL-2.0-only` |
+| a CycloneDX SBOM's tool version | `1.5.6` | the running version |
+| `pip install osslili[ml]` | installed ~1 GB, changed nothing | warns that the extra is gone |
+
+Measured against the last release over 13 real packages from PyPI, twelve report
+identically and one changes: `packaging` declares `Apache-2.0 OR BSD-2-Clause`
+and was reported as carrying BSD-3-Clause, a licence with an advertising-style
+clause it never granted. It now reports what the manifest says.
+
+### Documentation
+- The tier table on the detection page (PR #105) and the `python-tlsh` build requirement (PR #104) corrected
 
 ### Removed
 - **The `ml` extra and the `DetectionMethod.ML` enum value** (Issue #106). `pip install osslili[ml]` pulled transformers, torch and scikit-learn, several hundred MB, and changed nothing: no module imported any of them, and no code ever assigned `DetectionMethod.ML`. Detection is the four tiers it has always been — exact hash, Dice-Sorensen, TLSH fuzzy hashing, regex — plus the keyword and tag readers
