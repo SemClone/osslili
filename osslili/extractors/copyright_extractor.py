@@ -9,7 +9,7 @@ from typing import List, Optional, Set, Tuple
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from ..core.models import CopyrightInfo
+from ..core.models import CopyrightInfo, names_package_metadata
 from ..core.input_processor import InputProcessor
 from ..utils.file_scanner import SafeFileScanner
 
@@ -142,6 +142,16 @@ class CopyrightExtractor:
         # Read them back in the order the files were chosen, which is the
         # order this extractor means: the files most likely to carry the
         # package's own copyright first.
+        # A manifest is not read at all when metadata is disregarded, the same
+        # rule the licence detector follows. Reading it for the copyright line
+        # in its header left a manifest's author reported while its licence
+        # was left out (issue #79).
+        if not self.config.scan_targets().package_metadata:
+            files_to_scan = [
+                file_path for file_path in files_to_scan
+                if not names_package_metadata(file_path)
+            ]
+
         for file_path in files_to_scan:
             name = _the_file_itself(file_path)
             for copyright_info in found_in.get(file_path, []):

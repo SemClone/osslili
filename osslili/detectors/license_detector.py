@@ -18,7 +18,8 @@ from license_expression import LicenseSymbol, Licensing
 
 from fuzzywuzzy import fuzz
 
-from ..core.models import DetectedLicense, DetectionMethod, LicenseCategory, ScanTargets
+from ..core.models import (DetectedLicense, DetectionMethod, LicenseCategory,
+                           ScanTargets, names_package_metadata)
 from ..core.input_processor import InputProcessor
 from ..data.spdx_licenses import SPDXLicenseData
 from .tlsh_detector import TLSHDetector
@@ -860,10 +861,16 @@ class LicenseDetector:
         # Track if this is a single file scan (user passed a file directly)
         single_file_mode = path.is_file()
         
+        targets = self.config.scan_targets()
         if single_file_mode:
-            files_to_scan = [path]
+            # A file named on the command line is read because it was named,
+            # whatever the default scan would have picked up on its own. What
+            # it is not read for is a category the caller turned off: pointing
+            # the scan straight at a LICENSE with --no-license-files reported
+            # it anyway, because only metadata was being checked here.
+            files_to_scan = [path] if self._was_not_turned_off(path) else []
         else:
-            files_to_scan = self._find_files_to_scan(path, self.config.scan_targets())
+            files_to_scan = self._find_files_to_scan(path, targets)
 
         logger.info(f"Scanning {len(files_to_scan)} files for licenses")
         
@@ -1004,6 +1011,23 @@ class LicenseDetector:
 
         return files
 
+    def _was_not_turned_off(self, file_path: Path) -> bool:
+        """Whether this file's category was explicitly disregarded.
+
+        Asked of what the caller said rather than of what a directory scan
+        would have chosen, because naming a file is itself the choice to read
+        it: a source file is not in the default scan, and pointing straight at
+        one has always read it.
+        """
+        said = ScanTargets(
+            license_files=self.config.scan_license_files,
+            notice_files=self.config.scan_notice_files,
+            package_metadata=self.config.scan_package_metadata,
+            documentation=self.config.scan_documentation,
+            source_files=self.config.scan_source_files,
+        )
+        return self._is_enabled_scan_target(file_path, said) is not False
+
     def _is_enabled_scan_target(self, file_path: Path, targets: ScanTargets) -> bool:
         """Whether a file's scan target category is enabled.
 
@@ -1024,8 +1048,7 @@ class LicenseDetector:
 
     def _is_package_metadata_file(self, file_path: Path) -> bool:
         """Check if a file is a package manifest / lock file."""
-        return (file_path.name.lower() in self._PACKAGE_METADATA_FILENAMES
-                or file_path.suffix.lower() in self._PACKAGE_METADATA_EXTENSIONS)
+        return names_package_metadata(file_path)
 
     def _is_documentation_file(self, file_path: Path) -> bool:
         """Check if a file is readable documentation (README, *.md, *.rst, ...)."""
@@ -1068,45 +1091,6 @@ class LicenseDetector:
 
     # Package metadata files (lowercase for exact name matches)
     # Covers top 15+ package ecosystems
-    _PACKAGE_METADATA_FILENAMES = {
-        # JavaScript/Node.js (npm, yarn, pnpm)
-        'package.json', 'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml',
-        # Python
-        'pyproject.toml', 'setup.py', 'setup.cfg', 'pipfile', 'pipfile.lock', 'requirements.txt',
-        # Go
-        'go.mod', 'go.sum',
-        # Java (Maven, Gradle)
-        'pom.xml', 'build.gradle', 'build.gradle.kts', 'settings.gradle', 'manifest.mf',
-        # .NET/NuGet
-        'packages.config', 'paket.dependencies',
-        # Rust
-        'cargo.toml', 'cargo.lock',
-        # Ruby
-        'gemfile', 'gemfile.lock',
-        # PHP/Composer
-        'composer.json', 'composer.lock',
-        # Swift/CocoaPods
-        'podfile', 'podfile.lock',
-        # Dart/Flutter
-        'pubspec.yaml', 'pubspec.lock',
-        # Elixir
-        'mix.exs', 'mix.lock',
-        # Scala
-        'build.sbt',
-        # Kotlin
-        'build.gradle.kts',
-    }
-
-    # Pattern-based metadata extensions
-    _PACKAGE_METADATA_EXTENSIONS = {
-        '.gemspec',   # Ruby
-        '.nuspec',    # NuGet
-        '.csproj',    # .NET C#
-        '.fsproj',    # .NET F#
-        '.vbproj',    # .NET VB
-        '.podspec',   # CocoaPods
-    }
-
     def _find_metadata_and_documentation_files(self, directory: Path,
                                                include_metadata: bool = True,
                                                include_documentation: bool = True) -> List[Path]:
@@ -1382,11 +1366,10 @@ class LicenseDetector:
         targets = self.config.scan_targets()
 
         # A manifest declares its license in a syntax the generic tag detector
-        # also recognizes, so a file that is package metadata is skipped whole
-        # when metadata is disregarded - including a scan pointed straight at it
-        # (issue #79).
-        if not targets.package_metadata and self._is_package_metadata_file(file_path):
-            logger.debug(f"Skipping package metadata file: {file_path}")
+        # also recognizes, so a file whose category is disregarded is skipped
+        # whole rather than read and filtered afterwards (issue #79).
+        if not self._was_not_turned_off(file_path):
+            logger.debug(f"Skipping file outside the selected scan targets: {file_path}")
             return licenses
 
         # Read file content - for large files, read in chunks
@@ -2892,7 +2875,7 @@ class LicenseDetector:
             detected = self._tier0_exact_hash(text, file_path)
             if detected:
                 return detected
-        
+
             # Tier 1: Dice-Sørensen similarity. The tier applies its own acceptance
             # rule — a strong score outright, a weaker one only if TLSH corroborates
             # it — so anything it returns is accepted here. Re-gating on
@@ -2903,7 +2886,7 @@ class LicenseDetector:
             detected = self._tier1_dice_sorensen(text, file_path)
             if detected:
                 return detected
-        
+
             # Tier 2: TLSH fuzzy hashing. The detector applies its own bar — a
             # proposed near neighbour is only returned once the license's real text
             # corroborates it — so anything it returns is accepted here. Gating on

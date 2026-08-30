@@ -2,6 +2,7 @@
 Data models for the semantic-copycat-oslili package.
 """
 
+from pathlib import Path
 from dataclasses import dataclass, field, replace
 from typing import List, Optional, Dict, Any
 from enum import Enum
@@ -135,6 +136,59 @@ class DetectionResult:
             "confidence_scores": self.confidence_scores,
             "processing_time": self.processing_time
         }
+
+
+PACKAGE_METADATA_FILENAMES = {
+    # JavaScript/Node.js (npm, yarn, pnpm)
+    'package.json', 'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml',
+    # Python
+    'pyproject.toml', 'setup.py', 'setup.cfg', 'pipfile', 'pipfile.lock', 'requirements.txt',
+    # Go
+    'go.mod', 'go.sum',
+    # Java (Maven, Gradle)
+    'pom.xml', 'build.gradle', 'build.gradle.kts', 'settings.gradle', 'manifest.mf',
+    # .NET/NuGet
+    'packages.config', 'paket.dependencies',
+    # Rust
+    'cargo.toml', 'cargo.lock',
+    # Ruby
+    'gemfile', 'gemfile.lock',
+    # PHP/Composer
+    'composer.json', 'composer.lock',
+    # Swift/CocoaPods
+    'podfile', 'podfile.lock',
+    # Dart/Flutter
+    'pubspec.yaml', 'pubspec.lock',
+    # Elixir
+    'mix.exs', 'mix.lock',
+    # Scala
+    'build.sbt',
+    # Kotlin
+    'build.gradle.kts',
+}
+
+# Pattern-based metadata extensions
+PACKAGE_METADATA_EXTENSIONS = {
+    '.gemspec',   # Ruby
+    '.nuspec',    # NuGet
+    '.csproj',    # .NET C#
+    '.fsproj',    # .NET F#
+    '.vbproj',    # .NET VB
+    '.podspec',   # CocoaPods
+}
+
+
+def names_package_metadata(file_path) -> bool:
+    """Whether this file is a package manifest or lock file.
+
+    Asked here rather than in each reader, because the licence detector and
+    the copyright extractor both have to agree about it: disregarding package
+    metadata means the file is not read at all, and the two disagreeing meant
+    a manifest's licence was left out while its author was still reported.
+    """
+    name = Path(file_path).name.lower()
+    return (name in PACKAGE_METADATA_FILENAMES
+            or Path(file_path).suffix.lower() in PACKAGE_METADATA_EXTENSIONS)
 
 
 @dataclass(frozen=True)

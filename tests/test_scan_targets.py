@@ -386,3 +386,204 @@ def _evidence_summary(output: str) -> dict:
     """The scan summary from evidence output, ignoring per-detection ordering."""
     payload = json.loads(output[output.index("{"):])
     return payload["summary"]
+
+
+class TestEachFlagReachesTheScan:
+    """Every target flag asserted through the command line, because the
+    wiring from a flag to the config is its own step and each line of it
+    could be removed with the rest of this file still passing."""
+
+    @pytest.fixture
+    def project(self, tmp_path):
+        root = tmp_path / "project"
+        root.mkdir()
+        (root / "LICENSE").write_text(
+            "MIT License\n\nPermission is hereby granted, free of charge, to any "
+            "person obtaining a copy of this software.\n"
+        )
+        (root / "THIRD_PARTY_NOTICES.txt").write_text(
+            "zlib License\n\nThis software is provided 'as-is', without any express "
+            "or implied warranty.\n"
+        )
+        # Written as a tag, because a licence named in a sentence in a README
+        # is a reference to one rather than a declaration (issue #109), and
+        # this fixture is about which files are read, not how they are read.
+        (root / "README.md").write_text("# Demo\n\nSPDX-License-Identifier: BSD-3-Clause\n")
+        (root / "package.json").write_text('{"name": "demo", "license": "Apache-2.0"}\n')
+        (root / "app.py").write_text("# SPDX-License-Identifier: ISC\nx = 1\n")
+        return root
+
+    def _licences(self, target, *flags):
+        result = CliRunner().invoke(main, [str(target), "-f", "evidence", *flags])
+        assert result.exit_code == 0, result.output
+        data = json.loads(result.output[result.output.index("{"):])
+        return {
+            record["detected_license"]
+            for scan in data["scan_results"]
+            for record in scan["license_evidence"]
+        }
+
+    @pytest.mark.parametrize("flag,gone", [
+        ("--no-license-files", "MIT"),
+        ("--no-notice-files", "Zlib"),
+        ("--no-package-metadata", "Apache-2.0"),
+        ("--no-documentation", "BSD-3-Clause"),
+    ])
+    def test_turning_a_category_off_removes_its_licence(self, project, flag, gone):
+        with_it = self._licences(project, "--deep")
+        without = self._licences(project, "--deep", flag)
+
+        assert gone in with_it, with_it
+        assert gone not in without, without
+
+    def test_turning_source_files_off_removes_the_tag_in_one(self, project):
+        assert "ISC" in self._licences(project, "--deep")
+        assert "ISC" not in self._licences(project, "--deep", "--no-source-files")
+
+    def test_the_deep_flag_reaches_the_scan(self, project):
+        """It is applied where the mode preset used to apply it, and removing
+        that left --deep reading four files instead of sixteen."""
+        assert "ISC" not in self._licences(project)
+        assert "ISC" in self._licences(project, "--deep")
+
+    def test_the_license_files_only_flag_reaches_the_scan(self, project):
+        only = self._licences(project, "--license-files-only")
+
+        assert only == {"MIT", "Zlib"}, only
+
+    def _how_it_was_found(self, target, *flags):
+        result = CliRunner().invoke(main, [str(target), "-f", "evidence", *flags])
+        assert result.exit_code == 0, result.output
+        data = json.loads(result.output[result.output.index("{"):])
+        return {
+            record["detection_method"]
+            for scan in data["scan_results"]
+            for record in scan["license_evidence"]
+        }
+
+    @pytest.fixture
+    def a_licence_written_out(self, tmp_path):
+        """The real text, so the tiers that compare text have something to
+        match. A paraphrase is found by keyword and proves nothing about
+        them."""
+        from osslili.core.models import Config
+        from osslili.detectors.license_detector import LicenseDetector
+
+        root = tmp_path / "written-out"
+        root.mkdir()
+        record = LicenseDetector(Config()).spdx_data.get_license_info("MIT")
+        (root / "LICENSE").write_text(record["text"])
+        return root
+
+    def test_the_text_tiers_are_used_when_they_are_on(self, a_licence_written_out):
+        how = self._how_it_was_found(a_licence_written_out, "--deep")
+
+        assert how & {"hash", "dice-sorensen", "tlsh"}, how
+
+    def test_and_not_when_they_are_off(self, a_licence_written_out):
+        how = self._how_it_was_found(
+            a_licence_written_out, "--deep", "--no-text-similarity"
+        )
+
+        assert not how & {"hash", "dice-sorensen", "tlsh"}, how
+        assert how, "every reader was turned off, not just the comparison"
+
+
+class TestAFileNamedOnItsOwn:
+    """Naming a file is the choice to read it, whatever a directory scan
+    would have picked up. What it is not read for is a category the caller
+    turned off."""
+
+    @pytest.fixture
+    def files(self, tmp_path):
+        (tmp_path / "LICENSE").write_text(
+            "MIT License\n\nPermission is hereby granted, free of charge.\n"
+        )
+        (tmp_path / "app.py").write_text("# SPDX-License-Identifier: ISC\nx = 1\n")
+        (tmp_path / "setup.py").write_text(
+            "# Copyright (c) 2024 Metadata Corp.\n"
+            "from setuptools import setup\n"
+            'setup(name="demo", license="MIT", author="Metadata Corp")\n'
+        )
+        return tmp_path
+
+    def _reported(self, target, *flags):
+        result = CliRunner().invoke(main, [str(target), "-f", "evidence", *flags])
+        assert result.exit_code == 0, result.output
+        data = json.loads(result.output[result.output.index("{"):])
+        return (
+            {r["detected_license"] for s in data["scan_results"] for r in s["license_evidence"]},
+            {r["holder"] for s in data["scan_results"] for r in s["copyright_evidence"]},
+        )
+
+    def test_a_source_file_named_on_its_own_is_read(self, files):
+        """Source files are not in the default scan, and pointing straight at
+        one has always read it."""
+        licences, _ = self._reported(files / "app.py")
+
+        assert licences == {"ISC"}, licences
+
+    @pytest.mark.parametrize("name,flag", [
+        ("LICENSE", "--no-license-files"),
+        ("app.py", "--no-source-files"),
+        ("setup.py", "--no-package-metadata"),
+    ])
+    def test_but_not_for_a_category_turned_off(self, files, name, flag):
+        licences, _ = self._reported(files / name, flag)
+
+        assert licences == set(), licences
+
+    def test_disregarding_metadata_takes_the_holder_with_it(self, files):
+        """A manifest carries its author as well as its licence, and reading
+        it for the copyright line while refusing it for the licence reported
+        half of what the file says."""
+        _, holders = self._reported(files / "setup.py", "--no-package-metadata")
+
+        assert holders == set(), holders
+
+    def test_and_the_holder_is_there_without_the_flag(self, files):
+        _, holders = self._reported(files / "setup.py")
+
+        assert "Metadata Corp" in holders, holders
+
+
+class TestAPackageOfOnlyOneCategory:
+    """The walk that gathers metadata and documentation is entered when
+    either is wanted. Asking only about metadata left a package with nothing
+    but a README unread."""
+
+    def test_documentation_alone_is_still_gathered(self, tmp_path):
+        root = tmp_path / "docs-only"
+        root.mkdir()
+        (root / "README.md").write_text("# Demo\n\nSPDX-License-Identifier: BSD-3-Clause\n")
+
+        result = CliRunner().invoke(
+            main, [str(root), "-f", "evidence", "--no-package-metadata"]
+        )
+        assert result.exit_code == 0, result.output
+        data = json.loads(result.output[result.output.index("{"):])
+        found = {
+            record["detected_license"]
+            for scan in data["scan_results"]
+            for record in scan["license_evidence"]
+        }
+
+        assert found == {"BSD-3-Clause"}, found
+
+    def test_and_metadata_alone_is_too(self, tmp_path):
+        root = tmp_path / "metadata-only"
+        root.mkdir()
+        (root / "package.json").write_text('{"name": "demo", "license": "Apache-2.0"}\n')
+
+        result = CliRunner().invoke(
+            main, [str(root), "-f", "evidence", "--no-documentation"]
+        )
+        assert result.exit_code == 0, result.output
+        data = json.loads(result.output[result.output.index("{"):])
+        found = {
+            record["detected_license"]
+            for scan in data["scan_results"]
+            for record in scan["license_evidence"]
+        }
+
+        assert found == {"Apache-2.0"}, found
