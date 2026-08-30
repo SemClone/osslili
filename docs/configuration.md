@@ -55,13 +55,13 @@ cache_dir: ~/.cache/osslili
 verbose: false
 debug: false
 
-# What counts as a license file
+# Names that count as a license file, beyond the ones recognized by shape
 license_filename_patterns:
-  - "LICENSE*"
-  - "LICENCE*"
-  - "COPYING*"
-  - "NOTICE*"
-  - "*THIRD-PARTY*"
+  - "LICENSE"
+  - "LICENCE"
+  - "COPYING"
+  - "NOTICE"
+  - "OUR-TERMS*"
 
 license_fuzzy_base_names:
   - license
@@ -142,19 +142,45 @@ assign it on a `Config` object.
 | `license_filename_patterns` | see below | Glob patterns identifying license files. Replaces the built-in list when set. |
 | `license_fuzzy_base_names` | `license`, `licence`, `copying`, `copyright`, `notice` | Base names matched fuzzily, catching misspellings and suffixed variants. |
 
-The built-in patterns are:
+The built-in patterns are the canonical names:
 
 ```
-LICENSE*  LICENCE*  COPYING*  NOTICE*
-MIT-LICENSE*  APACHE-LICENSE*  BSD-LICENSE*
-UNLICENSE*  COPYRIGHT*  3rdpartylicenses.txt
-*GPL*  *COPYLEFT*
-*EULA*  *COMMERCIAL*  *AGREEMENT*  *BUNDLE*
-*THIRD-PARTY*  *THIRD_PARTY*  LEGAL*
+LICENSE  LICENCE  COPYING  NOTICE  COPYRIGHT
+UNLICENSE  COPYLEFT  EULA  LEGAL
+MIT-LICENSE  APACHE-LICENSE  BSD-LICENSE
+3rdpartylicenses.txt
 ```
 
-Setting `license_filename_patterns` replaces this list rather than adding to it. To
-extend it, start from the built-in patterns and append.
+Most license files need no pattern at all, because a license filename is recognized
+by its **shape**: the stem is a license word on its own, or a license word joined to
+the license being named. `LICENSE-MIT`, `MIT-LICENSE.txt`, `COPYING.LESSER`,
+`LICENSE.APACHE2` and `THIRD_PARTY_NOTICES` are all recognized without being listed.
+
+One limit worth knowing: a strict scan (`--license-files-only`) looks for candidates
+using the patterns above and the `license_fuzzy_base_names`, and applies the shape
+rule to what it finds. A name carrying only the license and no license word —
+`GPL-3.0.txt` — is not among those candidates, so add a pattern for it if your
+project uses that form. An ordinary scan reads it anyway, as documentation.
+
+Every part of the name has to belong and at least one has to name a license, so a
+file that merely mentions one is not treated as holding one:
+
+| name | license file? | why |
+|---|---|---|
+| `LICENSE-MIT` | yes | a license word joined to a license |
+| `COPYING.LESSER` | yes | the license is written into the suffix |
+| `docs/license-policy.md` | no | "policy" is not a license word |
+| `license_manager.py` | no | a code suffix, and "manager" is not a license word |
+| `bundle.js` | no | "bundle" is not a license word at all |
+| `gplus.py` | no | a part matches whole; `gplus` is not `gpl` |
+
+Earlier releases matched any name *containing* a license word, so every JavaScript
+bundle and every page written about licensing was read as the project's own license
+declaration. See issue #116.
+
+Setting `license_filename_patterns` replaces the built-in list rather than adding to
+it, but the shape rule still applies either way — a pattern is for a name your project
+uses that no rule would guess, such as `OUR-TERMS.md`.
 
 Files matching a third-party marker together with a notice token — `THIRD_PARTY_NOTICES`,
 `3rdparty-licenses.txt` — are still scanned, but their findings are categorized as
