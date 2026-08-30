@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **`extract_package_metadata()` did not modernise a deprecated identifier** (Issue #112). A scan replaced the bare GNU-family forms with the ones SPDX lists today; this entry point reached the reader directly and did not, so one manifest gave two answers depending on how it was read
+
+  | `license = ` | `extract_package_metadata()` before | both, now |
+  |---|---|---|
+  | `GPL-2.0` | `GPL-2.0` | `GPL-2.0-only` |
+  | `GPL-2.0+` | `GPL-2.0+` | `GPL-2.0-or-later` |
+
+  - `GPL-2.0` is deprecated precisely because it does not say whether later versions are permitted, so `-only` and `-or-later` are different answers to a question a consumer cares about and the deprecated spelling answers neither
+  - The modernisation is one method, `modernise_identifier`, applied by both entry points, so a third cannot miss it
+  - **Only** the modernisation is shared. Dropping identifiers outside the SPDX list, deduplicating, and re-tagging third-party notices remain decisions a *scan* makes: metadata extraction still answers `Proprietary` for a package that declares it, where a scan reports nothing. Applying the scan's drop here would turn a plain declaration into an empty list, which reads as "nothing declared" — the opposite conclusion, and a worse failure than the identifier this fixes
 - **Evidence for an archive named a temporary directory that changed every run** (Issue #121). Extraction picks a fresh `mkdtemp` each time, so the same file in the same archive was reported under a different name on every scan, and the name pointed at a directory that no longer existed once the scan returned. Two scans of one archive could not be diffed
   - What is reported now is the path inside the archive — `gin-1.10.0/auth.go` rather than `/var/folders/.../oslili_extract_x3wmyiba/extract_0_gin/gin-1.10.0/auth.go`
   - Applies to licence and copyright evidence alike; #110 was the same fault in the copyright half of the scanner

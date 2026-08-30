@@ -845,6 +845,27 @@ class LicenseDetector:
             re.compile(r'[A-Za-z0-9][^\n]*?[Ll]icensed\s+under\s+(?:the\s+)?' + _LICENCE_NAME + r'(?:\s+[Ll]icense)?(?:\.\s|[,\n;]|$)', re.IGNORECASE),
         ]
     
+    def modernise_identifier(self, license: DetectedLicense) -> DetectedLicense:
+        """Replace a deprecated identifier with the one SPDX lists today.
+
+        `GPL-2.0` is deprecated precisely because it does not say whether
+        later versions are permitted, so `GPL-2.0-only` and `GPL-2.0-or-later`
+        are different answers to a question a consumer cares about, and the
+        deprecated spelling answers neither.
+
+        This is a statement about the identifier itself, true wherever the
+        identifier was read, so both `detect_licenses` and
+        `extract_package_metadata` apply it. What they do *not* share is what
+        a scan decides afterwards — dropping identifiers outside the SPDX
+        list, deduplicating, re-tagging third-party notices. Those are
+        decisions about what a scan reports, and metadata extraction has not
+        asked for them: it answers `Proprietary` for a package that declares
+        it, and the scan's drop would turn that into no licence at all, which
+        reads as "nothing declared" and is the opposite conclusion (#112).
+        """
+        license.spdx_id = self._to_modern_spdx_id(license.spdx_id)
+        return license
+
     def detect_licenses(self, path: Path) -> List[DetectedLicense]:
         """
         Detect licenses in a directory or file.
@@ -894,7 +915,7 @@ class LicenseDetector:
             for license in found_in.get(file_path, []):
                 # Emit modern SPDX ids; the bare GNU-family forms
                 # osslili's detectors produce are deprecated.
-                license.spdx_id = self._to_modern_spdx_id(license.spdx_id)
+                self.modernise_identifier(license)
                 # Never emit identifiers outside the SPDX list.
                 if not self._is_emittable_license_id(license.spdx_id):
                     logger.debug(

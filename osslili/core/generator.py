@@ -220,7 +220,15 @@ class LicenseCopyrightDetector:
                     content = self.input_processor.read_text_file(file_path)
                     if content:
                         metadata_licenses = detector._extract_package_metadata(content, file_path)
-                        result.licenses.extend(metadata_licenses)
+                        # The same identifier, whichever entry point read it.
+                        # A scan modernises what it emits; this path reached
+                        # the reader directly and answered `GPL-2.0` where a
+                        # scan of the same manifest answered `GPL-2.0-only`
+                        # (issue #112).
+                        result.licenses.extend(
+                            detector.modernise_identifier(license)
+                            for license in metadata_licenses
+                        )
                 except Exception as e:
                     logger.debug(f"Error reading {file_path}: {e}")
 
