@@ -1548,8 +1548,16 @@ class LicenseDetector:
         file_name = file_path.name.lower()
         seen_licenses = {}  # Track licenses by (spdx_id, match_type) to avoid duplicates
 
-        # First, check for SPDX tags in the header/comments of the metadata file
-        header_licenses = self._extract_header_licenses(content, file_path)
+        # First, check for SPDX tags in the header/comments of the metadata file.
+        # Modernised before it is keyed, not after: the duplicate check below
+        # compares identifiers, and a header saying "GPL-2.0-only" beside a
+        # field saying "GPL-2.0" is one declaration written twice. Keying the
+        # deprecated spelling made them two, and both then modernised into the
+        # same answer twice over (#112).
+        header_licenses = [
+            self.modernise_identifier(license)
+            for license in self._extract_header_licenses(content, file_path)
+        ]
         for license in header_licenses:
             key = (license.spdx_id, license.match_type)
             if key not in seen_licenses:
@@ -1597,6 +1605,9 @@ class LicenseDetector:
             metadata_licenses.extend(self._extract_from_pyproject_toml(content, file_path))
 
         # Add metadata licenses, but skip if the same license was already found in header
+        metadata_licenses = [
+            self.modernise_identifier(license) for license in metadata_licenses
+        ]
         for license in metadata_licenses:
             # If same SPDX ID was found in header, prefer the metadata version
             # as it's more authoritative

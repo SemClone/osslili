@@ -16,7 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   | `GPL-2.0+` | `GPL-2.0+` | `GPL-2.0-or-later` |
 
   - `GPL-2.0` is deprecated precisely because it does not say whether later versions are permitted, so `-only` and `-or-later` are different answers to a question a consumer cares about and the deprecated spelling answers neither
-  - The modernisation is one method, `modernise_identifier`, applied by both entry points, so a third cannot miss it
+  - The modernisation is one method, `modernise_identifier`, applied by `_extract_package_metadata` as it produces each identifier, so a third entry point cannot miss it
+  - It runs *before* that method's own duplicate check rather than after. The check keys on the identifier, so a header saying `GPL-2.0-only` beside a field saying `GPL-2.0` — one declaration written twice — was keyed as two and modernised into the same answer twice over, where a scan reported it once
   - **Only** the modernisation is shared. Dropping identifiers outside the SPDX list, deduplicating, and re-tagging third-party notices remain decisions a *scan* makes: metadata extraction still answers `Proprietary` for a package that declares it, where a scan reports nothing. Applying the scan's drop here would turn a plain declaration into an empty list, which reads as "nothing declared" — the opposite conclusion, and a worse failure than the identifier this fixes
 - **Evidence for an archive named a temporary directory that changed every run** (Issue #121). Extraction picks a fresh `mkdtemp` each time, so the same file in the same archive was reported under a different name on every scan, and the name pointed at a directory that no longer existed once the scan returned. Two scans of one archive could not be diffed
   - What is reported now is the path inside the archive — `gin-1.10.0/auth.go` rather than `/var/folders/.../oslili_extract_x3wmyiba/extract_0_gin/gin-1.10.0/auth.go`

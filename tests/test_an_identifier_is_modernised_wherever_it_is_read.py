@@ -99,6 +99,53 @@ class TestTheTwoEntryPointsAgree:
         assert set(_through_a_scan(detector, root)) == {declared}
 
 
+class TestOneDeclarationWrittenTwice:
+    """A manifest may spell the same grant two ways at once.
+
+    `_extract_package_metadata` keys its own duplicate check on the
+    identifier, so modernising afterwards was too late: a header saying
+    `GPL-2.0-only` beside a field saying `GPL-2.0` was keyed as two
+    declarations and then modernised into the same answer twice, while a
+    scan reported it once. The entry points still disagreed, in the other
+    direction.
+    """
+
+    def _a_manifest_saying_it_twice(self, header, field):
+        root = Path(tempfile.mkdtemp())
+        (root / "pyproject.toml").write_text(
+            f"# SPDX-License-Identifier: {header}\n"
+            f'[project]\nname = "widget"\nversion = "1.0"\nlicense = "{field}"\n'
+        )
+        return root
+
+    @pytest.mark.parametrize(
+        "header,field",
+        [
+            ("GPL-2.0-only", "GPL-2.0"),
+            ("GPL-2.0", "GPL-2.0-only"),
+            ("GPL-2.0", "GPL-2.0"),
+            ("GPL-2.0-only", "GPL-2.0-only"),
+            ("GPL-2.0+", "GPL-2.0-or-later"),
+            ("GPL-2.0-or-later", "GPL-2.0+"),
+        ],
+    )
+    def test_it_is_reported_once(self, detector, header, field):
+        root = self._a_manifest_saying_it_twice(header, field)
+
+        found = _through_metadata(detector, root)
+
+        assert found == ["GPL-2.0-only"] or found == ["GPL-2.0-or-later"], found
+
+    @pytest.mark.parametrize(
+        "header,field",
+        [("GPL-2.0-only", "GPL-2.0"), ("GPL-2.0+", "GPL-2.0-or-later")],
+    )
+    def test_both_entry_points_report_it_the_same_way(self, detector, header, field):
+        root = self._a_manifest_saying_it_twice(header, field)
+
+        assert _through_metadata(detector, root) == _through_a_scan(detector, root)
+
+
 class TestAScanDecidesMoreThanTheIdentifier:
     """Only the modernisation is shared. The rest belongs to a scan."""
 
