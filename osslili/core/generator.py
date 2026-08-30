@@ -261,6 +261,13 @@ class LicenseCopyrightDetector:
         A path that is not under the extraction directory is left as it is: it
         did not come out of the archive, and there is nothing to make it
         relative to.
+
+        The name is spelled with forward slashes on every platform, because
+        that is how tar and zip spell the entries themselves. Letting the
+        local separator through would report ``proj-2.0\\LICENSE`` on Windows
+        for an archive that stores ``proj-2.0/LICENSE``, which is a different
+        name for the same member and puts the report back to answering
+        differently depending on where it ran.
         """
         extracted_root = Path(extracted_dir).resolve()
 
@@ -271,7 +278,7 @@ class LicenseCopyrightDetector:
                 inside = Path(evidence.source_file).resolve().relative_to(extracted_root)
             except (ValueError, OSError):
                 continue
-            evidence.source_file = str(inside)
+            evidence.source_file = inside.as_posix()
 
     def _process_local_path(self, path: Path, result: DetectionResult):
         """

@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - What is reported now is the path inside the archive — `gin-1.10.0/auth.go` rather than `/var/folders/.../oslili_extract_x3wmyiba/extract_0_gin/gin-1.10.0/auth.go`
   - Applies to licence and copyright evidence alike; #110 was the same fault in the copyright half of the scanner
   - A scan of a directory is unchanged: nothing was extracted, so there is no archive for the path to be relative to, and the absolute path stays the only name the caller can act on
+  - The name is spelled with forward slashes on every platform, because that is how tar and zip spell their own entries; the local separator would report `proj-2.0\LICENSE` on Windows for a member stored as `proj-2.0/LICENSE`
   - Both paths are resolved before they are compared. `mkdtemp` answers with `/var/...` on macOS while the scan walks its way to `/private/var/...`; comparing them as written finds no common prefix and would have left every path untouched
 
 ### Removed

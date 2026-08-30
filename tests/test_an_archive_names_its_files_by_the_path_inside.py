@@ -122,6 +122,21 @@ class TestTheNameIsThePathInsideTheArchive:
             assert "extract_0_" not in path, path
             assert not Path(path).is_absolute(), path
 
+    def test_the_name_is_spelled_the_way_the_archive_spells_it(self, tmp_path):
+        """Forward slashes on every platform, because tar and zip use them.
+
+        Letting the local separator through would report `proj-2.0\\LICENSE`
+        on Windows for a member stored as `proj-2.0/LICENSE` — a different
+        name for the same file, which is the fault this issue is about,
+        moved from the run to the platform.
+        """
+        named = _files_named(_scan(_a_tarball(tmp_path)))
+
+        nested = [path for path in named if path.count("/") > 0 or "\\" in path]
+        assert nested, "the tree has a file below the archive root"
+        for path in named:
+            assert "\\" not in path, path
+
     def test_a_copyright_is_named_the_same_way(self, tmp_path):
         """Both halves of the report carry a path; #110 was the copyright one."""
         report = _scan(_a_tarball(tmp_path))
