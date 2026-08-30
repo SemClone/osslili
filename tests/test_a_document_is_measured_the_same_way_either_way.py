@@ -159,6 +159,42 @@ class TestTheGenuineCaseSurvives:
         assert "MIT" in without_documentation, found
 
 
+class TestADocumentWithNothingToSayIsCheap:
+    """The text tiers are only worth running on a document that mentions one.
+
+    Reading every document whole compared each page against every licence
+    text to find nothing. Two hundred ordinary pages went from 6.0s to 17.8s
+    and produced no evidence either way, so a documentation-heavy repository
+    paid three times over for the same answer.
+    """
+
+    def test_ordinary_pages_are_not_compared_against_every_licence(self):
+        import time
+
+        root = Path(tempfile.mkdtemp())
+        for n in range(60):
+            (root / f"page{n}.md").write_text(
+                f"# Page {n}\n\n" + "Some ordinary prose about the product. " * 80
+            )
+
+        started = time.monotonic()
+        found = LicenseCopyrightDetector().process_local_path(str(root))
+        elapsed = time.monotonic() - started
+
+        assert not found.licenses
+        # Generous: the unguarded version took about three times as long, and
+        # this is a bound on the shape of the work rather than a benchmark.
+        assert elapsed < 8, f"{elapsed:.1f}s for 60 pages with nothing in them"
+
+    def test_a_document_that_does_mention_one_is_still_read_whole(self):
+        root = Path(tempfile.mkdtemp())
+        (root / "README.md").write_text("# widget\n\n" + _the_text_of("MIT") + "\n")
+
+        found = _evidence(_scan(root))
+
+        assert [row for row in found if row[2] == "text_similarity"], found
+
+
 class TestWhatIsStillReadWhole:
     def test_a_file_named_on_the_command_line_whatever_it_is(self):
         """Scanning one file is a question about that file.

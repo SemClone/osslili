@@ -1437,10 +1437,20 @@ class LicenseDetector:
         # A file named on the command line is still read whole whatever it is,
         # because it was named: that is what `single_file_mode` says, and
         # scanning one file is a question about that file.
+        # A document is only worth the text tiers if it says something about
+        # a licence. Running them over every .md in a documentation-heavy
+        # repository compared each page against every licence text to find
+        # nothing: 200 ordinary pages went from 6.0s to 17.8s and produced no
+        # evidence either way. A licence file and a file named on the command
+        # line are compared whole regardless, because that is what they are
+        # for.
         if (
             single_file_mode
             or self._is_license_file(file_path)
-            or _has_a_document_suffix(file_path)
+            or (
+                _has_a_document_suffix(file_path)
+                and self._contains_license_text(content)
+            )
         ):
             detected = self._detect_license_from_text(content, file_path)
             if detected:

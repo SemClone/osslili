@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   - One file gave three answers, two of them contradicting each other under one name, so no threshold worked in both modes
   - A licence file and a document are read whole now — both are prose, and a README carrying a licence is carrying it. A source file keeps the window, where comparing a whole file against a licence text means nothing. A file named on the command line is still read whole whatever it is, because it was named
+  - The text tiers only run on a document that says something about a licence. Reading every document whole compared each page against every licence text to find nothing: 200 ordinary pages went from 6.0s to 17.8s and produced no evidence either way. A licence file and a file named on the command line are compared whole regardless
   - **What it cost:** a consumer that could not tell a full licence text from a fragment refused the `documentation` match type outright, so a package whose only licence statement is the text in its README read as unlicensed. That package now reports its licence through the similarity tier, which such a consumer accepts
 - **Any filename containing a licence word was treated as a licence file** (Issue #116). The test was a substring match, so `bundle.js` held the project's licence — "bundle" was in the word list — and so did every page written *about* licensing
 
