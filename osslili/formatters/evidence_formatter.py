@@ -41,6 +41,11 @@ class EvidenceFormatter:
             }
         }
 
+        # Which scan a file belongs to is part of naming it. Evidence for an
+        # archive is named by the path inside it (issue #121), which is stable
+        # across runs but only unique within its own archive: two packages that
+        # each carry "pkg/LICENSE" are two files, and counting the names alone
+        # reported one. "unknown" collided the same way before that.
         files_seen = set()
 
         for result in results:
@@ -55,7 +60,7 @@ class EvidenceFormatter:
                 # Add each license detection as a separate evidence entry
                 for license in result.licenses:
                     source = license.source_file or "unknown"
-                    files_seen.add(source)
+                    files_seen.add((result.path, source))
                     evidence_entry = {
                         "file": source,
                         "detected_license": license.spdx_id,
@@ -138,7 +143,7 @@ class EvidenceFormatter:
                 # Add copyrights without aggregation in detailed mode
                 for copyright in result.copyrights:
                     source = copyright.source_file or "unknown"
-                    files_seen.add(source)
+                    files_seen.add((result.path, source))
                     scan_result["copyright_evidence"].append({
                         "file": source,
                         "file_count": copyright.file_count,
@@ -158,7 +163,7 @@ class EvidenceFormatter:
                 license_by_file = {}
                 for license in result.licenses:
                     source = license.source_file or "unknown"
-                    files_seen.add(source)
+                    files_seen.add((result.path, source))
                     if source not in license_by_file:
                         license_by_file[source] = []
                     license_by_file[source].append({
@@ -250,7 +255,7 @@ class EvidenceFormatter:
                 copyright_by_file = {}
                 for copyright in result.copyrights:
                     source = copyright.source_file or "unknown"
-                    files_seen.add(source)
+                    files_seen.add((result.path, source))
                     if source not in copyright_by_file:
                         copyright_by_file[source] = []
                     copyright_by_file[source].append({
@@ -301,7 +306,7 @@ class EvidenceFormatter:
             filtered = {
                 "summary": {
                     "total_files_scanned": evidence["summary"]["total_files_scanned"],
-                    "files_with_licenses": len(set(e["file"] for r in evidence["scan_results"] for e in r["license_evidence"])),
+                    "files_with_licenses": len(set((r["path"], e["file"]) for r in evidence["scan_results"] for e in r["license_evidence"])),
                     "license_breakdown": evidence["summary"]["all_licenses"],
                     "third_party_licenses": evidence["summary"]["third_party_licenses"],
                     "total_license_detections": sum(len(r["license_evidence"]) for r in evidence["scan_results"]),
@@ -322,7 +327,7 @@ class EvidenceFormatter:
             filtered = {
                 "summary": {
                     "total_files_scanned": evidence["summary"]["total_files_scanned"],
-                    "files_with_licenses": len(set(e["file"] for r in evidence["scan_results"] for e in r["license_evidence"])),
+                    "files_with_licenses": len(set((r["path"], e["file"]) for r in evidence["scan_results"] for e in r["license_evidence"])),
                     "license_breakdown": evidence["summary"]["all_licenses"],
                     "third_party_licenses": evidence["summary"]["third_party_licenses"],
                     "total_license_detections": sum(len(r["license_evidence"]) for r in evidence["scan_results"]),
