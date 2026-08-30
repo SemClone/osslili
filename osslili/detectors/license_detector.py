@@ -340,6 +340,21 @@ _DOCUMENT_STEMS = (
 _DOCUMENT_OPENING = r'(?:[\s#]|<!--)*'
 
 
+def _the_same_licence_differently_granted(one: str, other: str) -> bool:
+    """Whether two identifiers are one licence with two grants.
+
+    `GPL-2.0-only` and `GPL-2.0-or-later` are the same text; what separates
+    them is stated where the licence is applied rather than in the licence.
+    """
+    def without_the_grant(identifier: str) -> str:
+        for grant in ('-or-later', '-only'):
+            if identifier.endswith(grant):
+                return identifier[: -len(grant)]
+        return identifier
+
+    return one != other and without_the_grant(one) == without_the_grant(other)
+
+
 def _has_a_document_suffix(file_path) -> bool:
     """Whether the name says this file's subject is prose."""
     name = str(getattr(file_path, 'name', file_path)).lower()
@@ -953,6 +968,18 @@ class LicenseDetector:
             guessed = self._to_modern_spdx_id(license.spdx_id)
             if guessed in stated:
                 return True
+
+            # Two spellings of one licence that differ only in the grant are
+            # never near misses at each other. Their texts are the same text:
+            # the -or-later grant is stated in the file's header, not in the
+            # licence body, so Dice cannot tell them apart and would drop one
+            # on the strength of the other. Which of the two a file carries is
+            # the difference between being allowed to use a later version and
+            # not, and #118 is what it costs to get it wrong. Report both and
+            # let the reader see the disagreement.
+            if any(_the_same_licence_differently_granted(guessed, said)
+                   for said in stated):
+                return False
 
             bigrams = self._licence_bigrams()
             guessed_bigrams = bigrams.get(guessed)

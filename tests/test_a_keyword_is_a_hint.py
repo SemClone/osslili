@@ -207,6 +207,29 @@ class TestAStatedLicenceWinsOverAGuess:
         assert "MIT" in found, found
         assert "Apache-2.0" in found, found
 
+    def test_two_grants_of_one_licence_are_never_near_misses(self):
+        """The -or-later grant is stated where the licence is applied.
+
+        `GPL-2.0-only` and `GPL-2.0-or-later` are the same text, so nothing
+        that compares text can tell them apart, and dropping one on the
+        strength of the other would decide the grant by accident. Which of
+        the two a file carries is the difference between being allowed to use
+        a later version and not; #118 is what getting it wrong costs.
+        """
+        detector = LicenseCopyrightDetector()
+        root = Path(tempfile.mkdtemp())
+        (root / "COPYING").write_text(
+            "SPDX-License-Identifier: GPL-2.0-only\n\n"
+            "This package is also available under the GNU GPL version 2 or, at "
+            "your option, any later version.\n\n"
+            + (detector.license_detector.spdx_data.get_license_text("GPL-2.0-only") or "")
+        )
+
+        found = _licences(_scan(root))
+
+        assert "GPL-2.0-only" in found, found
+        assert "GPL-2.0-or-later" in found, found
+
     def test_a_file_that_states_nothing_still_gets_the_comparison(self):
         """The rule only applies where the file spoke for itself."""
         detector = LicenseCopyrightDetector()
