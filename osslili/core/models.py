@@ -247,6 +247,18 @@ NOT_A_LICENCE_SUFFIX = frozenset({
 
 A_VERSION = re.compile(r'^v?\d+(\.\d+)*$')
 
+# Suffixes that say "this is prose" and carry no meaning of their own, so the
+# name is read without them. Every other suffix is part of the name: projects
+# write the licence into it, as in COPYING.LESSER and LICENSE.APACHE2, and
+# reading it as an inert extension let anything hide there — LICENSE.POLICY
+# and GPL.README were licence files because only the stem was examined.
+A_DOCUMENT_SUFFIX = frozenset({
+    '', '.txt', '.md', '.markdown', '.rst', '.adoc', '.text', '.1st',
+})
+
+# A family may carry its version in the same word: "apache2", "bsd3", "gpl2".
+A_FAMILY_WITH_A_VERSION = re.compile(r'^([a-z]+?)[-_]?v?\d+(\.\d+)*$')
+
 FILENAME_PARTS = re.compile(r'[-_.\s]+')
 
 
@@ -265,28 +277,40 @@ def looks_like_a_licence_filename(file_path) -> bool:
     if name in LICENCE_FILENAMES_EXACTLY:
         return True
 
-    if Path(name).suffix in NOT_A_LICENCE_SUFFIX:
+    suffix = Path(name).suffix
+    if suffix in NOT_A_LICENCE_SUFFIX:
         return False
 
-    parts = [part for part in FILENAME_PARTS.split(Path(name).stem) if part]
+    # Only a document suffix is dropped. Anything else is read as part of the
+    # name, because that is where projects put the licence.
+    named = Path(name).stem if suffix in A_DOCUMENT_SUFFIX else name
+
+    parts = [part for part in FILENAME_PARTS.split(named) if part]
     if not parts:
         return False
 
     def belongs(part: str) -> bool:
-        return (
+        if (
             part in LICENCE_NOUNS
             or part in LICENCE_FAMILIES
             or part in LICENCE_QUALIFIERS
-            or bool(A_VERSION.match(part))
-        )
+            or A_VERSION.match(part)
+        ):
+            return True
+        carried = A_FAMILY_WITH_A_VERSION.match(part)
+        return bool(carried) and carried.group(1) in LICENCE_FAMILIES
 
     if not all(belongs(part) for part in parts):
         return False
 
     # Qualifiers and version numbers describe a licence; they do not name one.
-    return any(
-        part in LICENCE_NOUNS or part in LICENCE_FAMILIES for part in parts
-    )
+    def names_one(part: str) -> bool:
+        if part in LICENCE_NOUNS or part in LICENCE_FAMILIES:
+            return True
+        carried = A_FAMILY_WITH_A_VERSION.match(part)
+        return bool(carried) and carried.group(1) in LICENCE_FAMILIES
+
+    return any(names_one(part) for part in parts)
 
 
 def names_a_third_party_notice(file_path) -> bool:

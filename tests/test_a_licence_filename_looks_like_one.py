@@ -58,6 +58,10 @@ DOES_NOT = [
     "noticeboard.txt", "gplus.py",
     # ordinary files
     "main.go", "README.md", "index.html", "setup.py", "package.json",
+    # an unknown suffix is part of the name, not an inert extension: reading
+    # only the stem let anything hide after the dot
+    "LICENSE.POLICY", "GPL.README", "COPYING.FAQ", "LICENSE-MIT.POLICY",
+    "NOTICE.BOARD",
 ]
 
 
@@ -133,6 +137,27 @@ class TestTheShapeItself:
         """Qualifiers describe a licence; they do not name one."""
         assert looks_like_a_licence_filename("THIRD_PARTY_NOTICES")
         assert not looks_like_a_licence_filename("THIRD-PARTY")
+
+    def test_an_unknown_suffix_is_part_of_the_name(self):
+        """Projects write the licence into the suffix: COPYING.LESSER.
+
+        Treating every suffix as an inert extension meant only the stem was
+        examined, so anything could hide after the dot.
+        """
+        assert looks_like_a_licence_filename("COPYING.LESSER")
+        assert looks_like_a_licence_filename("LICENSE.APACHE2")
+        assert not looks_like_a_licence_filename("LICENSE.POLICY")
+        assert not looks_like_a_licence_filename("GPL.README")
+
+    def test_a_prose_suffix_is_dropped(self):
+        assert looks_like_a_licence_filename("LICENSE.txt")
+        assert looks_like_a_licence_filename("LICENSE.md")
+        assert looks_like_a_licence_filename("license.rst")
+
+    def test_a_family_may_carry_its_version(self):
+        """"apache2" is the Apache licence, not an unknown word."""
+        assert looks_like_a_licence_filename("LICENSE.APACHE2")
+        assert looks_like_a_licence_filename("LICENSE-BSD3")
 
     def test_a_code_suffix_says_it_is_not_the_licence(self):
         assert looks_like_a_licence_filename("LICENSE.txt")
