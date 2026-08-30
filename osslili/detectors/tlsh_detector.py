@@ -347,13 +347,15 @@ class TLSHDetector:
                 # Asserting over that would be the fallback overruling the
                 # evidence, and widening the candidate distance would have made
                 # it reachable for candidates that are simply wrong.
-                checkable = any(
-                    self.spdx_data.get_license_text(license_id)
-                    for _distance, license_id in candidates
-                )
-                if checkable:
+                # Only the candidate that would be asserted gets to veto the
+                # fallback. Asking whether *any* candidate had text refused the
+                # fallback whenever a checkable neighbour sat beside an
+                # uncheckable best candidate, which is the very case the
+                # fallback is kept for.
+                proposed = candidates[0][1]
+                if self.spdx_data.get_license_text(proposed):
                     logger.debug(
-                        f"TLSH proposed {candidates[0][1]} for {file_path} "
+                        f"TLSH proposed {proposed} for {file_path} "
                         f"(distance {candidates[0][0]}) and its licence text does "
                         f"not agree; not asserting a license"
                     )
