@@ -122,6 +122,44 @@ class TestTheScanTargetFollows:
         assert the_category_of(Path(name)) == category
 
 
+class TestTheConfiguredPatternsAgree:
+    """`Config` answers the same question the detector does.
+
+    It compiled the globs by hand, turning `*` into `.*` and leaving the
+    pattern unanchored at the end, so `LICENSE` matched `LICENSE.POLICY`
+    and this reader called it a licence file while the detector did not.
+    Both use fnmatch now, so one glob means one thing.
+    """
+
+    @pytest.mark.parametrize(
+        "name,category",
+        [
+            ("LICENSE", "license_files"),
+            ("LICENSE.txt", "license_files"),
+            ("LICENSE-MIT", "license_files"),
+            ("COPYING.LESSER", "license_files"),
+            ("LICENSE.POLICY", "source_files"),
+            ("COPYING.FAQ", "source_files"),
+            ("bundle.js", "source_files"),
+        ],
+    )
+    def test_the_category_a_config_reports(self, name, category):
+        from osslili.core.models import Config
+
+        assert Config().the_category(Path(name)) == category
+
+    @pytest.mark.parametrize("name", HOLDS_A_LICENCE + DOES_NOT)
+    def test_a_config_never_disagrees_with_the_shape(self, name):
+        from osslili.core.models import Config
+
+        is_licence = Config().the_category(Path(name)) == "license_files"
+        if looks_like_a_licence_filename(name):
+            # a third-party notice is a notice first; that precedence is #78
+            assert is_licence or Config().the_category(Path(name)) == "notice_files"
+        else:
+            assert not is_licence
+
+
 class TestTheShapeItself:
     def test_every_part_has_to_belong(self):
         """"policy" is not a licence word, so the name is not a licence."""
@@ -162,6 +200,17 @@ class TestTheShapeItself:
     def test_a_code_suffix_says_it_is_not_the_licence(self):
         assert looks_like_a_licence_filename("LICENSE.txt")
         assert not looks_like_a_licence_filename("license.py")
+
+    def test_a_prose_suffix_follows_the_documentation_list(self):
+        """`.asciidoc` is readable documentation, so it is prose here too.
+
+        The two lists were written separately and `.asciidoc` was in one and
+        not the other, so `LICENSE.asciidoc` stopped being a licence file.
+        """
+        from osslili.core.models import DOCUMENTATION_EXTENSIONS
+
+        for suffix in DOCUMENTATION_EXTENSIONS:
+            assert looks_like_a_licence_filename(f"LICENSE{suffix}"), suffix
 
     def test_a_configured_pattern_is_still_honoured(self):
         """An explicit instruction about one project is not a guess."""

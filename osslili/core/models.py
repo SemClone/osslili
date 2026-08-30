@@ -252,9 +252,10 @@ A_VERSION = re.compile(r'^v?\d+(\.\d+)*$')
 # write the licence into it, as in COPYING.LESSER and LICENSE.APACHE2, and
 # reading it as an inert extension let anything hide there — LICENSE.POLICY
 # and GPL.README were licence files because only the stem was examined.
-A_DOCUMENT_SUFFIX = frozenset({
-    '', '.txt', '.md', '.markdown', '.rst', '.adoc', '.text', '.1st',
-})
+# Derived from the documentation extensions rather than restated, because a
+# licence written as `LICENSE.asciidoc` is a licence file and a second list
+# had already left `.asciidoc` out of this one.
+A_DOCUMENT_SUFFIX = frozenset({'', '.1st'}) | DOCUMENTATION_EXTENSIONS
 
 # A family may carry its version in the same word: "apache2", "bsd3", "gpl2".
 A_FAMILY_WITH_A_VERSION = re.compile(r'^([a-z]+?)[-_]?v?\d+(\.\d+)*$')
@@ -464,8 +465,14 @@ class Config:
         import re
 
         if not hasattr(self, '_licence_name_patterns'):
+            # fnmatch, as the detector compiles them, so one glob means one
+            # thing. Hand-rolling `*` into `.*` left the pattern unanchored at
+            # the end, so `LICENSE` matched `LICENSE.POLICY` and this reader
+            # called it a licence file while the detector did not.
+            import fnmatch
+
             object.__setattr__(self, '_licence_name_patterns', tuple(
-                re.compile(pattern.replace('*', '.*'), re.IGNORECASE)
+                re.compile(fnmatch.translate(pattern), re.IGNORECASE)
                 for pattern in self.license_filename_patterns
             ))
         category = the_category_of(file_path, self._licence_name_patterns)
