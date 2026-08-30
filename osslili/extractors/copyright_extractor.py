@@ -9,7 +9,7 @@ from typing import List, Optional, Set, Tuple
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from ..core.models import CopyrightInfo, names_package_metadata
+from ..core.models import CopyrightInfo
 from ..core.input_processor import InputProcessor
 from ..utils.file_scanner import SafeFileScanner
 
@@ -142,15 +142,14 @@ class CopyrightExtractor:
         # Read them back in the order the files were chosen, which is the
         # order this extractor means: the files most likely to carry the
         # package's own copyright first.
-        # A manifest is not read at all when metadata is disregarded, the same
-        # rule the licence detector follows. Reading it for the copyright line
-        # in its header left a manifest's author reported while its licence
-        # was left out (issue #79).
-        if not self.config.scan_targets().package_metadata:
-            files_to_scan = [
-                file_path for file_path in files_to_scan
-                if not names_package_metadata(file_path)
-            ]
+        # A file whose category the scan is not reading has no copyright in
+        # it either. Only package metadata was being held to that, so a scan
+        # told to read licence files alone still reported the copyright out
+        # of a README and a source file (issue #79).
+        files_to_scan = [
+            file_path for file_path in files_to_scan
+            if self._reads(file_path, named_on_its_own=path.is_file())
+        ]
 
         for file_path in files_to_scan:
             name = _the_file_itself(file_path)
@@ -190,6 +189,23 @@ class CopyrightExtractor:
             copyright_info.file_count = len(said_in[copyright_info.statement])
 
         return copyrights
+
+    def _reads(self, file_path: Path, named_on_its_own: bool) -> bool:
+        """Whether the copyright in this file is one this scan is reading.
+
+        Source headers are the exception. This extractor has always read them
+        whatever the licence scan was told to read, and a default scan that
+        stopped reporting the copyright out of a source file would be a
+        different tool. They go when they are turned off by name, and when
+        the scan was told to read licence files and nothing else.
+        """
+        if named_on_its_own:
+            return self.config.was_not_turned_off(file_path)
+        if self.config.the_category(file_path) == 'source_files':
+            if self.config.strict_license_files:
+                return False
+            return self.config.scan_source_files is not False
+        return self.config.wants(file_path)
 
     def _extract_from_each(self, files_to_scan: List[Path]):
         """Every file paired with what it yielded, in no particular order.

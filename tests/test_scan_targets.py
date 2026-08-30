@@ -587,3 +587,77 @@ class TestAPackageOfOnlyOneCategory:
         }
 
         assert found == {"Apache-2.0"}, found
+
+
+class TestACategoryTurnedOffTakesItsCopyrightToo:
+    """A scan target says which files are read, and a file that is not read
+    has no copyright in it either. Only package metadata was being filtered,
+    so a scan told to read licence files alone still reported the copyright
+    out of a README and a source file."""
+
+    @pytest.fixture
+    def project(self, tmp_path):
+        root = tmp_path / "holders"
+        root.mkdir()
+        (root / "LICENSE").write_text(
+            "MIT License\n\nCopyright (c) 2024 Licenza Labs\n\n"
+            "Permission is hereby granted, free of charge.\n"
+        )
+        (root / "README.md").write_text("# Demo\n\nCopyright (c) 2024 Documentation Works\n")
+        (root / "app.py").write_text("# Copyright (c) 2024 Source Works\nx = 1\n")
+        (root / "package.json").write_text(
+            '{"name": "demo", "license": "MIT", "author": "Metadata Works"}\n'
+        )
+        return root
+
+    def _holders(self, target, *flags):
+        result = CliRunner().invoke(main, [str(target), "-f", "evidence", *flags])
+        assert result.exit_code == 0, result.output
+        data = json.loads(result.output[result.output.index("{"):])
+        return {
+            record["holder"]
+            for scan in data["scan_results"]
+            for record in scan["copyright_evidence"]
+        }
+
+    def test_all_of_them_are_there_to_begin_with(self, project):
+        """Which is what makes the tests below worth having."""
+        assert self._holders(project, "--deep") >= {
+            "Licenza Labs", "Documentation Works", "Source Works", "Metadata Works",
+        }
+
+    @pytest.mark.parametrize("flag,gone", [
+        ("--no-documentation", "Documentation Works"),
+        ("--no-source-files", "Source Works"),
+        ("--no-package-metadata", "Metadata Works"),
+        ("--no-license-files", "Licenza Labs"),
+    ])
+    def test_turning_a_category_off_removes_its_holder(self, project, flag, gone):
+        assert gone not in self._holders(project, "--deep", flag)
+
+    def test_reading_licence_files_alone_reports_only_their_holders(self, project):
+        """A scan told to read licence files and nothing else means it,
+        including the source headers this extractor otherwise always reads."""
+        assert self._holders(project, "--license-files-only") == {"Licenza Labs"}
+
+    def test_a_default_scan_still_reads_source_headers(self, project):
+        """It always has, whatever the licence scan was told to read, and a
+        default scan that stopped reporting them would be a different tool."""
+        assert "Source Works" in self._holders(project)
+
+    def test_a_file_named_on_its_own_still_gives_its_holder(self, project):
+        """Naming it is the choice to read it, whatever the default scan
+        would have picked up."""
+        assert self._holders(project / "app.py") == {"Source Works"}
+
+    def test_unless_its_category_was_turned_off(self, project):
+        assert self._holders(project / "app.py", "--no-source-files") == set()
+
+    def test_naming_a_file_beats_a_narrower_scan(self, project):
+        """The narrowing says which files a directory scan reads. Naming one
+        says to read that one, and the two disagree here: the same flag that
+        keeps a README out of the walk still reads it when it is named."""
+        assert self._holders(project, "--license-files-only") == {"Licenza Labs"}
+        assert self._holders(project / "README.md", "--license-files-only") == {
+            "Documentation Works",
+        }

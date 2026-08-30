@@ -19,7 +19,7 @@ from license_expression import LicenseSymbol, Licensing
 from fuzzywuzzy import fuzz
 
 from ..core.models import (DetectedLicense, DetectionMethod, LicenseCategory,
-                           ScanTargets, names_package_metadata)
+                           ScanTargets, names_package_metadata, the_category_of)
 from ..core.input_processor import InputProcessor
 from ..data.spdx_licenses import SPDXLicenseData
 from .tlsh_detector import TLSHDetector
@@ -1019,14 +1019,7 @@ class LicenseDetector:
         it: a source file is not in the default scan, and pointing straight at
         one has always read it.
         """
-        said = ScanTargets(
-            license_files=self.config.scan_license_files,
-            notice_files=self.config.scan_notice_files,
-            package_metadata=self.config.scan_package_metadata,
-            documentation=self.config.scan_documentation,
-            source_files=self.config.scan_source_files,
-        )
-        return self._is_enabled_scan_target(file_path, said) is not False
+        return self.config.was_not_turned_off(file_path)
 
     def _is_enabled_scan_target(self, file_path: Path, targets: ScanTargets) -> bool:
         """Whether a file's scan target category is enabled.
