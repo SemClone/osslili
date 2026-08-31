@@ -993,15 +993,23 @@ class LicenseDetector:
 
         # Worked out before the corroboration set is built, so a keyword match
         # is never kept alive by a finding that is itself about to be dropped.
-        # Files whose text was recognised outright. Nothing in such a file is
-        # still an open question, so a licence word inside it is a word rather
-        # than a grant.
+        # Licence files whose own text was recognised outright. Nothing in
+        # such a file is still an open question, so a licence word inside it
+        # is a word rather than a grant.
+        #
+        # A manifest never qualifies, however it matched. PEP 639's
+        # `license = {file = "LICENSE"}` resolves the referenced file and
+        # attributes the match to the manifest, so a `pyproject.toml` carried
+        # an exact hash for text that is not in it, and a second grant written
+        # there in words was dropped as though the file had spoken already.
         matched_exactly = {
             license.source_file
             for results in found_in.values()
             for license in results
             if license.detection_method == DetectionMethod.HASH.value
             and license.confidence >= 1.0
+            and license.source_file
+            and self._is_license_file(Path(license.source_file))
         }
 
         dropped_as_a_near_miss = {

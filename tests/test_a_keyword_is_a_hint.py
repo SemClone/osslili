@@ -146,6 +146,31 @@ class TestAWordInARecognisedLicenceFile:
             "OFL-1.1"
         }
 
+    def test_a_manifest_never_counts_as_recognised(self):
+        """PEP 639 attributes a referenced file's match to the manifest.
+
+        `license = {file = "LICENSE"}` resolves the file and records the match
+        against `pyproject.toml`, so the manifest carried an exact hash for
+        text that is not in it. Treating that as "this file has spoken" threw
+        away a second grant written there in words.
+        """
+        detector = LicenseCopyrightDetector()
+        root = Path(tempfile.mkdtemp())
+        (root / "LICENSE").write_text(
+            detector.license_detector.spdx_data.get_license_text("MIT") or ""
+        )
+        (root / "pyproject.toml").write_text(
+            '[project]\nname = "x"\nversion = "0.1.0"\n'
+            'license = { file = "LICENSE" }\n'
+            "# This package is also distributed under the terms of the GNU GPL "
+            "version 2.\n"
+        )
+
+        found = _licences(_scan(root))
+
+        assert "MIT" in found, found
+        assert "GPL-2.0-only" in found, found
+
 
 class TestAGrantIsKeptWhereverItIsStated:
     """The rule must not cost a grant the keyword tier alone can read."""
