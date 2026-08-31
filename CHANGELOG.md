@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **A licence word in a licence file whose text was already recognised is a word, not a grant.** The OFL says "Permission is hereby granted, free of charge", which is MIT's phrasing, so scanning an OFL font licence reported MIT beside it, and the AGPL names the GPL and reported that. Nothing in a file whose text matched outright is still an open question. Measured over all 737 bundled licence texts, the number reporting a licence they merely mention falls from 93 to 23
+  - The 23 that remain are SPDX variant families whose texts are byte-identical: `GFDL-1.1-invariants-only` against `GFDL-1.1-only`, `OFL-1.1-RFN` against `OFL-1.1`, `MPL-2.0-no-copyleft-exception` against `MPL-2.0`. As with `-only` and `-or-later`, what separates them is stated where the licence is applied rather than in the licence, so nothing reading text can tell them apart
 - **A licence word in a document is a mention until something agrees** (Issue #138). The keyword tier matches single words and short names, so ordinary prose reported licences the package never granted
 
   | package | reported | from | actually |

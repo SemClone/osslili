@@ -112,6 +112,94 @@ class TestAWordInProseIsNotALicence:
         assert _licences(_scan(root)) == {"MIT"}
 
 
+class TestAWordInARecognisedLicenceFile:
+    """Once a licence file's text is recognised, a word in it is a word.
+
+    The OFL says "Permission is hereby granted, free of charge", which is
+    MIT's phrasing, so scanning an OFL font licence reported MIT beside it.
+    The AGPL names the GPL and reported that. Measured over all 737 bundled
+    texts, 82 of them reported a licence they merely mention.
+    """
+
+    def _a_package_licensed_under(self, spdx_id):
+        detector = LicenseCopyrightDetector()
+        root = Path(tempfile.mkdtemp())
+        (root / "LICENSE").write_text(
+            detector.license_detector.spdx_data.get_license_text(spdx_id) or ""
+        )
+        return root
+
+    @pytest.mark.parametrize(
+        "spdx_id,merely_mentioned",
+        [("OFL-1.1", "MIT"), ("AGPL-3.0-only", "GPL-3.0-only")],
+    )
+    def test_a_licence_it_only_mentions_is_not_reported(
+        self, spdx_id, merely_mentioned
+    ):
+        found = _licences(_scan(self._a_package_licensed_under(spdx_id)))
+
+        assert spdx_id in found, found
+        assert merely_mentioned not in found, found
+
+    def test_the_licence_itself_is_untouched(self):
+        assert _licences(_scan(self._a_package_licensed_under("OFL-1.1"))) == {
+            "OFL-1.1"
+        }
+
+    def test_a_manifest_never_counts_as_recognised(self):
+        """PEP 639 attributes a referenced file's match to the manifest.
+
+        `license = {file = "LICENSE"}` resolves the file and records the match
+        against `pyproject.toml`, so the manifest carried an exact hash for
+        text that is not in it. Treating that as "this file has spoken" threw
+        away a second grant written there in words.
+        """
+        detector = LicenseCopyrightDetector()
+        root = Path(tempfile.mkdtemp())
+        (root / "LICENSE").write_text(
+            detector.license_detector.spdx_data.get_license_text("MIT") or ""
+        )
+        (root / "pyproject.toml").write_text(
+            '[project]\nname = "x"\nversion = "0.1.0"\n'
+            'license = { file = "LICENSE" }\n'
+            "# This package is also distributed under the terms of the GNU GPL "
+            "version 2.\n"
+        )
+
+        found = _licences(_scan(root))
+
+        assert "MIT" in found, found
+        assert "GPL-2.0-only" in found, found
+
+    def test_a_manifest_stays_a_manifest_however_it_is_configured(self):
+        """`license_filename_patterns` is the caller's to widen.
+
+        A pattern covering `pyproject.toml` would otherwise let the manifest
+        count as a recognised licence file and take the grant away again.
+        """
+        from osslili.core.models import Config
+
+        config = Config()
+        config.license_filename_patterns = config.license_filename_patterns + [
+            "pyproject.toml"
+        ]
+        detector = LicenseCopyrightDetector(config)
+        root = Path(tempfile.mkdtemp())
+        (root / "LICENSE").write_text(
+            detector.license_detector.spdx_data.get_license_text("MIT") or ""
+        )
+        (root / "pyproject.toml").write_text(
+            '[project]\nname = "x"\nversion = "0.1.0"\n'
+            'license = { file = "LICENSE" }\n'
+            "# This package is also distributed under the terms of the GNU GPL "
+            "version 2.\n"
+        )
+
+        found = {lic.spdx_id for lic in detector.process_local_path(str(root)).licenses}
+
+        assert {"MIT", "GPL-2.0-only"} <= found, found
+
+
 class TestAGrantIsKeptWhereverItIsStated:
     """The rule must not cost a grant the keyword tier alone can read."""
 
