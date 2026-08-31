@@ -171,6 +171,34 @@ class TestAWordInARecognisedLicenceFile:
         assert "MIT" in found, found
         assert "GPL-2.0-only" in found, found
 
+    def test_a_manifest_stays_a_manifest_however_it_is_configured(self):
+        """`license_filename_patterns` is the caller's to widen.
+
+        A pattern covering `pyproject.toml` would otherwise let the manifest
+        count as a recognised licence file and take the grant away again.
+        """
+        from osslili.core.models import Config
+
+        config = Config()
+        config.license_filename_patterns = config.license_filename_patterns + [
+            "pyproject.toml"
+        ]
+        detector = LicenseCopyrightDetector(config)
+        root = Path(tempfile.mkdtemp())
+        (root / "LICENSE").write_text(
+            detector.license_detector.spdx_data.get_license_text("MIT") or ""
+        )
+        (root / "pyproject.toml").write_text(
+            '[project]\nname = "x"\nversion = "0.1.0"\n'
+            'license = { file = "LICENSE" }\n'
+            "# This package is also distributed under the terms of the GNU GPL "
+            "version 2.\n"
+        )
+
+        found = {lic.spdx_id for lic in detector.process_local_path(str(root)).licenses}
+
+        assert {"MIT", "GPL-2.0-only"} <= found, found
+
 
 class TestAGrantIsKeptWhereverItIsStated:
     """The rule must not cost a grant the keyword tier alone can read."""

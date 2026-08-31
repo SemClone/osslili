@@ -1010,6 +1010,11 @@ class LicenseDetector:
             and license.confidence >= 1.0
             and license.source_file
             and self._is_license_file(Path(license.source_file))
+            # Asked directly rather than left to the licence-file test, which
+            # a caller can widen: `license_filename_patterns` is theirs to set,
+            # and a pattern covering `pyproject.toml` would let the manifest
+            # back in.
+            and not names_package_metadata(Path(license.source_file))
         }
 
         dropped_as_a_near_miss = {
