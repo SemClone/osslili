@@ -5,7 +5,11 @@ All notable changes to osslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.9.2] - 2026-08-31
+
+A licence a package plainly declared could be reported as nothing at all. One
+fix, and the reason it is worth a release on its own is that the failure was
+silence rather than a wrong answer, which is harder to notice.
 
 ### Fixed
 - **A licence declared as `Affero GPLv3`, `Lesser GPLv3` or `LGPLv2.1` was reported as nothing at all** (Issue #125). The step that reads a version out of a vague name wrote it back exactly as it found it, and a licence is written "v3" as often as "3.0". Only the second is part of an identifier, so the step answered `AGPL-v3`, which names nothing, and returned, so the later steps that could have reached a real one never ran
@@ -23,6 +27,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Two licences the parser used to drop are kept. `MIT or GPLv2 or later` reported MIT alone, because saying nothing about the GPL was better than reporting it without the grant it could not carry; the grant goes on it now. `MIT AND GPLv2 or later` reported `GPL-2.0-only`, the opposite permission, and reports `GPL-2.0-or-later`
   - **The letters after `CC BY` are part of the licence.** Every Creative Commons attribution variant collapsed to `CC-BY`, so `CC BY-SA 3.0` answered `CC-BY-v3`, which names nothing and was dropped: the licence went missing. Checking the answer would have turned that into a confident `CC-BY-3.0`, which is worse, because ShareAlike is copyleft and NonCommercial and NoDerivatives are obligations the plain licence does not carry. The variant is kept, so it reports `CC-BY-SA-3.0`
   - Which licence such a line names is still settled by the expression reader, whose answers #120 and #127 spent a great deal on. `Apache 2.0 or above` reports `Apache-2.0` exactly as before
+
+### Behaviour changes
+
+| a package declaring | 1.9.1 | 1.9.2 |
+|---|---|---|
+| `Affero GPLv3` | *nothing* | `AGPL-3.0-only` |
+| `Lesser GPLv3` | *nothing* | `LGPL-3.0-only` |
+| `LGPLv2.1` | *nothing* | `LGPL-2.1-only` |
+| `GPLv3 or later` | *nothing* | `GPL-3.0-or-later` |
+| `CC BY-SA 3.0` | *nothing* | `CC-BY-SA-3.0` |
+| `GPLv3`, `MIT`, `Apache 2.0` | unchanged | unchanged |
+
+Two licences the expression reader used to drop are also kept. `MIT or GPLv2 or
+later` reported MIT alone, and `MIT AND GPLv2 or later` reported `GPL-2.0-only`,
+which is the opposite permission.
 
 ## [1.9.1] - 2026-08-31
 
