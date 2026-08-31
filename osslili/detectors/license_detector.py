@@ -993,6 +993,17 @@ class LicenseDetector:
 
         # Worked out before the corroboration set is built, so a keyword match
         # is never kept alive by a finding that is itself about to be dropped.
+        # Files whose text was recognised outright. Nothing in such a file is
+        # still an open question, so a licence word inside it is a word rather
+        # than a grant.
+        matched_exactly = {
+            license.source_file
+            for results in found_in.values()
+            for license in results
+            if license.detection_method == DetectionMethod.HASH.value
+            and license.confidence >= 1.0
+        }
+
         dropped_as_a_near_miss = {
             id(license)
             for results in found_in.values()
@@ -1005,8 +1016,9 @@ class LicenseDetector:
         # changelog reported the JSON licence and "0BSD" in a README reported
         # 0BSD, in packages that are BSD-3-Clause and MIT (#138).
         #
-        # Only documents are held to this, and only once the scan has found a
-        # licence some other way. In a licence file a bare licence word is very
+        # Documents are held to this, and so is a licence file whose text was
+        # recognised outright, and both only once the scan has found a licence
+        # some other way. In a licence file a bare licence word is very
         # often the grant itself -- "distributed under the terms of the GNU GPL
         # version 2" in a COPYING -- and the keyword tier is the only reader
         # that finds it. A README can state a grant the same way, "licensed
@@ -1058,9 +1070,20 @@ class LicenseDetector:
                 if (
                     license.detection_method == DetectionMethod.KEYWORD.value
                     and license.spdx_id not in corroborated_licences
-                    and _has_a_document_suffix(file_path)
-                    and not self._is_license_file(file_path)
                     and corroborated_licences
+                    and (
+                        (
+                            _has_a_document_suffix(file_path)
+                            and not self._is_license_file(file_path)
+                        )
+                        # A licence file whose text was recognised outright is
+                        # held to the same rule. The OFL says "Permission is
+                        # hereby granted, free of charge", which is MIT's
+                        # phrasing, so an OFL font licence reported MIT beside
+                        # it; the AGPL names the GPL and reported that. The
+                        # word is a word once the text has been read.
+                        or license.source_file in matched_exactly
+                    )
                 ):
                     logger.debug(
                         f"Dropping uncorroborated keyword match "

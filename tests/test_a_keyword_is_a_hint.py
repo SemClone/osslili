@@ -112,6 +112,41 @@ class TestAWordInProseIsNotALicence:
         assert _licences(_scan(root)) == {"MIT"}
 
 
+class TestAWordInARecognisedLicenceFile:
+    """Once a licence file's text is recognised, a word in it is a word.
+
+    The OFL says "Permission is hereby granted, free of charge", which is
+    MIT's phrasing, so scanning an OFL font licence reported MIT beside it.
+    The AGPL names the GPL and reported that. Measured over all 737 bundled
+    texts, 82 of them reported a licence they merely mention.
+    """
+
+    def _a_package_licensed_under(self, spdx_id):
+        detector = LicenseCopyrightDetector()
+        root = Path(tempfile.mkdtemp())
+        (root / "LICENSE").write_text(
+            detector.license_detector.spdx_data.get_license_text(spdx_id) or ""
+        )
+        return root
+
+    @pytest.mark.parametrize(
+        "spdx_id,merely_mentioned",
+        [("OFL-1.1", "MIT"), ("AGPL-3.0-only", "GPL-3.0-only")],
+    )
+    def test_a_licence_it_only_mentions_is_not_reported(
+        self, spdx_id, merely_mentioned
+    ):
+        found = _licences(_scan(self._a_package_licensed_under(spdx_id)))
+
+        assert spdx_id in found, found
+        assert merely_mentioned not in found, found
+
+    def test_the_licence_itself_is_untouched(self):
+        assert _licences(_scan(self._a_package_licensed_under("OFL-1.1"))) == {
+            "OFL-1.1"
+        }
+
+
 class TestAGrantIsKeptWhereverItIsStated:
     """The rule must not cost a grant the keyword tier alone can read."""
 
