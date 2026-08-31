@@ -5,7 +5,11 @@ All notable changes to osslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.9.1] - 2026-08-31
+
+One correction, and the reason it is worth a release on its own: for a licence
+whose text several licences share, the scanner named one of them and called it
+certain. For the Mozilla Public License that pointed the wrong way.
 
 ### Fixed
 - **An exact match on a text several licences share no longer claims to identify one of them** (Issue #142). Sixteen texts on the SPDX list belong to more than one identifier, and eight of those groups have members that oblige different things. The scanner answered with whichever it found first, at confidence 1.0 and category `declared`
@@ -21,6 +25,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Such a match is reported with match type `exact_hash_shared_text`, a confidence of 0.9 rather than 1.0, and a new `ambiguous_with` field naming the other members. The licence is still reported: the text is certainly one of a known few, and dropping the record would lose a licence the file plainly carries
   - Two spellings of one licence are not this. `AGPL-3.0-only` and `AGPL-3.0-or-later` share a text and oblige the same things, so they are not reported as an ambiguity
   - Working the answer out from the notice that does distinguish them, Exhibit B and its equivalents, is #144
+
+### Behaviour changes
+
+| a licence file holding | 1.9.0 | 1.9.1 |
+|---|---|---|
+| the MPL-2.0 text | `MPL-2.0` at 1.0 | `MPL-2.0` at 0.9, `ambiguous_with: [MPL-2.0-no-copyleft-exception]` |
+| the OFL-1.1 text | `OFL-1.1` at 1.0 | `OFL-1.1` at 0.9, naming both reserved-font-name variants |
+| the GFDL-1.3 text | `GFDL-1.3-only` at 1.0 | 0.9, naming the invariants variants |
+| the MIT, BSD, ISC, Sleepycat texts | 1.0 | unchanged |
+
+A consumer reading `confidence` sees the uncertainty; one reading `match_type`
+sees `exact_hash_shared_text`; one that wants the alternatives has them by name.
+Nothing is dropped and no record that was unambiguous changes shape.
 
 ## [1.9.0] - 2026-08-30
 
