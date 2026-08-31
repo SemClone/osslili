@@ -5,6 +5,23 @@ All notable changes to osslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- **An exact match on a text several licences share no longer claims to identify one of them** (Issue #142). Sixteen texts on the SPDX list belong to more than one identifier, and eight of those groups have members that oblige different things. The scanner answered with whichever it found first, at confidence 1.0 and category `declared`
+
+  | the text | belongs to |
+  |---|---|
+  | MPL-2.0 | `MPL-2.0`, `MPL-2.0-no-copyleft-exception` |
+  | OFL-1.1 | `OFL-1.1`, `OFL-1.1-RFN`, `OFL-1.1-no-RFN` |
+  | GFDL-1.3 | `GFDL-1.3-only`, its invariants and no-invariants variants |
+  | CAL-1.0 | `CAL-1.0`, `CAL-1.0-Combined-Work-Exception` |
+
+  - For MPL that was the dangerous direction. A project that marks Exhibit B carries `MPL-2.0-no-copyleft-exception`, whose code cannot be relicensed under the GPL, and reporting plain `MPL-2.0` at full confidence told a consumer the combination was allowed
+  - Such a match is reported with match type `exact_hash_shared_text`, a confidence of 0.9 rather than 1.0, and a new `ambiguous_with` field naming the other members. The licence is still reported: the text is certainly one of a known few, and dropping the record would lose a licence the file plainly carries
+  - Two spellings of one licence are not this. `AGPL-3.0-only` and `AGPL-3.0-or-later` share a text and oblige the same things, so they are not reported as an ambiguity
+  - Working the answer out from the notice that does distinguish them, Exhibit B and its equivalents, is #144
+
 ## [1.9.0] - 2026-08-30
 
 Every licence on the SPDX list now ships its text, and the tiers that read

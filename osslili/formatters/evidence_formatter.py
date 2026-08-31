@@ -88,6 +88,14 @@ class EvidenceFormatter:
                         else:
                             evidence_entry["match_type"] = "pattern_match"
 
+                    # The other licences this same text belongs to, when it
+                    # belongs to more than one and they oblige different
+                    # things. Without it the record names a licence the text
+                    # cannot single out (issue #142).
+                    ambiguous_with = getattr(license, "ambiguous_with", None)
+                    if ambiguous_with:
+                        evidence_entry["ambiguous_with"] = list(ambiguous_with)
+
                     # Generate description based on match type
                     match_type = evidence_entry.get("match_type", "pattern_match")
                     if match_type == "license_file":
@@ -96,6 +104,11 @@ class EvidenceFormatter:
                         evidence_entry["description"] = f"SPDX-License-Identifier: {license.spdx_id} found"
                     elif match_type == "package_metadata":
                         evidence_entry["description"] = f"Package metadata declares {license.spdx_id} license"
+                    elif match_type == "exact_hash_shared_text":
+                        evidence_entry["description"] = (
+                            f"Text matches {license.spdx_id} exactly, and also "
+                            f"{', '.join(ambiguous_with)}; the text cannot say which"
+                        )
                     elif match_type == "license_reference":
                         evidence_entry["description"] = f"License reference '{license.spdx_id}' detected"
                     elif match_type == "text_similarity":

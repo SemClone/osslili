@@ -1006,8 +1006,11 @@ class LicenseDetector:
             license.source_file
             for results in found_in.values()
             for license in results
+            # The hash tier only answers on an exact match, so any record it
+            # produced means this file's text was recognised. Its confidence
+            # is about *which* licence the text belongs to, which is a
+            # different question and is lower when the text is shared (#142).
             if license.detection_method == DetectionMethod.HASH.value
-            and license.confidence >= 1.0
             and license.source_file
             and self._is_license_file(Path(license.source_file))
             # Asked directly rather than left to the licence-file test, which
@@ -3193,20 +3196,75 @@ class LicenseDetector:
             category, match_type = self._categorize_license(
                 file_path, DetectionMethod.HASH.value
             )
-            
+
             logger.debug(f"Exact hash match found for {license_id}")
-            
+
+            # Whether this text belongs to this licence alone.
+            others = self._others_obliging_differently(
+                license_id, sha256_hash, text
+            )
+
             return DetectedLicense(
                 spdx_id=license_id,
                 name=license_info.get('name', license_id) if license_info else license_id,
-                confidence=1.0,  # Exact match = 100% confidence
+                # An exact match on a text that several licences share is a
+                # certain reading of the text and a choice among the licences.
+                # MPL-2.0 and MPL-2.0-no-copyleft-exception ship the same
+                # bytes, and only one of them lets the work be relicensed
+                # under the GPL, so answering the first at 1.0 tells a reader
+                # something the file does not say (issue #142).
+                confidence=self.SHARED_TEXT_CONFIDENCE if others else 1.0,
                 detection_method=DetectionMethod.HASH.value,
                 source_file=str(file_path),
                 category=category,
-                match_type="exact_hash"
+                match_type="exact_hash_shared_text" if others else "exact_hash",
+                ambiguous_with=others or None,
             )
-        
+
         return None
+
+    # An exact match on a shared text. Not certainty, because the licence is
+    # not determined; not low, because the text is read exactly and dropping
+    # the record would lose a licence that is certainly one of a known few.
+    SHARED_TEXT_CONFIDENCE = 0.9
+
+    def _others_obliging_differently(self, license_id: str, sha256_hash: str,
+                                     text: str) -> List[str]:
+        """The other licences this text belongs to that oblige something else.
+
+        Two spellings of one licence are not that: `AGPL-3.0`, `AGPL-3.0-only`
+        and `AGPL-3.0-or-later` share a text and say the same thing about it,
+        and the grant is settled elsewhere. What counts is a family whose
+        members carry different obligations, such as MPL-2.0 against
+        MPL-2.0-no-copyleft-exception.
+        """
+        sharing = self.spdx_data.find_all_licenses_by_hash(sha256_hash, 'sha256')
+        if len(sharing) < 2:
+            sharing = self.spdx_data.find_all_licenses_by_hash(
+                self.spdx_data.compute_text_hash(text, 'md5'), 'md5'
+            )
+        if len(sharing) < 2:
+            return []
+
+        mine = self._to_modern_spdx_id(license_id)
+        my_name = (self.spdx_data.get_license_info(mine) or {}).get('name')
+
+        others = []
+        for other in sharing:
+            modern = self._to_modern_spdx_id(other)
+            if modern == mine or _the_same_licence_differently_granted(modern, mine):
+                continue
+            # SPDX names them, and two identifiers for one licence carry one
+            # name: `StandardML-NJ` is the deprecated spelling of `SMLNJ` and
+            # both are "Standard ML of New Jersey License". The variants that
+            # matter say so in the name, as in "Mozilla Public License 2.0"
+            # against "Mozilla Public License 2.0 (no copyleft exception)".
+            their_name = (self.spdx_data.get_license_info(modern) or {}).get('name')
+            if my_name and their_name and my_name == their_name:
+                continue
+            if modern not in others:
+                others.append(modern)
+        return sorted(others)
     
     # The floor the tier will accept at all. Also what makes the length
     # pre-filter above sound: below it, no overlap can rescue a candidate.

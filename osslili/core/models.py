@@ -41,6 +41,11 @@ class DetectedLicense:
     source_file: Optional[str] = None
     category: Optional[str] = None  # License category (declared/detected/referenced)
     match_type: Optional[str] = None  # Type of match (full_text, spdx_identifier, etc.)
+    # The other licences this same text belongs to, when it belongs to more
+    # than one and they do not oblige the same things. Sixteen texts on the
+    # SPDX list are shared; eight of those groups differ in obligation, so
+    # naming one of them is a choice rather than a reading (issue #142).
+    ambiguous_with: Optional[List[str]] = None
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -50,7 +55,11 @@ class DetectedLicense:
             "detection_method": self.detection_method,
             "source_file": self.source_file,
             "category": self.category,
-            "match_type": self.match_type
+            "match_type": self.match_type,
+            **(
+                {"ambiguous_with": self.ambiguous_with}
+                if self.ambiguous_with else {}
+            ),
         }
 
 
