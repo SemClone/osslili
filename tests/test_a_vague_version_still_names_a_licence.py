@@ -173,6 +173,17 @@ class TestTheLettersAfterCCBYAreTheLicence:
         spelling read the second as CC-BY-NC and lost the other term."""
         assert normalizer.normalize_license_id(written) == expected
 
+    @pytest.mark.parametrize(
+        "written,expected",
+        [
+            ("CC BY-SA3.0", "CC-BY-SA-3.0"),
+            ("CC BY-NC-SA3.0", "CC-BY-NC-SA-3.0"),
+        ],
+    )
+    def test_a_version_arriving_without_a_separator(self, normalizer, written, expected):
+        """A digit after a term is the version, not the end of a word."""
+        assert normalizer.normalize_license_id(written) == expected
+
     def test_a_term_inside_an_ordinal_is_not_a_term(self, normalizer):
         """"2nd" holds "nd", and reading that as NoDerivatives puts an
         obligation on a licence that has none."""

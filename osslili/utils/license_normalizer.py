@@ -331,12 +331,14 @@ class LicenseNormalizer:
             # one licence, and matching only the hyphenated spelling lost
             # the second term of the second.
             #
-            # A digit bounds a term as much as a letter does. "CC BY 3.0 2nd
+            # A digit before a term makes it an ordinal: "CC BY 3.0 2nd
             # edition" holds "nd" inside "2nd", and reading that as
             # NoDerivatives puts an obligation on a licence that has none.
+            # A digit after it is only the version arriving without a
+            # separator, as in "CC BY-NC-SA3.0", so it is allowed.
             def names(term):
                 return re.search(
-                    r'(?<![a-z0-9])' + term + r'(?![a-z0-9])', lookup_key
+                    r'(?<![a-z0-9])' + term + r'(?![a-z])', lookup_key
                 )
 
             terms = ['NC'] if names('nc') else []
