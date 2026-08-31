@@ -318,6 +318,23 @@ class LicenseNormalizer:
                 continue
             return family
         if 'cc' in lookup_key and 'by' in lookup_key:
+            # The letters after BY are the licence. NonCommercial and
+            # NoDerivatives are obligations, and ShareAlike is copyleft;
+            # answering plain CC-BY for any of them says the work carries
+            # none of that. It named nothing before, so the answer was
+            # dropped and the licence went missing rather than wrong, which
+            # a validated answer would have turned into wrong (issue #125).
+            #
+            # Longest first, because "nc-sa" holds both "nc" and "sa".
+            for written, family in (
+                ('nc-nd', 'CC-BY-NC-ND'),
+                ('nc-sa', 'CC-BY-NC-SA'),
+                ('nc', 'CC-BY-NC'),
+                ('nd', 'CC-BY-ND'),
+                ('sa', 'CC-BY-SA'),
+            ):
+                if re.search(r'(?<![a-z])' + written + r'(?![a-z])', lookup_key):
+                    return family
             return 'CC-BY'
         return None
 

@@ -128,6 +128,44 @@ class TestTheLongestSpellingWins:
         assert normalizer.normalize_license_id("library gplv2") == "LGPL-2.0"
 
 
+class TestTheLettersAfterCCBYAreTheLicence:
+    """NonCommercial and NoDerivatives are obligations and ShareAlike is
+    copyleft, so answering plain CC-BY for any of them says the work carries
+    none of that.
+
+    Every `CC BY` variant collapsed to `CC-BY`, which with the old version
+    spelling made `CC-BY-v3`: an identifier that names nothing, so it was
+    dropped and the licence went missing. Checking the answer would have
+    turned that into a confident wrong one, which is worse, so the variant is
+    kept instead.
+    """
+
+    @pytest.mark.parametrize(
+        "written,expected",
+        [
+            ("CC BY-SA 3.0", "CC-BY-SA-3.0"),
+            ("CC BY-SA v3", "CC-BY-SA-3.0"),
+            # No plus: SPDX writes no or-later form for CC-BY-SA, so the
+            # grant cannot be carried and the licence is reported without it,
+            # exactly as for Apache.
+            ("CC BY-SA v3 or later", "CC-BY-SA-3.0"),
+        ],
+    )
+    def test_the_variant_survives(self, normalizer, written, expected):
+        assert normalizer.normalize_license_id(written) == expected
+
+    def test_it_reaches_the_report(self, detector):
+        found = {
+            lic.spdx_id
+            for lic in detector.process_local_path(
+                str(_a_package_declaring("CC BY-SA 3.0"))
+            ).licenses
+        }
+
+        assert "CC-BY-SA-3.0" in found, found
+        assert "CC-BY-3.0" not in found, found
+
+
 class TestAGrantInWordsIsLeftToTheExpressionReader:
     """#120 and #127 settled these, and they are not this issue's business."""
 
