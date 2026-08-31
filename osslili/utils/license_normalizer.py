@@ -47,6 +47,7 @@ class LicenseNormalizer:
             config_path = Path(__file__).parent.parent / "data" / "license_normalization.json"
 
         self.config_path = config_path
+        self._spdx_ids = None
         self._load_config()
 
     def _load_config(self) -> None:
@@ -182,10 +183,26 @@ class LicenseNormalizer:
 
         return None
 
+    # How a version is written in an identifier. A licence is written "v3" as
+    # often as "3.0", and only the second is part of one, so the spelling
+    # found is not the spelling returned (issue #125).
+    _AS_AN_IDENTIFIER_SPELLS_IT = {'v1': '1.0', 'v2': '2.0', 'v3': '3.0'}
+
     def _handle_version_patterns(self, lookup_key: str) -> Optional[str]:
         """Handle version-specific license patterns."""
-        for version, patterns in self.version_patterns.items():
-            for pattern in patterns:
+        # Longest spelling first. "gplv2.1" contains "v2" as well as "2.1",
+        # and answering on the first found turned LGPL-2.1 into LGPL-2.0,
+        # which is a different licence.
+        spellings = sorted(
+            (
+                (pattern, version)
+                for version, patterns in self.version_patterns.items()
+                for pattern in patterns
+            ),
+            key=lambda found: -len(found[0]),
+        )
+        for pattern, version in spellings:
+            if True:
                 if pattern in lookup_key:
                     family = self._gnu_or_other_family(lookup_key)
                     if not family:
@@ -209,9 +226,52 @@ class LicenseNormalizer:
                         '+' if family in _THE_OR_LATER_FAMILIES
                         and _OR_LATER_IN_WORDS.search(lookup_key) else ''
                     )
-                    return f"{family}-{version}{or_later}"
+                    # A line carrying a grant in words is left exactly as it
+                    # was read. Which licence such a line names, and whether
+                    # the grant can be written on it, is settled by the
+                    # expression reader, and the answers it gives today rest
+                    # on what this step returns. Issue #125 is about a bare
+                    # name that resolves to nothing, so that is all this
+                    # changes.
+                    if _OR_LATER_IN_WORDS.search(lookup_key):
+                        return f"{family}-{version}{or_later}"
+
+                    spelled = self._AS_AN_IDENTIFIER_SPELLS_IT.get(version, version)
+                    answer = f"{family}-{spelled}{or_later}"
+                    # An answer that names no licence is not an answer. It was
+                    # returned anyway, and returning stopped the later steps
+                    # that could have reached a real one, so "Affero GPLv3"
+                    # became "AGPL-v3" and then nothing at all.
+                    if self._names_a_licence(answer):
+                        return answer
 
         return None
+
+    def _names_a_licence(self, identifier: str) -> bool:
+        """Whether SPDX lists this identifier, in any of its grant forms.
+
+        Read from the bundled licence list rather than from the normalisation
+        config, because the question is what SPDX has rather than what this
+        file knows how to rewrite.
+        """
+        if self._spdx_ids is None:
+            listed = Path(__file__).parent.parent / "data" / "spdx_licenses.json"
+            try:
+                with open(listed, 'r', encoding='utf-8') as handle:
+                    self._spdx_ids = set(json.load(handle).get('licenses', {}))
+            except Exception:
+                self._spdx_ids = set()
+
+        if not self._spdx_ids:
+            # Nothing to check against. Answering is better than silence.
+            return True
+
+        bare = identifier[:-1] if identifier.endswith('+') else identifier
+        return (
+            bare in self._spdx_ids
+            or f"{bare}-only" in self._spdx_ids
+            or f"{bare}-or-later" in self._spdx_ids
+        )
 
     @staticmethod
     def _gnu_or_other_family(lookup_key: str) -> Optional[str]:

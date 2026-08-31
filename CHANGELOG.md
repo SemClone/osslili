@@ -5,6 +5,22 @@ All notable changes to osslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- **A licence declared as `Affero GPLv3`, `Lesser GPLv3` or `LGPLv2.1` was reported as nothing at all** (Issue #125). The step that reads a version out of a vague name wrote it back exactly as it found it, and a licence is written "v3" as often as "3.0". Only the second is part of an identifier, so the step answered `AGPL-v3`, which names nothing, and returned, so the later steps that could have reached a real one never ran
+
+  | declared | before | now |
+  |---|---|---|
+  | `GPLv3` | `GPL-3.0-only` | `GPL-3.0-only` |
+  | `Affero GPLv3` | *nothing* | `AGPL-3.0-only` |
+  | `Lesser GPLv3` | *nothing* | `LGPL-3.0-only` |
+  | `LGPLv2.1` | *nothing* | `LGPL-2.1-only` |
+
+  - The version is spelled the way an identifier spells it, and the answer is checked against the SPDX list, so a guess that names nothing falls through instead of stopping the search
+  - The spellings are tried longest first. `gplv2.1` contains `v2` as well as `2.1`, and answering on the first found made LGPL-2.0 out of LGPL-2.1, which is a different licence rather than a different spelling of one
+  - A line carrying a grant in words is left alone. `GPL-2.0 or later` and `Apache 2.0 or above` are read by the expression reader, whose answers rest on what this step returns and which #120 and #127 settled at length. The scan reports the same licence for those lines as before
+
 ## [1.9.1] - 2026-08-31
 
 One correction, and the reason it is worth a release on its own: for a licence
