@@ -518,4 +518,21 @@ class SPDXLicenseData:
             if hashes.get(algorithm) == text_hash:
                 return license_id
         return None
+
+    def find_all_licenses_by_hash(self, text_hash: str,
+                                  algorithm: str = 'sha256') -> List[str]:
+        """Every license whose text hashes to this, not just the first.
+
+        Sixteen texts on the SPDX list belong to more than one identifier, and
+        eight of those groups differ in what they oblige: MPL-2.0 against
+        MPL-2.0-no-copyleft-exception, OFL against its reserved-font-name
+        variants, the GFDL against its invariants variants. Answering with the
+        first match found presents a choice among them as a reading of the
+        text.
+        """
+        return sorted(
+            license_id
+            for license_id, hashes in self._license_hashes.items()
+            if hashes.get(algorithm) == text_hash
+        )
     
