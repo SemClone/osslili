@@ -19,7 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   - The version is spelled the way an identifier spells it, and the answer is checked against the SPDX list, so a guess that names nothing falls through instead of stopping the search
   - The spellings are tried longest first. `gplv2.1` contains `v2` as well as `2.1`, and answering on the first found made LGPL-2.0 out of LGPL-2.1, which is a different licence rather than a different spelling of one
-  - A line carrying a grant in words is left alone. `GPL-2.0 or later` and `Apache 2.0 or above` are read by the expression reader, whose answers rest on what this step returns and which #120 and #127 settled at length. The scan reports the same licence for those lines as before
+  - The same silence reached lines carrying the grant in words. `GPLv3 or later` answered `GPL-v3+` and a package declaring it reported nothing; it answers `GPL-3.0+` now, and the scan reports `GPL-3.0-or-later`. So do `Affero GPLv3 or later` and `Lesser GPLv3 or later`
+  - Two licences the parser used to drop are kept. `MIT or GPLv2 or later` reported MIT alone, because saying nothing about the GPL was better than reporting it without the grant it could not carry; the grant goes on it now. `MIT AND GPLv2 or later` reported `GPL-2.0-only`, the opposite permission, and reports `GPL-2.0-or-later`
+  - Which licence such a line names is still settled by the expression reader, whose answers #120 and #127 spent a great deal on. `Apache 2.0 or above` reports `Apache-2.0` exactly as before
 
 ## [1.9.1] - 2026-08-31
 

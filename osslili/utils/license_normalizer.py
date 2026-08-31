@@ -233,11 +233,19 @@ class LicenseNormalizer:
                     # on what this step returns. Issue #125 is about a bare
                     # name that resolves to nothing, so that is all this
                     # changes.
-                    if _OR_LATER_IN_WORDS.search(lookup_key):
-                        return f"{family}-{version}{or_later}"
-
                     spelled = self._AS_AN_IDENTIFIER_SPELLS_IT.get(version, version)
                     answer = f"{family}-{spelled}{or_later}"
+
+                    # A line carrying the grant in words is answered without
+                    # the list being consulted. Which licence such a line
+                    # names is settled by the expression reader, whose answers
+                    # rest on what this step returns, and #120 and #127 spent
+                    # a great deal on them. The spelling is still corrected:
+                    # "GPLv3 or later" answered `GPL-v3+`, which names
+                    # nothing, and a package declaring it reported no licence
+                    # at all -- the same silence this issue is about.
+                    if _OR_LATER_IN_WORDS.search(lookup_key):
+                        return answer
                     # An answer that names no licence is not an answer. It was
                     # returned anyway, and returning stopped the later steps
                     # that could have reached a real one, so "Affero GPLv3"
@@ -263,8 +271,13 @@ class LicenseNormalizer:
                 self._spdx_ids = set()
 
         if not self._spdx_ids:
-            # Nothing to check against. Answering is better than silence.
-            return True
+            # The list could not be read, so there is nothing to check
+            # against. Say no rather than yes: the caller then falls through
+            # to the steps that ran before this check existed, which is what
+            # it did when there was no check at all. Saying yes would let a
+            # spelling like `AGPL-2.0`, which SPDX does not list, be answered
+            # and then dropped further on, losing the declaration.
+            return False
 
         bare = identifier[:-1] if identifier.endswith('+') else identifier
         return (
