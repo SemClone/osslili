@@ -325,17 +325,26 @@ class LicenseNormalizer:
             # dropped and the licence went missing rather than wrong, which
             # a validated answer would have turned into wrong (issue #125).
             #
-            # Longest first, because "nc-sa" holds both "nc" and "sa".
-            for written, family in (
-                ('nc-nd', 'CC-BY-NC-ND'),
-                ('nc-sa', 'CC-BY-NC-SA'),
-                ('nc', 'CC-BY-NC'),
-                ('nd', 'CC-BY-ND'),
-                ('sa', 'CC-BY-SA'),
-            ):
-                if re.search(r'(?<![a-z])' + written + r'(?![a-z])', lookup_key):
-                    return family
-            return 'CC-BY'
+            # Each term is looked for on its own and the name is built in
+            # the order SPDX writes it, because they are written apart as
+            # often as joined: "CC BY-NC-SA 4.0" and "CC BY NC SA 4.0" are
+            # one licence, and matching only the hyphenated spelling lost
+            # the second term of the second.
+            #
+            # A digit bounds a term as much as a letter does. "CC BY 3.0 2nd
+            # edition" holds "nd" inside "2nd", and reading that as
+            # NoDerivatives puts an obligation on a licence that has none.
+            def names(term):
+                return re.search(
+                    r'(?<![a-z0-9])' + term + r'(?![a-z0-9])', lookup_key
+                )
+
+            terms = ['NC'] if names('nc') else []
+            if names('nd'):
+                terms.append('ND')
+            elif names('sa'):
+                terms.append('SA')
+            return '-'.join(['CC-BY'] + terms)
         return None
 
     def _extract_base_license(self, lookup_key: str) -> str:

@@ -149,10 +149,34 @@ class TestTheLettersAfterCCBYAreTheLicence:
             # grant cannot be carried and the licence is reported without it,
             # exactly as for Apache.
             ("CC BY-SA v3 or later", "CC-BY-SA-3.0"),
+            ("CC BY-NC 3.0", "CC-BY-NC-3.0"),
+            ("CC BY-ND 3.0", "CC-BY-ND-3.0"),
+            ("CC BY-NC-SA 3.0", "CC-BY-NC-SA-3.0"),
+            ("CC BY-NC-ND 3.0", "CC-BY-NC-ND-3.0"),
+            ("CC BY 3.0", "CC-BY-3.0"),
         ],
     )
     def test_the_variant_survives(self, normalizer, written, expected):
         assert normalizer.normalize_license_id(written) == expected
+
+    @pytest.mark.parametrize(
+        "written,expected",
+        [
+            ("CC BY NC SA 3.0", "CC-BY-NC-SA-3.0"),
+            ("CC BY NC ND 3.0", "CC-BY-NC-ND-3.0"),
+        ],
+    )
+    def test_the_terms_are_read_apart_as_well_as_joined(
+        self, normalizer, written, expected
+    ):
+        """One licence, written two ways. Matching only the hyphenated
+        spelling read the second as CC-BY-NC and lost the other term."""
+        assert normalizer.normalize_license_id(written) == expected
+
+    def test_a_term_inside_an_ordinal_is_not_a_term(self, normalizer):
+        """"2nd" holds "nd", and reading that as NoDerivatives puts an
+        obligation on a licence that has none."""
+        assert normalizer.normalize_license_id("CC BY 3.0 2nd edition") == "CC-BY-3.0"
 
     def test_it_reaches_the_report(self, detector):
         found = {
