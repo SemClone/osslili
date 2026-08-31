@@ -191,10 +191,18 @@ class TestTheGrantWrittenAsAPhrase:
         ) == expected
 
     def test_a_grant_no_one_writes_that_way_keeps_the_licence(self, detector):
-        """SPDX has no or-later form for Apache, so nothing can be made of
-        the line whole, and the pieces are better than nothing."""
+        """SPDX has no or-later form for Apache, so the grant cannot be
+        carried and what is reported is the licence without it.
+
+        The line used to be split here because "Apache 2.0 or above" resolved
+        to "Apache-v2", which names nothing, and the pieces were the only
+        thing left. It resolves to Apache-2.0 now (issue #125), so the line
+        is read whole. Either way the scan reports Apache-2.0, which is what
+        this is protecting.
+        """
+        assert detector._normalize_license_id("Apache 2.0 or above") == "Apache-2.0"
         assert detector._parse_license_expression("Apache 2.0 or above") == [
-            "Apache 2.0",
+            "Apache 2.0 or above",
         ]
 
 
@@ -223,12 +231,16 @@ class TestAWordThatOnlyNamesALicenceInCompany:
     name and not otherwise. Claiming them anywhere took a string away from
     the steps that would have read it."""
 
+    # The answers are identifiers now. They used to be "LGPL-v2" and
+    # "AGPL-v3", which name nothing, and "lesser gplv2.1" answered LGPL-v2
+    # because "v2" was found before "2.1" -- a different licence, not a
+    # different spelling of one (issue #125).
     @pytest.mark.parametrize("written,expected", [
         ("zlib library 1.2", "Zlib"),
-        ("lesser gplv2.1", "LGPL-v2"),
-        ("library gplv2", "LGPL-v2"),
-        ("affero gplv3", "AGPL-v3"),
-        ("library general public license 2", "LGPL-v2"),
+        ("lesser gplv2.1", "LGPL-2.1"),
+        ("library gplv2", "LGPL-2.0"),
+        ("affero gplv3", "AGPL-3.0"),
+        ("library general public license 2", "LGPL-2.0"),
     ])
     def test_the_company_it_keeps(self, detector, written, expected):
         assert detector._normalize_license_id(written) == expected
@@ -302,17 +314,27 @@ class TestALicenceTheWorkIsAlsoUnder:
     Leaving one out says the work is under fewer terms than it is."""
 
     def test_a_term_of_an_and_is_never_dropped(self, detector):
-        """Even where its grant cannot be kept. "MIT AND GPLv2 or later" came
-        back as MIT, and whoever read that would not know about the
-        copyleft."""
+        """"MIT AND GPLv2 or later" came back as MIT, and whoever read that
+        would not know about the copyleft. It keeps its grant as well now
+        that "GPLv2" is an identifier (issue #125)."""
         named = detector._parse_license_expression("MIT AND GPLv2 or later")
 
         assert "MIT" in named and any("GPL" in key for key in named), named
 
-    def test_but_an_alternative_still_is(self, detector):
-        """Where the licences are alternatives, saying nothing about one is
-        better than saying the opposite of what it grants."""
-        assert detector._parse_license_expression("MIT or GPLv2 or later") == ["MIT"]
+    def test_an_alternative_keeps_its_grant_too(self, detector):
+        """The GPL used to be dropped here, and now it is not.
+
+        Saying nothing about a licence was better than saying the opposite
+        of what it grants, and "GPLv2" could not carry the or-later grant
+        because it was not an identifier. It is one now (issue #125), so the
+        grant goes on it and there is nothing left to be better than.
+        """
+        assert detector._parse_license_expression("MIT or GPLv2 or later") == [
+            "MIT", "GPLv2+",
+        ]
+        assert detector._to_modern_spdx_id(
+            detector._normalize_license_id("GPLv2+")
+        ) == "GPL-2.0-or-later"
 
 
 class TestTheExceptionAndTheGrantTogether:
@@ -364,9 +386,11 @@ class TestWhatTheReportSays:
         ("MIT or GPL-2.0 or later", {"MIT", "GPL-2.0-or-later"}),
         ("GPL-2.0 or later", {"GPL-2.0-or-later"}),
         ("Dual license: GPL-2.0 or MIT", {"GPL-2.0-only", "MIT"}),
-        # A licence the work is under as well is reported even where its
-        # grant cannot be kept, understated rather than missing.
-        ("MIT AND GPLv2 or later", {"MIT", "GPL-2.0-only"}),
+        # The grant, not the licence without it. "GPLv2" could not carry an
+        # or-later grant while it was not an identifier, so the -only form
+        # was the nearest that could be said; it is an identifier now and
+        # the grant goes where it was written (issue #125).
+        ("MIT AND GPLv2 or later", {"MIT", "GPL-2.0-or-later"}),
         ("(MIT, BSD-3-Clause) OR Apache-2.0", {"MIT", "BSD-3-Clause", "Apache-2.0"}),
     ])
     def test_what_is_reported(self, tmp_path, value, expected):

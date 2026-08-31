@@ -5,6 +5,25 @@ All notable changes to osslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- **A licence declared as `Affero GPLv3`, `Lesser GPLv3` or `LGPLv2.1` was reported as nothing at all** (Issue #125). The step that reads a version out of a vague name wrote it back exactly as it found it, and a licence is written "v3" as often as "3.0". Only the second is part of an identifier, so the step answered `AGPL-v3`, which names nothing, and returned, so the later steps that could have reached a real one never ran
+
+  | declared | before | now |
+  |---|---|---|
+  | `GPLv3` | `GPL-3.0-only` | `GPL-3.0-only` |
+  | `Affero GPLv3` | *nothing* | `AGPL-3.0-only` |
+  | `Lesser GPLv3` | *nothing* | `LGPL-3.0-only` |
+  | `LGPLv2.1` | *nothing* | `LGPL-2.1-only` |
+
+  - The version is spelled the way an identifier spells it, and the answer is checked against the SPDX list, so a guess that names nothing falls through instead of stopping the search
+  - The spellings are tried longest first. `gplv2.1` contains `v2` as well as `2.1`, and answering on the first found made LGPL-2.0 out of LGPL-2.1, which is a different licence rather than a different spelling of one
+  - The same silence reached lines carrying the grant in words. `GPLv3 or later` answered `GPL-v3+` and a package declaring it reported nothing; it answers `GPL-3.0+` now, and the scan reports `GPL-3.0-or-later`. So do `Affero GPLv3 or later` and `Lesser GPLv3 or later`
+  - Two licences the parser used to drop are kept. `MIT or GPLv2 or later` reported MIT alone, because saying nothing about the GPL was better than reporting it without the grant it could not carry; the grant goes on it now. `MIT AND GPLv2 or later` reported `GPL-2.0-only`, the opposite permission, and reports `GPL-2.0-or-later`
+  - **The letters after `CC BY` are part of the licence.** Every Creative Commons attribution variant collapsed to `CC-BY`, so `CC BY-SA 3.0` answered `CC-BY-v3`, which names nothing and was dropped: the licence went missing. Checking the answer would have turned that into a confident `CC-BY-3.0`, which is worse, because ShareAlike is copyleft and NonCommercial and NoDerivatives are obligations the plain licence does not carry. The variant is kept, so it reports `CC-BY-SA-3.0`
+  - Which licence such a line names is still settled by the expression reader, whose answers #120 and #127 spent a great deal on. `Apache 2.0 or above` reports `Apache-2.0` exactly as before
+
 ## [1.9.1] - 2026-08-31
 
 One correction, and the reason it is worth a release on its own: for a licence

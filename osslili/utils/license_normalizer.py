@@ -47,6 +47,7 @@ class LicenseNormalizer:
             config_path = Path(__file__).parent.parent / "data" / "license_normalization.json"
 
         self.config_path = config_path
+        self._spdx_ids = None
         self._load_config()
 
     def _load_config(self) -> None:
@@ -182,10 +183,26 @@ class LicenseNormalizer:
 
         return None
 
+    # How a version is written in an identifier. A licence is written "v3" as
+    # often as "3.0", and only the second is part of one, so the spelling
+    # found is not the spelling returned (issue #125).
+    _AS_AN_IDENTIFIER_SPELLS_IT = {'v1': '1.0', 'v2': '2.0', 'v3': '3.0'}
+
     def _handle_version_patterns(self, lookup_key: str) -> Optional[str]:
         """Handle version-specific license patterns."""
-        for version, patterns in self.version_patterns.items():
-            for pattern in patterns:
+        # Longest spelling first. "gplv2.1" contains "v2" as well as "2.1",
+        # and answering on the first found turned LGPL-2.1 into LGPL-2.0,
+        # which is a different licence.
+        spellings = sorted(
+            (
+                (pattern, version)
+                for version, patterns in self.version_patterns.items()
+                for pattern in patterns
+            ),
+            key=lambda found: -len(found[0]),
+        )
+        for pattern, version in spellings:
+            if True:
                 if pattern in lookup_key:
                     family = self._gnu_or_other_family(lookup_key)
                     if not family:
@@ -209,9 +226,65 @@ class LicenseNormalizer:
                         '+' if family in _THE_OR_LATER_FAMILIES
                         and _OR_LATER_IN_WORDS.search(lookup_key) else ''
                     )
-                    return f"{family}-{version}{or_later}"
+                    # A line carrying a grant in words is left exactly as it
+                    # was read. Which licence such a line names, and whether
+                    # the grant can be written on it, is settled by the
+                    # expression reader, and the answers it gives today rest
+                    # on what this step returns. Issue #125 is about a bare
+                    # name that resolves to nothing, so that is all this
+                    # changes.
+                    spelled = self._AS_AN_IDENTIFIER_SPELLS_IT.get(version, version)
+                    answer = f"{family}-{spelled}{or_later}"
+
+                    # A line carrying the grant in words is answered without
+                    # the list being consulted. Which licence such a line
+                    # names is settled by the expression reader, whose answers
+                    # rest on what this step returns, and #120 and #127 spent
+                    # a great deal on them. The spelling is still corrected:
+                    # "GPLv3 or later" answered `GPL-v3+`, which names
+                    # nothing, and a package declaring it reported no licence
+                    # at all -- the same silence this issue is about.
+                    if _OR_LATER_IN_WORDS.search(lookup_key):
+                        return answer
+                    # An answer that names no licence is not an answer. It was
+                    # returned anyway, and returning stopped the later steps
+                    # that could have reached a real one, so "Affero GPLv3"
+                    # became "AGPL-v3" and then nothing at all.
+                    if self._names_a_licence(answer):
+                        return answer
 
         return None
+
+    def _names_a_licence(self, identifier: str) -> bool:
+        """Whether SPDX lists this identifier, in any of its grant forms.
+
+        Read from the bundled licence list rather than from the normalisation
+        config, because the question is what SPDX has rather than what this
+        file knows how to rewrite.
+        """
+        if self._spdx_ids is None:
+            listed = Path(__file__).parent.parent / "data" / "spdx_licenses.json"
+            try:
+                with open(listed, 'r', encoding='utf-8') as handle:
+                    self._spdx_ids = set(json.load(handle).get('licenses', {}))
+            except Exception:
+                self._spdx_ids = set()
+
+        if not self._spdx_ids:
+            # The list could not be read, so there is nothing to check
+            # against. Say no rather than yes: the caller then falls through
+            # to the steps that ran before this check existed, which is what
+            # it did when there was no check at all. Saying yes would let a
+            # spelling like `AGPL-2.0`, which SPDX does not list, be answered
+            # and then dropped further on, losing the declaration.
+            return False
+
+        bare = identifier[:-1] if identifier.endswith('+') else identifier
+        return (
+            bare in self._spdx_ids
+            or f"{bare}-only" in self._spdx_ids
+            or f"{bare}-or-later" in self._spdx_ids
+        )
 
     @staticmethod
     def _gnu_or_other_family(lookup_key: str) -> Optional[str]:
@@ -245,7 +318,35 @@ class LicenseNormalizer:
                 continue
             return family
         if 'cc' in lookup_key and 'by' in lookup_key:
-            return 'CC-BY'
+            # The letters after BY are the licence. NonCommercial and
+            # NoDerivatives are obligations, and ShareAlike is copyleft;
+            # answering plain CC-BY for any of them says the work carries
+            # none of that. It named nothing before, so the answer was
+            # dropped and the licence went missing rather than wrong, which
+            # a validated answer would have turned into wrong (issue #125).
+            #
+            # Each term is looked for on its own and the name is built in
+            # the order SPDX writes it, because they are written apart as
+            # often as joined: "CC BY-NC-SA 4.0" and "CC BY NC SA 4.0" are
+            # one licence, and matching only the hyphenated spelling lost
+            # the second term of the second.
+            #
+            # A digit before a term makes it an ordinal: "CC BY 3.0 2nd
+            # edition" holds "nd" inside "2nd", and reading that as
+            # NoDerivatives puts an obligation on a licence that has none.
+            # A digit after it is only the version arriving without a
+            # separator, as in "CC BY-NC-SA3.0", so it is allowed.
+            def names(term):
+                return re.search(
+                    r'(?<![a-z0-9])' + term + r'(?![a-z])', lookup_key
+                )
+
+            terms = ['NC'] if names('nc') else []
+            if names('nd'):
+                terms.append('ND')
+            elif names('sa'):
+                terms.append('SA')
+            return '-'.join(['CC-BY'] + terms)
         return None
 
     def _extract_base_license(self, lookup_key: str) -> str:
