@@ -5,7 +5,11 @@ All notable changes to osslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.9.0] - 2026-08-30
+
+Every licence on the SPDX list now ships its text, and the tiers that read
+words rather than texts were narrowed to match. Two entries change what a scan
+reports; see Behaviour changes.
 
 ### Fixed
 - **A licence word in a licence file whose text was already recognised is a word, not a grant.** The OFL says "Permission is hereby granted, free of charge", which is MIT's phrasing, so scanning an OFL font licence reported MIT beside it, and the AGPL names the GPL and reported that. Nothing in a file whose text matched outright is still an open question. Measured over all 737 bundled licence texts, the number reporting a licence they merely mention falls from 93 to 23
@@ -40,7 +44,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `standardLicenseTemplate` is no longer stored. Nothing read it and it is roughly the size of the text again. The wheel goes from 0.40 MB to 1.20 MB
   - Scanning is faster per file, not slower. The bigrams of each licence were rebuilt for every file read; they are built once now, and a licence whose length is too far from the scanned text is skipped without comparing a bigram, which is sound because Dice cannot exceed `2*min/(a+b)`. A small package went from 0.13s to 0.02s once the licence data is warm, against a one-off 0.5s to build it
   - **TLSH no longer asserts a licence its own text contradicts.** The tier fell back to an uncorroborated match when corroboration failed, which was right when most entries shipped no text and most proposals could not be checked at all. Now that every entry carries its text, a failed corroboration means the text was read and disagreed, and asserting over that would be the fallback overruling the evidence. The fallback is kept only for a candidate with no text to check
-  - **The TLSH near-neighbour cutoff was too tight to see its own answer.** Measured over 675 licences, taking the canonical text with a project's copyright line on top: at distance 30 the true licence was among the candidates only 76% of the time. A BSD-3-Clause file sits at 35 from BSD-3-Clause and 29 from BSD-4-Clause, so the tier proposed only the neighbour a clause away. The cutoff is 60 now, covering 91%. Widening cannot cost precision, because corroboration keeps the candidate whose real text scores highest; it costs candidates to compare, and the median licence file has 2 of 737
+  - **The TLSH near-neighbour cutoff was too tight to see its own answer.** Measured over 675 licences, taking the canonical text with a project's copyright line on top: at distance 30 the true licence was among the candidates only 76% of the time. Feeding the tier a BSD-3-Clause file shows why: it sits at distance 35 from BSD-3-Clause and 29 from BSD-4-Clause, so the only candidate inside the old cutoff was the neighbour a clause away. (Separately, in the table below, a *BSD-4-Clause* file used to report BSD-3-Clause; that one is the regex tier answering for a licence whose text was not bundled, and is what bundling fixes.) The cutoff is 60 now, covering 91%. Widening cannot cost precision, because corroboration keeps the candidate whose real text scores highest; it costs candidates to compare, and the median licence file has 2 of 737
+
+### Behaviour changes
+
+| what | 1.8.0 | 1.9.0 |
+|---|---|---|
+| a `Sleepycat` licence file | `BSD-3-Clause` at 0.6 | `Sleepycat` at 1.0 |
+| a `BSD-4-Clause` licence file | `BSD-3-Clause` at 0.6 | `BSD-4-Clause` at 1.0 |
+| an `OFL-1.1` font licence | `OFL-1.1` and `MIT` | `OFL-1.1` |
+| an `AGPL-3.0-only` licence file | `AGPL-3.0-only` and `GPL-3.0-only` | `AGPL-3.0-only` |
+| a changelog sentence about JSON | the `JSON` licence | nothing |
+| the wheel | 0.40 MB | 1.20 MB |
+
+Checked against 1.8.0 over 13 real packages from PyPI: none lose a licence, and
+three stop reporting one they never granted.
+
+Scanning is faster per file. The bigrams of each licence text are built once
+rather than for every file read, and a licence whose length is too far from the
+scanned text is skipped without comparing a bigram. Building them costs about
+half a second the first time a scan reaches the similarity tier.
+
+### Known limits
+
+Twenty-three of the 737 licences share their text, byte for byte, with another:
+the GFDL invariants variants, the OFL reserved-font-name variants, the MPL
+copyleft exception. What separates them is stated where the licence is applied
+rather than in the licence body, so nothing that reads text can tell them apart,
+and the report does not yet say when the answer was ambiguous. Issue #142.
 
 ## [1.8.0] - 2026-08-30
 
