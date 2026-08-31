@@ -3247,10 +3247,20 @@ class LicenseDetector:
             return []
 
         mine = self._to_modern_spdx_id(license_id)
+        my_name = (self.spdx_data.get_license_info(mine) or {}).get('name')
+
         others = []
         for other in sharing:
             modern = self._to_modern_spdx_id(other)
             if modern == mine or _the_same_licence_differently_granted(modern, mine):
+                continue
+            # SPDX names them, and two identifiers for one licence carry one
+            # name: `StandardML-NJ` is the deprecated spelling of `SMLNJ` and
+            # both are "Standard ML of New Jersey License". The variants that
+            # matter say so in the name, as in "Mozilla Public License 2.0"
+            # against "Mozilla Public License 2.0 (no copyleft exception)".
+            their_name = (self.spdx_data.get_license_info(modern) or {}).get('name')
+            if my_name and their_name and my_name == their_name:
                 continue
             if modern not in others:
                 others.append(modern)

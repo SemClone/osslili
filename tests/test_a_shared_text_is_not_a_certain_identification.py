@@ -147,6 +147,30 @@ class TestTwoSpellingsOfOneLicenceAreNotAmbiguous:
         ], named
 
 
+class TestADeprecatedSpellingIsNotAnAmbiguity:
+    """Two identifiers for one licence carry one SPDX name.
+
+    `StandardML-NJ` is the deprecated spelling of `SMLNJ` and both are
+    "Standard ML of New Jersey License". Sharing a text with your own old
+    name is not a choice a reader has to make. The variants that matter say
+    so in the name: "Mozilla Public License 2.0" against "Mozilla Public
+    License 2.0 (no copyleft exception)".
+    """
+
+    @pytest.mark.parametrize("spdx_id", ["SMLNJ", "StandardML-NJ"])
+    def test_it_is_still_certain(self, detector, spdx_id):
+        found = _the_one_hash_record(detector, _a_licence_file_holding(detector, spdx_id))
+
+        assert found.confidence == 1.0, found.ambiguous_with
+        assert not found.ambiguous_with
+
+    def test_the_variants_that_matter_are_still_flagged(self, detector):
+        """The name test must not silence the cases this exists for."""
+        found = _the_one_hash_record(detector, _a_licence_file_holding(detector, "MPL-2.0"))
+
+        assert found.ambiguous_with == ["MPL-2.0-no-copyleft-exception"]
+
+
 class TestTheReportCarriesIt:
     def test_the_evidence_names_the_alternatives(self, detector):
         root = _a_licence_file_holding(detector, "MPL-2.0")
