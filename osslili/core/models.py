@@ -43,10 +43,17 @@ class DetectedLicense:
     match_type: Optional[str] = None  # Type of match (full_text, spdx_identifier, etc.)
     # The other licences this same text belongs to, when it belongs to more
     # than one and they do not oblige the same things. Sixteen texts on the
-    # SPDX list are shared; eight of those groups differ in obligation, so
+    # SPDX list are shared; seven of those groups differ in obligation, so
     # naming one of them is a choice rather than a reading (issue #142).
     ambiguous_with: Optional[List[str]] = None
-    
+    # What settled that choice, when something in the scan did. A shared text
+    # names a family, and the notice naming the member is written where the
+    # project applies the licence rather than in the licence itself: an
+    # Exhibit B notice, a Reserved Font Name, a document's Invariant Sections
+    # (issue #144). Says where it was read and what it said, because a reader
+    # who disagrees needs to be able to go and look.
+    resolved_by: Optional[Dict[str, str]] = None
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "spdx_id": self.spdx_id,
@@ -59,6 +66,10 @@ class DetectedLicense:
             **(
                 {"ambiguous_with": self.ambiguous_with}
                 if self.ambiguous_with else {}
+            ),
+            **(
+                {"resolved_by": self.resolved_by}
+                if self.resolved_by else {}
             ),
         }
 
