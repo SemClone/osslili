@@ -9,6 +9,20 @@ from typing import List, Dict, Any
 from pathlib import Path
 import uuid
 
+
+def _as_written(license_info) -> str:
+    """The licence as the file granted it, exception and all.
+
+    `GPL-2.0-only WITH Classpath-exception-2.0` is one grant. The record
+    keeps the two apart because a record is one licence, and the exception is
+    a condition on it; an SBOM wants them back together (issue #24).
+    """
+    exception = getattr(license_info, "exception", None)
+    if exception:
+        return f"{license_info.spdx_id} WITH {exception}"
+    return license_info.spdx_id
+
+
 from .. import __version__
 from ..core.models import DetectionResult
 
@@ -55,10 +69,16 @@ class CycloneDXFormatter:
             # reached by the keyword and the regex tier is one grant noticed
             # twice, and a consumer counting entries was reading the
             # detection count. Sorted so two runs render alike.
+            # A licence granted with an exception is written as an
+            # expression, which is the slot CycloneDX has for exactly this.
+            # An exception makes a licence less restrictive, so naming the
+            # licence alone tells a consumer the work is more encumbered
+            # than it is (issue #24).
             licenses = [
-                {"license": {"id": spdx_id}}
+                ({"expression": spdx_id} if " WITH " in spdx_id
+                 else {"license": {"id": spdx_id}})
                 for spdx_id in sorted({
-                    license_info.spdx_id
+                    _as_written(license_info)
                     for license_info in result.get_own_licenses()
                     if license_info.spdx_id and license_info.spdx_id != "NO-ASSERTION"
                 })

@@ -105,6 +105,18 @@ class EvidenceFormatter:
                     if resolved_by:
                         evidence_entry["resolved_by"] = dict(resolved_by)
 
+                    # The exception this licence is granted with, and the
+                    # expression the two make together. An exception makes a
+                    # licence less restrictive, so a reader given only the
+                    # licence is told the work is more encumbered than it is
+                    # (issue #24).
+                    exception = getattr(license, "exception", None)
+                    if exception:
+                        evidence_entry["exception"] = exception
+                        evidence_entry["license_expression"] = (
+                            f"{license.spdx_id} WITH {exception}"
+                        )
+
                     # Generate description based on match type
                     match_type = evidence_entry.get("match_type", "pattern_match")
                     if match_type == "license_file":

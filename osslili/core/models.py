@@ -53,6 +53,13 @@ class DetectedLicense:
     # (issue #144). Says where it was read and what it said, because a reader
     # who disagrees needs to be able to go and look.
     resolved_by: Optional[Dict[str, str]] = None
+    # The SPDX exception this licence is granted with, where an expression
+    # named one: `GPL-2.0-only WITH Classpath-exception-2.0`. Kept beside the
+    # licence rather than in `spdx_id`, because a record is one licence and
+    # an exception is a condition on it rather than a second licence. OR and
+    # AND join two licences and give two records; WITH qualifies one and
+    # gives one (issue #24).
+    exception: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -71,6 +78,7 @@ class DetectedLicense:
                 {"resolved_by": self.resolved_by}
                 if self.resolved_by else {}
             ),
+            **({"exception": self.exception} if self.exception else {}),
         }
 
 

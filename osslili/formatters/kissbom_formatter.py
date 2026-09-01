@@ -27,7 +27,16 @@ class KissBOMFormatter:
         for result in results:
             # Get primary license
             primary_license = result.get_primary_license()
-            license_id = primary_license.spdx_id if primary_license else "NO-ASSERTION"
+            # Written with the exception it was granted with, where there was
+            # one. An exception makes a licence less restrictive, so naming
+            # the licence alone says the work is more encumbered than it is
+            # (issue #24).
+            license_id = "NO-ASSERTION"
+            if primary_license:
+                license_id = primary_license.spdx_id
+                granted_with = getattr(primary_license, "exception", None)
+                if granted_with:
+                    license_id = f"{license_id} WITH {granted_with}"
             
             # Collect unique copyright holders
             copyright_holders = []

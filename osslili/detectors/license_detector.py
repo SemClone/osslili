@@ -207,8 +207,26 @@ def _with_the_grant_put_back(
 def _in_the_order_written(licensing, parsed):
     """The licences an expression names, once each, in the written order."""
     named = []
-    for key in licensing.license_keys(parsed):
-        key = str(key)
+    # `decompose=False` keeps a licence and the exception granted with it as
+    # the one term the expression wrote: `GPL-2.0-only WITH
+    # Classpath-exception-2.0`. Decomposed, the exception arrives as a term
+    # of its own, which it is not, and the reader downstream had nothing to
+    # do with it but throw it away (issue #24).
+    for symbol in licensing.license_symbols(parsed, unique=False, decompose=False):
+        key = str(symbol)
+        # A grant written in words binds to the WITH beside it: "GPL-2.0 or
+        # later WITH Classpath-exception-2.0" parses as GPL-2.0, and "later
+        # WITH Classpath-exception-2.0". The left half of that is not a
+        # licence, so the pair is not a pair, and holding it together kept
+        # the word "later" in an identifier and lost the exception. Taken
+        # apart, the grant is put back on its licence further down, which is
+        # what happened before any of this.
+        held, _, granted = key.partition(' WITH ')
+        if granted and _A_GRANT_IN_WORDS.fullmatch(held.strip()):
+            for half in (held, granted):
+                if half not in named:
+                    named.append(half)
+            continue
         if key not in named:
             named.append(key)
     return named
@@ -1798,6 +1816,27 @@ class LicenseDetector:
         """
         return any(not names_package_metadata(Path(named)) for named in files)
 
+    def _the_licence_and_its_exception(self, term: str):
+        """A term of an expression, split into the licence and its exception.
+
+        `GPL-2.0-only WITH Classpath-exception-2.0` is one licence granted
+        under a condition, so it becomes one record: the licence in
+        `spdx_id`, the condition in `exception`. Anything else comes back
+        unchanged with no exception, which is every term that is not a WITH.
+
+        What follows WITH is only taken as an exception if SPDX says it is
+        one. A licence there is a malformed expression, and reading it as an
+        exception would file a licence under a field nothing reports as a
+        licence.
+        """
+        if not term or ' WITH ' not in term.upper():
+            return term, None
+        at = term.upper().index(' WITH ')
+        licence, exception = term[:at].strip(), term[at + 6:].strip()
+        if not self.spdx_data.names_an_exception(exception):
+            return term, None
+        return licence, exception
+
     def _names_a_licence(self, spdx_id: str) -> bool:
         """Whether the SPDX licence list carries this identifier.
 
@@ -2717,6 +2756,8 @@ class LicenseDetector:
                 )
 
                 for license_id in self._parse_license_expression(expression):
+                    # One licence, and the exception it is granted with.
+                    license_id, exception = self._the_licence_and_its_exception(license_id)
 
                     normalized_id = self._normalize_license_id(license_id)
                     license_info = self.spdx_data.get_license_info(normalized_id)
@@ -2729,7 +2770,8 @@ class LicenseDetector:
                             detection_method=DetectionMethod.TAG.value,
                             source_file=str(file_path),
                             category=LicenseCategory.DECLARED.value,
-                            match_type="header_tag"
+                            match_type="header_tag",
+                            exception=exception,
                         ))
 
         return licenses
@@ -2894,6 +2936,8 @@ class LicenseDetector:
             license_ids = self._parse_license_expression(license_expr)
 
             for license_id in license_ids:
+                # One licence, and the exception it is granted with.
+                license_id, exception = self._the_licence_and_its_exception(license_id)
                 normalized_id = self._normalize_license_id(license_id)
 
                 # Skip if already found this license
@@ -2910,7 +2954,8 @@ class LicenseDetector:
                     detection_method=DetectionMethod.TAG.value,
                     source_file=str(file_path),
                     category=LicenseCategory.DECLARED.value,
-                    match_type="package_metadata"
+                    match_type="package_metadata",
+                    exception=exception,
                 ))
 
         return licenses
@@ -3022,6 +3067,8 @@ class LicenseDetector:
                 if isinstance(license_value, str):
                     license_ids = self._parse_license_expression(license_value)
                     for license_id in license_ids:
+                        # One licence, and the exception it is granted with.
+                        license_id, exception = self._the_licence_and_its_exception(license_id)
                         normalized_id = self._normalize_license_id(license_id)
                         license_info = self.spdx_data.get_license_info(normalized_id)
 
@@ -3032,7 +3079,8 @@ class LicenseDetector:
                             detection_method=DetectionMethod.TAG.value,
                             source_file=str(file_path),
                             category=LicenseCategory.DECLARED.value,
-                            match_type="package_metadata"
+                            match_type="package_metadata",
+                            exception=exception,
                         ))
 
             # Also check licenses field (array)
@@ -3103,6 +3151,8 @@ class LicenseDetector:
                     license_ids = []
 
                 for license_id in license_ids:
+                    # One licence, and the exception it is granted with.
+                    license_id, exception = self._the_licence_and_its_exception(license_id)
                     normalized_id = self._normalize_license_id(license_id)
                     license_info = self.spdx_data.get_license_info(normalized_id)
 
@@ -3113,7 +3163,8 @@ class LicenseDetector:
                         detection_method=DetectionMethod.TAG.value,
                         source_file=str(file_path),
                         category=LicenseCategory.DECLARED.value,
-                        match_type="package_metadata"
+                        match_type="package_metadata",
+                        exception=exception,
                     ))
         except (json.JSONDecodeError, KeyError) as e:
             logger.debug(f"Failed to parse composer.json {file_path}: {e}")
@@ -3197,6 +3248,8 @@ class LicenseDetector:
                 license_ids = self._parse_license_expression(license_id)
                 
                 for lid in license_ids:
+                    # One licence, and the exception it is granted with.
+                    lid, exception = self._the_licence_and_its_exception(lid)
                     if times_named is not None:
                         # Counted under the identifier the record will carry,
                         # not the spelling the file used. The reader answers
@@ -3246,7 +3299,8 @@ class LicenseDetector:
                                 detection_method=DetectionMethod.TAG.value,
                                 source_file=str(file_path),
                                 category=category,
-                                match_type=match_type
+                                match_type=match_type,
+                                exception=exception,
                             ))
                         else:
                             # Only record unknown licenses if they look valid
@@ -3261,7 +3315,8 @@ class LicenseDetector:
                                     detection_method=DetectionMethod.TAG.value,
                                     source_file=str(file_path),
                                     category=category,
-                                    match_type=match_type
+                                    match_type=match_type,
+                                    exception=exception,
                                 ))
         
         return licenses
@@ -3449,7 +3504,7 @@ class LicenseDetector:
                             detection_method=DetectionMethod.KEYWORD.value,
                             source_file=str(file_path),
                             category='detected',
-                            match_type='keyword'
+                            match_type='keyword',
                         ))
                     break
 
@@ -3567,7 +3622,7 @@ class LicenseDetector:
                         detection_method=DetectionMethod.KEYWORD.value,
                         source_file=str(file_path),
                         category='detected',
-                        match_type='keyword'
+                        match_type='keyword',
                     ))
                     found_licenses.add(spdx_id)
                     break
@@ -3588,7 +3643,7 @@ class LicenseDetector:
                             detection_method=DetectionMethod.KEYWORD.value,
                             source_file=str(file_path),
                             category='detected',
-                            match_type='keyword_fuzzy'
+                            match_type='keyword_fuzzy',
                         ))
                         found_licenses.add(spdx_id)
                         break
@@ -3655,6 +3710,8 @@ class LicenseDetector:
                 license_ids = self._parse_license_expression(license_id)
 
                 for lid in license_ids:
+                    # One licence, and the exception it is granted with.
+                    lid, exception = self._the_licence_and_its_exception(lid)
                     normalized_id = self._normalize_license_id(lid)
                     license_info = self.spdx_data.get_license_info(normalized_id)
 
@@ -3665,7 +3722,8 @@ class LicenseDetector:
                         detection_method=DetectionMethod.TAG.value,
                         source_file=str(file_path),
                         category=LicenseCategory.DECLARED.value,
-                        match_type="package_metadata"
+                        match_type="package_metadata",
+                        exception=exception,
                     ))
 
                 # Only process first match of each format to avoid duplicates
@@ -4249,7 +4307,7 @@ class LicenseDetector:
                     detection_method=DetectionMethod.DICE_SORENSEN.value,
                     source_file=str(file_path),
                     category=category,
-                    match_type=match_type
+                    match_type=match_type,
                 )
             else:
                 logger.debug(f"Dice-Sørensen match {best_match} not confirmed by TLSH")
