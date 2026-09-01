@@ -32,7 +32,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - A licence after `WITH` is not an exception. `GPL-2.0-only WITH MIT` is malformed, and reading MIT as an exception would file a licence under a field nothing reports as a licence, so the term is left whole
   - A choice written after an exception still survives, which is what #120 was protecting: `GPL-2.0-only WITH Classpath-exception-2.0 or MIT` reports both
   - The evidence output carries `exception` and the expression the two make. CycloneDX writes it in the `expression` slot it has for exactly this, and KissBOM writes the expression
-  - **Known limit**: a grant written in words beside an exception, `GPL-2.0 or later WITH Classpath-exception-2.0`, still loses the exception and reports the wrong grant. That predates this change and is filed separately
+
+- **A grant written in words was trimmed out of a header before it was read** (Issue #155). `SPDX-License-Identifier: GPL-2.0 or later` was reported as `GPL-2.0-only`, the opposite permission, and #118 is what that costs
+
+  | declared in a header | before | now |
+  |---|---|---|
+  | `GPL-2.0 or later` | `GPL-2.0-only` | `GPL-2.0-or-later` |
+  | `GPL-2.0 or any later version` | `GPL-2.0-only` | `GPL-2.0-or-later` |
+  | `GPL-2.0 or later WITH Classpath-exception-2.0` | `GPL-2.0-only` | licence, grant and exception |
+  | `GPL-2.0-or-later`, `GPL-2.0+` | unchanged | unchanged |
+
+  - Neither the parser nor the normaliser was at fault. Both read the words form correctly; the line was cut before either of them saw it, by the step that strips whatever else is on a header line, a closing comment marker or a note such as "(see LICENSE)". A grant is not that
+  - Read as the longest reading of such a line now, and handed on whole. The parser knows the shape and the normaliser turns it into the plus form
+  - A note after a licence is still trimmed, and `or` before a licence is still an operator: `MIT or Apache-2.0` names two licences
+  - The exception is put back on the licence the grant was written after. Taking the grant apart left the exception standing alone, which it never does, and the reader after it had nothing to do with it but drop it
 
 ## [1.10.0] - 2026-08-31
 

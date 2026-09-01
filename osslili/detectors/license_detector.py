@@ -144,6 +144,22 @@ _A_GRANT_IN_WORDS = re.compile(
 _LICENSING = None
 
 
+def _with_the_exception_put_back(named: list, names_an_exception) -> list:
+    """The licences named, with an exception folded onto the one before it.
+
+    An exception never stands alone. Where one is left as a term of its own,
+    the licence it qualifies is the one written before it, which is where the
+    expression put it.
+    """
+    folded = []
+    for key in named:
+        if folded and names_an_exception(key) and ' WITH ' not in folded[-1]:
+            folded[-1] = f"{folded[-1]} WITH {key}"
+            continue
+        folded.append(key)
+    return folded
+
+
 def _with_the_grant_put_back(
     text: str, named: list, the_grant_can_be_written_on, tells_the_grants_apart,
 ) -> list:
@@ -431,6 +447,18 @@ _ANY_CASE = (
 # reading are not all licences.
 _JUST_A_TERM = re.compile(_TERM)
 
+# A term and the grant written after it in words, with the exception it may
+# be granted with. "GPL-2.0 or later", "GPLv2 or any later version",
+# "GPL-2.0 or later WITH Classpath-exception-2.0". The words are the same
+# ones `_A_GRANT_IN_WORDS` knows, spelled out here because this reads a line
+# rather than a term the parser has already taken apart.
+_A_TERM_AND_ITS_GRANT = re.compile(
+    _TERM
+    + r'\s+or\s+(?:any\s+)?(?:later(?:\s+versions?)?|above|greater|newer)'
+    + r'(?:\s+WITH\s+' + _TERM + r')?',
+    re.IGNORECASE,
+)
+
 
 # Whether the operators must be upper case depends on the field, because the
 # fields differ in what they are allowed to contain.
@@ -553,6 +581,23 @@ def _expression_at_the_front(
     prevent.
     """
     text = text.strip()
+
+    # A term and the grant written after it in words, tried first because it
+    # is the longest reading of such a line. "GPL-2.0 or later" is one
+    # licence and one grant: the any-case reading takes the "or" for an
+    # operator and asks whether "later" names a licence, which it does not,
+    # and the upper-case reading stops at the licence and is satisfied. What
+    # was left was the licence alone, so a header granting `-or-later` was
+    # reported as `-only`, the opposite permission, and #118 is what that
+    # costs (issue #155).
+    #
+    # Handed on whole rather than resolved here. The parser knows this shape
+    # and the normaliser turns it into the plus form; this only has to stop
+    # trimming it away before either of them is reached.
+    granted = _A_TERM_AND_ITS_GRANT.match(text)
+    if granted:
+        return granted.group(0)
+
     readings = [_EXPRESSION_IN_ANY_CASE] if holds_an_expression else []
     readings.append(_EXPRESSION)
 
@@ -3956,6 +4001,14 @@ class LicenseDetector:
             named = _with_the_grant_put_back(
                 text, named, self._the_grant_can_be_written_on,
                 self._tells_an_only_grant_from_an_or_later_one,
+            )
+            # And the exception put back on it. Taking the grant apart left
+            # the exception standing alone, which it never does: it is not a
+            # licence, so the reader after this had nothing to do with it but
+            # drop it, and "GPL-2.0 or later WITH Classpath-exception-2.0"
+            # lost the half that makes the licence less restrictive (#155).
+            named = _with_the_exception_put_back(
+                named, self.spdx_data.names_an_exception
             )
 
         # A name written in words was read whole by the parser, so it can be
