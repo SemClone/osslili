@@ -5,7 +5,10 @@ All notable changes to osslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.10.0] - 2026-08-31
+
+1.9.1 stopped the scanner claiming it knew which of several licences a shared
+text was. This is what lets it know.
 
 ### Added
 - **The notice that says which member of a shared-text family a file carries is now read** (Issue #144). Seven texts on the SPDX list are shared by licences that oblige different things, so an exact match on the text names a family rather than a licence. What separates the members is written down, just not in the licence file, and the scan now reads it
@@ -65,6 +68,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Every project under GPL-3.0 was reported as carrying the AGPL** (Issue #144). The GPL names the Affero licence in its section on remote interaction, and the reader took the mention for a declaration. Fourteen texts on the SPDX list name another licence in their own words, `copyleft-next-0.3.1` naming GPL-2.0-only among them, and a file carrying one of those texts is not declaring the licence its licence talks about
 
 - **A licence whose name carries the word "exception" was dropped as one** (Issue #144). SPDX exceptions qualify a licence in a `WITH` expression rather than standing alone, and the tag reader dropped any identifier with the word in it. Two licences carry it in their own names — `CAL-1.0-Combined-Work-Exception` and `MPL-2.0-no-copyleft-exception` — so under `--deep --no-package-metadata` a source header declaring the CAL's exception member was never read at all, and the LICENSE beside it stayed ambiguous. Asked of the licence list now rather than of the spelling, which is what separates the two: `Classpath-exception-2.0` is still not a licence
+
+### Behaviour changes
+
+| a project | 1.9.2 | 1.10.0 |
+|---|---|---|
+| MPL-2.0 with Exhibit B in `src/`, scanned `--deep` | `MPL-2.0`, ambiguous | `MPL-2.0-no-copyleft-exception` |
+| a font whose `OFL.txt` names a reserved font name | `OFL-1.1`, ambiguous | `OFL-1.1-RFN` |
+| a manual naming its Invariant Sections | `GFDL-1.3-only`, ambiguous | `GFDL-1.3-invariants-only` |
+| a manual declaring it has none | `GFDL-1.3-only`, ambiguous | `GFDL-1.3-no-invariants-only` |
+| any project under `CAL-1.0` | also `CAL-1.0-Combined-Work-Exception` at 1.0 | `CAL-1.0`, ambiguous |
+| any project under `GPL-3.0` | also `AGPL-3.0-only` | `GPL-3.0-only` |
+| a source header declaring `CAL-1.0-Combined-Work-Exception` | dropped without metadata scanning | reported |
+| a licence file and nothing else | ambiguous | unchanged |
 
 ## [1.9.2] - 2026-08-31
 
