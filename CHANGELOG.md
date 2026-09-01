@@ -5,7 +5,12 @@ All notable changes to osslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.11.0] - 2026-09-01
+
+An exception is what makes a licence less restrictive, and a grant written in
+words says which versions may be used. Both were being dropped, and both drops
+point the same way: the work is reported as more encumbered than it is.
+
 
 ### Added
 - **The SPDX licence exception list is bundled** (towards Issue #24). SPDX keeps exceptions on a list of their own, and what follows `WITH` in an expression is one of them. osslili had no copy, so it could only tell an exception from a licence by looking for the word "exception" in the identifier, which is a guess about spelling rather than a question about what the identifier is
@@ -46,6 +51,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Read as the longest reading of such a line now, and handed on whole. The parser knows the shape and the normaliser turns it into the plus form
   - A note after a licence is still trimmed, and `or` before a licence is still an operator: `MIT or Apache-2.0` names two licences
   - The exception is put back on the licence the grant was written after. Taking the grant apart left the exception standing alone, which it never does, and the reader after it had nothing to do with it but drop it
+
+### Behaviour changes
+
+| a file declaring | 1.10.0 | 1.11.0 |
+|---|---|---|
+| `GPL-2.0-only WITH Classpath-exception-2.0` | `GPL-2.0-only` | licence and exception both |
+| `Apache-2.0 WITH LLVM-exception` | `Apache-2.0` | licence and exception both |
+| `GPL-2.0 or later` in a header | `GPL-2.0-only` | `GPL-2.0-or-later` |
+| `GPL-2.0 or later WITH Classpath-exception-2.0` | `GPL-2.0-only` | licence, grant and exception |
+| `GPL-2.0-or-later`, `GPL-2.0+`, `MIT or Apache-2.0` | unchanged | unchanged |
+
+OpenJDK, LLVM and libstdc++ are all licensed with an exception. The Classpath
+exception is what lets a program link against OpenJDK without the GPL reaching
+the program, and reporting the licence alone tells a reader the opposite.
 
 ## [1.10.0] - 2026-08-31
 
