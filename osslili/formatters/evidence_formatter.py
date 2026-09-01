@@ -96,6 +96,15 @@ class EvidenceFormatter:
                     if ambiguous_with:
                         evidence_entry["ambiguous_with"] = list(ambiguous_with)
 
+                    # What settled that choice, when the project wrote down
+                    # which member of the family it carries (issue #144). The
+                    # file and the words go in the record because the finding
+                    # is an inference across two files, and a reader who
+                    # doubts it has to be able to go and look.
+                    resolved_by = getattr(license, "resolved_by", None)
+                    if resolved_by:
+                        evidence_entry["resolved_by"] = dict(resolved_by)
+
                     # Generate description based on match type
                     match_type = evidence_entry.get("match_type", "pattern_match")
                     if match_type == "license_file":
@@ -108,6 +117,26 @@ class EvidenceFormatter:
                         evidence_entry["description"] = (
                             f"Text matches {license.spdx_id} exactly, and also "
                             f"{', '.join(ambiguous_with)}; the text cannot say which"
+                        )
+                    elif match_type == "text_similarity_named_by_notice":
+                        evidence_entry["description"] = (
+                            f"Text matches a family of licences, and "
+                            f"{resolved_by.get('file') or 'the project'} names "
+                            f"{license.spdx_id} among them: "
+                            f"{resolved_by.get('notice', '')!r}"
+                        )
+                    elif match_type == "spdx_identifier_named_by_notice":
+                        evidence_entry["description"] = (
+                            f"Declares a licence whose text several share, and "
+                            f"names {license.spdx_id} among them: "
+                            f"{resolved_by.get('notice', '')!r}"
+                        )
+                    elif match_type == "exact_hash_named_by_notice":
+                        evidence_entry["description"] = (
+                            f"Text matches a family of licences exactly, and "
+                            f"{resolved_by.get('file') or 'the project'} names "
+                            f"{license.spdx_id} among them: "
+                            f"{resolved_by.get('notice', '')!r}"
                         )
                     elif match_type == "license_reference":
                         evidence_entry["description"] = f"License reference '{license.spdx_id}' detected"

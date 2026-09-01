@@ -275,19 +275,34 @@ class LicenseCopyrightDetector:
         """
         extracted_root = Path(extracted_dir).resolve()
 
-        for evidence in (*result.licenses, *result.copyrights):
-            if not evidence.source_file:
-                continue
+        def named_inside(path: str):
             try:
-                inside = Path(evidence.source_file).resolve().relative_to(extracted_root)
+                return Path(path).resolve().relative_to(extracted_root).as_posix()
             except (ValueError, OSError):
                 # Deliberately left as it is rather than raised. A nested
                 # archive extracts to a sibling of this directory rather than
                 # into it, and nothing walks those today, so nothing reaches
                 # here; were that gap closed, such a path would keep its
                 # extracted name rather than stop the scan.
+                return None
+
+        for evidence in (*result.licenses, *result.copyrights):
+            if not evidence.source_file:
                 continue
-            evidence.source_file = inside.as_posix()
+            inside = named_inside(evidence.source_file)
+            if inside is not None:
+                evidence.source_file = inside
+
+            # A licence settled by a notice names the file the notice was
+            # read in, which is a second path into the archive and needs the
+            # same treatment (issue #144). Without it a record read
+            # `pkg/LICENSE` and pointed at a temporary directory that is gone
+            # by the time anyone opens the report.
+            resolved_by = getattr(evidence, "resolved_by", None)
+            if resolved_by and resolved_by.get("file"):
+                named = named_inside(resolved_by["file"])
+                if named is not None:
+                    evidence.resolved_by = {**resolved_by, "file": named}
 
     def _process_local_path(self, path: Path, result: DetectionResult):
         """

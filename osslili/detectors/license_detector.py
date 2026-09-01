@@ -8,7 +8,7 @@ import re
 import fnmatch
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import List, Optional, Set
+from typing import Dict, List, Optional, Set
 from concurrent.futures import ThreadPoolExecutor, as_completed
 # At the top, not where it is used. Every reader of a file catches
 # Exception and carries on, so an import failing down there was reported
@@ -23,6 +23,7 @@ from ..core.models import (DetectedLicense, DetectionMethod, LicenseCategory,
                            ScanTargets, names_package_metadata, the_category_of)
 from ..core.input_processor import InputProcessor
 from ..data.spdx_licenses import SPDXLicenseData
+from . import family_notices
 from .tlsh_detector import TLSHDetector
 from ..utils.file_scanner import SafeFileScanner
 from ..utils.license_normalizer import LicenseNormalizer
@@ -30,6 +31,7 @@ from ..utils.regex_matcher import RegexPatternMatcher
 from ..utils.text_similarity import create_bigrams, dice_coefficient
 
 logger = logging.getLogger(__name__)
+
 
 # SPDX deprecated the bare GNU-family short identifiers (e.g. "GPL-2.0") in
 # favour of an explicit -only / -or-later disjunction, because the bare id is
@@ -583,6 +585,9 @@ class LicenseDetector:
         
         # License filename patterns
         self._licence_bigram_cache = None
+        # Which identifiers each licence text prints in its own words, worked
+        # out once per licence the scan actually meets (issue #144).
+        self._identifiers_printed_by = {}
         self.license_patterns = self._compile_filename_patterns()
         
         # SPDX tag patterns
@@ -912,6 +917,14 @@ class LicenseDetector:
 
         logger.info(f"Scanning {len(files_to_scan)} files for licenses")
         
+        # What each file said about which member of a shared-text family the
+        # project carries, filled in as the files are read (issue #144).
+        notices_in_files: Dict[str, list] = {}
+        # How often each identifier occurs in each file, so that an
+        # identifier a licence text prints can be told from one a file states
+        # over and above it.
+        times_named_in_files: Dict[str, dict] = {}
+
         # What each file yielded, kept against the file rather than merged
         # as it arrives. Threads finish in whatever order they finish in, and
         # reading the results in that order decided the order of the
@@ -920,9 +933,148 @@ class LicenseDetector:
         found_in = {
             file_path: results
             for file_path, results in self._detect_from_each(
-                files_to_scan, single_file_mode
+                files_to_scan, single_file_mode, notices_in_files,
+                times_named_in_files,
             )
         }
+
+        # Licence files whose own text was recognised outright. Nothing in
+        # such a file is still an open question, so a licence word inside it
+        # is a word rather than a grant, and an identifier printed in it is
+        # the licence's own instruction rather than this project's choice.
+        #
+        # A manifest never qualifies, however it matched. PEP 639's
+        # `license = {file = "LICENSE"}` resolves the referenced file and
+        # attributes the match to the manifest, so a `pyproject.toml` carried
+        # an exact hash for text that is not in it, and a second grant written
+        # there in words was dropped as though the file had spoken already.
+        matched_exactly = {
+            license.source_file
+            for results in found_in.values()
+            for license in results
+            # The hash tier only answers on an exact match, so any record it
+            # produced means this file's text was recognised. Its confidence
+            # is about *which* licence the text belongs to, which is a
+            # different question and is lower when the text is shared (#142).
+            if license.detection_method == DetectionMethod.HASH.value
+            and license.source_file
+            and self._is_license_file(Path(license.source_file))
+            # Asked directly rather than left to the licence-file test, which
+            # a caller can widen: `license_filename_patterns` is theirs to set,
+            # and a pattern covering `pyproject.toml` would let the manifest
+            # back in.
+            and not names_package_metadata(Path(license.source_file))
+        }
+
+        # An identifier printed inside a recognised licence text is the
+        # licence quoting itself. The CAL prints both of its own SPDX
+        # identifiers in its section on how to mark a file, so every project
+        # under CAL-1.0 declared `CAL-1.0-Combined-Work-Exception` at
+        # confidence 1.0 from its LICENSE alone -- an exception nobody had
+        # granted, read out of the instructions for granting it. The
+        # Community Specification does the same with `CC-BY-4.0`.
+        #
+        # Asked of the identifier, not of the file. A file may carry a
+        # licence text *and* declare something: a LICENSE opening
+        # `SPDX-License-Identifier: MIT OR 0BSD` above the MIT text is
+        # offering a choice, and dropping every identifier in it lost the
+        # 0BSD half. What is quoted is an identifier the matched licence
+        # prints in its own words, and only three texts on the SPDX list
+        # print any at all, so this takes nothing else with it.
+        #
+        # Scored as well as hashed, because a licence text does not stop
+        # being one for having a sentence in front of it: a LICENSE opening
+        # "This project is licensed as follows" no longer hashes, and the
+        # CAL's printed identifiers stayed declarations at 1.0.
+        text_matched_in = {}
+        for results in found_in.values():
+            for license in results:
+                if not license.source_file:
+                    continue
+                # Any tier that answers from the licence's text, at the bar
+                # that tier answers on. Held to `similarity_threshold`
+                # instead, a score the scan itself accepted -- a Dice match
+                # in the corroborated band, or a TLSH one -- left the file
+                # unrecognised here, and the identifiers its licence prints
+                # went back to being declarations.
+                if license.detection_method not in self._READS_THE_TEXT:
+                    continue
+                if (
+                    license.detection_method != DetectionMethod.HASH.value
+                    and license.confidence < self.DICE_FLOOR
+                ):
+                    continue
+                # A licence file or a document: something whose whole subject
+                # is the licence. A source file is not compared whole -- a
+                # licence block is cut out of it first -- and a manifest never
+                # held the text PEP 639 attributes to it.
+                held = Path(license.source_file)
+                if names_package_metadata(held):
+                    continue
+                if not (self._is_license_file(held) or _has_a_document_suffix(held)):
+                    continue
+                text_matched_in.setdefault(license.source_file, set()).add(
+                    self._to_modern_spdx_id(license.spdx_id)
+                )
+
+        def the_licence_accounts_for_every_one(license) -> bool:
+            """Whether the matched licence's own text explains this identifier.
+
+            By where it sits, because a file may print an identifier the
+            licence prints *and* state it in a preface of its own: a LICENSE
+            opening `SPDX-License-Identifier:
+            CAL-1.0-Combined-Work-Exception` above the CAL text, or one
+            saying "Licensed under the GNU Affero General Public License,
+            Version 3" above the GPL text, is the project speaking before the
+            licence starts.
+
+            Counting the occurrences instead could not tell those apart. The
+            same identifier reaches the reader as a canonical id in one place
+            and as prose in another, and the two are counted under different
+            names, so a real declaration looked like the licence's own.
+
+            What is read is the run of text before the licence begins. Only
+            files that matched a licence text and carry one of the fourteen
+            identifiers such a text prints are re-read, which is a handful in
+            any scan.
+            """
+            named = self._to_modern_spdx_id(license.spdx_id)
+            printed_by = [
+                matched
+                for matched in text_matched_in.get(license.source_file, ())
+                if named in self._identifiers_the_text_prints(matched)
+            ]
+            if not printed_by:
+                return False
+            before = self._before_the_licence_begins(
+                license.source_file, printed_by
+            )
+            if before is None:
+                # Where the licence starts could not be established, so
+                # whether this identifier is inside it cannot be either.
+                return False
+            if not before:
+                # The licence starts at the top: there is no preface for the
+                # project to have spoken in.
+                return True
+            stated_first: Dict[str, int] = {}
+            self._detect_spdx_tags(
+                before, Path(license.source_file), stated_first
+            )
+            return named not in stated_first
+
+        quoting_the_licence_text = {
+            id(license)
+            for results in found_in.values()
+            for license in results
+            if license.detection_method == DetectionMethod.TAG.value
+            and the_licence_accounts_for_every_one(license)
+        }
+
+        # Which member of a shared-text family the project's own notices name.
+        self._name_the_member_the_notices_do(
+            found_in, notices_in_files, quoting_the_licence_text
+        )
 
         # A file that states its licence has answered the question. A
         # similarity score on that same file is a guess about text the file
@@ -939,6 +1091,10 @@ class LicenseDetector:
                 if (
                     license.detection_method == DetectionMethod.TAG.value
                     and license.confidence >= 1.0
+                    # A licence quoting its own instructions has not stated
+                    # anything about this project, so it cannot settle what
+                    # the project's other files are guesses at either.
+                    and id(license) not in quoting_the_licence_text
                 ):
                     stated_in.setdefault(license.source_file, set()).add(
                         self._to_modern_spdx_id(license.spdx_id)
@@ -993,33 +1149,6 @@ class LicenseDetector:
 
         # Worked out before the corroboration set is built, so a keyword match
         # is never kept alive by a finding that is itself about to be dropped.
-        # Licence files whose own text was recognised outright. Nothing in
-        # such a file is still an open question, so a licence word inside it
-        # is a word rather than a grant.
-        #
-        # A manifest never qualifies, however it matched. PEP 639's
-        # `license = {file = "LICENSE"}` resolves the referenced file and
-        # attributes the match to the manifest, so a `pyproject.toml` carried
-        # an exact hash for text that is not in it, and a second grant written
-        # there in words was dropped as though the file had spoken already.
-        matched_exactly = {
-            license.source_file
-            for results in found_in.values()
-            for license in results
-            # The hash tier only answers on an exact match, so any record it
-            # produced means this file's text was recognised. Its confidence
-            # is about *which* licence the text belongs to, which is a
-            # different question and is lower when the text is shared (#142).
-            if license.detection_method == DetectionMethod.HASH.value
-            and license.source_file
-            and self._is_license_file(Path(license.source_file))
-            # Asked directly rather than left to the licence-file test, which
-            # a caller can widen: `license_filename_patterns` is theirs to set,
-            # and a pattern covering `pyproject.toml` would let the manifest
-            # back in.
-            and not names_package_metadata(Path(license.source_file))
-        }
-
         dropped_as_a_near_miss = {
             id(license)
             for results in found_in.values()
@@ -1061,6 +1190,14 @@ class LicenseDetector:
             for license in results
             if license.detection_method != DetectionMethod.KEYWORD.value
             and id(license) not in dropped_as_a_near_miss
+            # Nor by an identifier the licence text is quoting. FSL-1.1-ALv2
+            # prints the Apache boilerplate as the licence a work converts
+            # to, so its LICENSE carried an Apache tag that this drops a few
+            # lines below -- but it was counted here first, and the Apache
+            # keyword match in the same file was kept alive by it. The scan
+            # reported Apache-2.0 on the strength of two findings that were
+            # both the FSL text.
+            and id(license) not in quoting_the_licence_text
             and self._is_emittable_license_id(
                 self._to_modern_spdx_id(license.spdx_id)
             )
@@ -1081,6 +1218,13 @@ class LicenseDetector:
                     logger.debug(
                         f"Dropping similarity guess '{license.spdx_id}' for "
                         f"{license.source_file}, which states its licence"
+                    )
+                    continue
+                if id(license) in quoting_the_licence_text:
+                    logger.debug(
+                        f"Dropping identifier '{license.spdx_id}' printed in "
+                        f"{license.source_file}, which is the licence's own "
+                        f"text quoting itself rather than a declaration"
                     )
                     continue
                 if (
@@ -1133,11 +1277,589 @@ class LicenseDetector:
 
         return licenses
 
-    def _detect_from_each(self, files_to_scan: List[Path], single_file_mode: bool):
+    # A shared text read exactly, and a notice elsewhere in the project naming
+    # which member of the family it is. Below certainty because the two are
+    # joined by inference rather than read together: the notice is in one file
+    # and the licence in another, and a project can be wrong about itself.
+    # Above the shared-text figure because the question #142 left open has
+    # been answered by something the project actually wrote down.
+    NAMED_BY_NOTICE_CONFIDENCE = 0.95
+
+    def _name_the_member_the_notices_do(self, found_in, notices_in_files,
+                                        quoting_the_licence_text) -> None:
+        """Settle shared-text families from what the project wrote down.
+
+        A text seven families share names the family, not the licence, and
+        #142 stopped the scan pretending otherwise. What distinguishes the
+        members is written where the project *applies* the licence: an
+        Exhibit B notice in a source header, a Reserved Font Name after a
+        font's copyright line, a document's Invariant Sections, or simply the
+        member's own SPDX identifier in a file that declares one. Reading
+        those is issue #144.
+
+        Cross-file, and that is the point: a notice in `src/main.c` changes
+        the identifier reported for `LICENSE`. Nothing is settled unless
+        exactly one member is named and nothing contradicts it, because a
+        scan that reports the family is right about less than it could be
+        while a scan that picks the wrong member is wrong.
+        """
+        # A bundled third-party notice is a dependency's paperwork on both
+        # sides of this (issue #78). Its notices are not collected, and its
+        # licence records are not settled by the project's: a vendored font
+        # under the plain OFL sat beside a project OFL.txt naming a reserved
+        # font name, and the dependency's record was rewritten to the
+        # project's variant on the strength of a file it has nothing to do
+        # with.
+        def is_the_projects_own(license) -> bool:
+            return not (
+                license.source_file
+                and self._is_third_party_notice_file(Path(license.source_file))
+            )
+
+        ambiguous = [
+            license
+            for results in found_in.values()
+            for license in results
+            if license.ambiguous_with and is_the_projects_own(license)
+        ]
+
+        # A file that states a family's identifier and carries a notice
+        # naming one of its members has declared that member, and that is
+        # true whether or not the scan also read a licence file. Done first,
+        # and unconditionally: a deep scan of a source tree with no LICENSE
+        # in it, or a scan of one file, has no ambiguous hash record to hang
+        # this off, and Mozilla's header is exactly that case.
+        # Identifiers the project states outright, and where. A licence
+        # quoting its own instructions has stated nothing.
+        #
+        # Read in a fixed order. `found_in` is filled in as the threads
+        # finish, so taking the first file to declare a member meant taking
+        # whichever worker won the race, and two identical scans named
+        # different files in `resolved_by` (#122).
+        #
+        # Asked again after the headers have been qualified, because
+        # qualifying one changes what it states: a file carrying
+        # `SPDX-License-Identifier: MPL-2.0` and Exhibit B states the
+        # exception member once the two have been read together, and counting
+        # its first answer left it disagreeing with another file that
+        # declared the same member outright.
+        def what_the_files_state():
+            stated = {}
+            for _, results in sorted(
+                found_in.items(), key=lambda held: str(held[0])
+            ):
+                for license in results:
+                    if (
+                        license.detection_method == DetectionMethod.TAG.value
+                        and (license.confidence >= 1.0 or license.resolved_by)
+                        and id(license) not in quoting_the_licence_text
+                        and is_the_projects_own(license)
+                        # A declaration, not a mention. The tag tier also
+                        # answers for a licence named in a sentence, and #117
+                        # already separated the two by category: a README
+                        # saying "the vendored font is licensed under
+                        # OFL-1.1-RFN" is a credit to a dependency, and taking
+                        # it as a declaration let that credit rewrite the
+                        # project's own licence.
+                        and license.category == LicenseCategory.DECLARED.value
+                    ):
+                        stated.setdefault(
+                            self._to_modern_spdx_id(license.spdx_id), []
+                        ).append(license.source_file)
+            return stated
+
+        stated_in_files = what_the_files_state()
+
+        # A notice may answer for a file other than its own only when
+        # nothing in the scan contradicts it. Worked out over the whole scan
+        # before any of it is applied, and over both ways a project can
+        # contradict itself: two notices that cannot both be true, and two
+        # files naming different members outright. A document stating its
+        # invariant sections beside another declaring
+        # `GFDL-1.3-no-invariants-only` is as much a disagreement as two
+        # notices are, and reading only the notices hid it.
+        notices_agree = not family_notices.any_contradiction(
+            notice.marker
+            for read_in in notices_in_files.values()
+            for notice in read_in
+        )
+
+        def may_answer_for_other_files(family) -> bool:
+            if not notices_agree:
+                return False
+            return len([
+                spdx_id for spdx_id in family if spdx_id in stated_in_files
+            ]) <= 1
+
+        self._qualify_what_each_file_stated(
+            found_in, notices_in_files, quoting_the_licence_text,
+            is_the_projects_own,
+        )
+        # Read again, now that qualifying the headers has changed what
+        # some of them state. A qualified record carries the member it was
+        # settled on, below certainty, and `resolved_by` is what marks it as
+        # still a declaration rather than a guess.
+        stated_in_files = what_the_files_state()
+
+        # Read back in a fixed order, so that two runs over one directory
+        # settle a family the same way (#122).
+        #
+        # Cross-file, which is the point of #144: a notice in `src/main.c`
+        # names the member for the `LICENSE` beside it, and a README's
+        # Invariant Sections name it for the `COPYING`. A reserved font name
+        # is the exception, and is left out here. It is written on the
+        # licence file's own copyright line, so it needs no inference at all
+        # -- and read across the scan it settled a second, plain OFL.txt as
+        # the reserved-name variant on the strength of a file that says
+        # nothing about it.
+        notices = {}
+        for file_path in sorted(notices_in_files):
+            for notice in notices_in_files[file_path]:
+                if notice.marker not in family_notices.SPEAKS_FOR_THE_PROJECT:
+                    continue
+                notices.setdefault(notice.marker, notice)
+
+        def what_this_file_says(license):
+            """The notices to settle this record by: the scan's, plus its own."""
+            in_its_own_file = {
+                notice.marker: notice
+                for notice in notices_in_files.get(license.source_file, ())
+            }
+            return {**notices, **in_its_own_file}
+
+        for license in ambiguous:
+            # Settling one record settles every other reading of the same
+            # text, so a record later in this list may already be answered
+            # by the time it is reached. It was still read as ambiguous and
+            # unpacked an `ambiguous_with` that was no longer there, which
+            # raised inside the scan's own error handling and reported the
+            # whole path as carrying no licence at all -- a project with both
+            # a LICENSE and a COPYING holding one shared text lost everything.
+            if not license.ambiguous_with:
+                continue
+            chosen = self._to_modern_spdx_id(license.spdx_id)
+            family = [chosen, *license.ambiguous_with]
+
+            declared = [
+                spdx_id for spdx_id in family
+                if spdx_id in stated_in_files
+                # And said about this file, where that is all it can be
+                # about. `SPDX-License-Identifier: OFL-1.1-RFN` in one
+                # licence file is no more about the vendored font beside it
+                # than that font's own copyright line is about this one.
+                and not (
+                    family_notices.settled_only_in_its_own_file(spdx_id)
+                    and license.source_file not in stated_in_files[spdx_id]
+                )
+                # A manifest naming the family the text already chose adds
+                # nothing to weigh against a member named in a source file.
+                # It summarises the package; every Mozilla-shaped project has
+                # one, and counting it as a second opinion left the licence
+                # file unresolved whenever a header supplied the notice.
+                and not (
+                    spdx_id == chosen
+                    and not self._some_source_file_declares(
+                        stated_in_files[spdx_id]
+                    )
+                )
+            ]
+            if len(declared) > 1:
+                # The project declares two members of one family. Whichever
+                # is right, the scan cannot tell, and picking one would hide
+                # a disagreement the project needs to see. Counted including
+                # the member the text itself chose: one file saying `CAL-1.0`
+                # and another saying `CAL-1.0-Combined-Work-Exception` is
+                # exactly such a disagreement, and leaving the first out of
+                # the count made it look like a single clear answer.
+                logger.debug(
+                    f"Leaving {chosen} ambiguous for {license.source_file}: "
+                    f"the project declares {', '.join(sorted(declared))}"
+                )
+                continue
+            # An identifier repeating what the text already said adds
+            # nothing, and taking it as an answer would be the dangerous
+            # reading: Mozilla's standard header says
+            # `SPDX-License-Identifier: MPL-2.0` in the very files that also
+            # carry Exhibit B, so treating it as settling the family would
+            # suppress the notice that actually distinguishes them. Only a
+            # member the text alone would not have chosen is a declaration.
+            by_declaration = (
+                declared[0] if declared and declared[0] != chosen else None
+            )
+            # A file declaring the family's base while another carries a
+            # notice naming a member is the mixed tree again, reached the
+            # other way round: the notice-bearing file states nothing itself,
+            # so nothing qualified it and the disagreement never showed up as
+            # two declarations. Exhibit B is attached per file, and a project
+            # where one file says plain `MPL-2.0` and another carries the
+            # notice has not settled which the licence file is under.
+            #
+            # A manifest is not one of those files. It summarises the package
+            # rather than marking a source form, so `"license": "MPL-2.0"`
+            # beside a source file carrying Exhibit B is the ordinary shape
+            # of a Mozilla project, not a contradiction -- counting it would
+            # have made almost every one of them ambiguous.
+            declares_the_family_itself = (
+                bool(declared)
+                and declared[0] == chosen
+                # Asked of every file that declares it, not of whichever one
+                # sorted first: `package.json` sorts before `src/`, so a
+                # source file plainly saying `MPL-2.0` beside a manifest
+                # saying the same was read as metadata alone and the mixed
+                # tree resolved when it should have stayed open.
+                and self._some_source_file_declares(stated_in_files[chosen])
+            )
+
+            read = family_notices.the_member_named(
+                chosen, license.ambiguous_with, what_this_file_says(license)
+            )
+            by_notice = read[0] if read else None
+
+            if (
+                declares_the_family_itself
+                and by_notice
+                and by_notice != chosen
+            ):
+                logger.debug(
+                    f"Leaving {chosen} ambiguous for {license.source_file}: "
+                    f"declared {chosen} somewhere and {by_notice} named by a "
+                    f"notice elsewhere"
+                )
+                continue
+
+            if by_declaration and by_notice and by_declaration != by_notice:
+                # The project says one thing in an identifier and another in
+                # a notice. That disagreement is the finding; picking a side
+                # would hide it.
+                logger.debug(
+                    f"Leaving {chosen} ambiguous for {license.source_file}: "
+                    f"declared {by_declaration} but the notice names "
+                    f"{by_notice}"
+                )
+                continue
+
+            if by_declaration:
+                self._settle_on(
+                    license, by_declaration,
+                    where=stated_in_files[by_declaration][0],
+                    what=f"SPDX-License-Identifier: {by_declaration}",
+                )
+            elif by_notice:
+                self._settle_on(
+                    license, by_notice,
+                    where=read[1].source_file, what=read[1].phrase,
+                )
+
+            # What the rest of the scan's readings of this text should say
+            # too -- but only when what settled it speaks for the project. A
+            # reserved font name settles the file it is written in and
+            # nothing else.
+            # What else in the scan this answer covers. A reserved font name
+            # covers nothing but its own file, however it was arrived at:
+            # `SPDX-License-Identifier: OFL-1.1-RFN` in one licence file says
+            # what *that* file is under, and a vendored font under the plain
+            # OFL sitting beside it was rewritten to the variant on the
+            # strength of it.
+            #
+            # Anything else covers every other reading of the same shared
+            # text, whether a notice or an identifier settled it. Left to
+            # notices alone, a project declaring the member in its manifest
+            # kept a README that quotes the licence reading the plain family
+            # -- one text, two answers, in one scan.
+            settled = by_declaration or by_notice
+            speaks_widely = bool(
+                by_notice
+                and read[1].marker in family_notices.SPEAKS_FOR_THE_PROJECT
+            ) or bool(
+                by_declaration
+                and not family_notices.settled_only_in_its_own_file(by_declaration)
+                and may_answer_for_other_files(family)
+            )
+            if settled and speaks_widely:
+                self._bring_the_rest_of_the_family_along(
+                    found_in, is_the_projects_own, license, family, settled
+                )
+
+    # The tiers that answer from the text of a licence rather than from
+    # something a file says about itself. What they share is the reason this
+    # applies to them: they read the text, and the text is the thing that
+    # cannot tell the family's members apart.
+    _READS_THE_TEXT = frozenset({
+        DetectionMethod.HASH.value,
+        DetectionMethod.DICE_SORENSEN.value,
+        DetectionMethod.TLSH.value,
+    })
+
+    def _bring_the_rest_of_the_family_along(self, found_in, is_the_projects_own,
+                                            settled_record, family: List[str],
+                                            member: str,
+                                            in_its_own_file_only: bool = False) -> None:
+        """Every other reading of the same shared text names the member too.
+
+        A GFDL manual prints the licence in full, as the licence tells it to,
+        and the similarity tier scored that against `GFDL-1.3-only` at 0.999.
+        Beside a COPYING corrected to `GFDL-1.3-invariants-only` at 0.95 the
+        higher score won, so the reported licence was the one without the
+        obligation -- the correction was made and then discarded at the last
+        step.
+
+        The scores are not wrong; they are answering the wrong question. The
+        text they matched is the text seven families share, and it cannot
+        distinguish the members any better here than it could in the file
+        #142 flagged. What the project wrote down settles it for all of them.
+
+        A dependency's bundled notice is left alone. Its licence is its own,
+        and the project's notices say nothing about it (issue #78).
+        """
+        for results in found_in.values():
+            for license in results:
+                if license is settled_record:
+                    continue
+                if license.detection_method not in self._READS_THE_TEXT:
+                    continue
+                if not is_the_projects_own(license):
+                    continue
+                if (
+                    in_its_own_file_only
+                    and license.source_file != settled_record.source_file
+                ):
+                    continue
+                spdx_id = self._to_modern_spdx_id(license.spdx_id)
+                if spdx_id in family and spdx_id != member:
+                    self._settle_on(
+                        license, member,
+                        where=(settled_record.resolved_by or {}).get("file"),
+                        what=(settled_record.resolved_by or {}).get("notice", ""),
+                    )
+
+    def _qualify_what_each_file_stated(self, found_in, notices_in_files,
+                                       quoting_the_licence_text,
+                                       is_the_projects_own) -> None:
+        """A notice qualifies the identifier its own file states.
+
+        Mozilla's standard header carries both: `SPDX-License-Identifier:
+        MPL-2.0` and, where the exception applies, the Exhibit B notice
+        beneath it. The two are one declaration -- the identifier names the
+        licence and the notice names which member of it -- but they were read
+        as two, so the file went on declaring plain `MPL-2.0` at confidence
+        1.0 beside a LICENSE corrected to `MPL-2.0-no-copyleft-exception` at
+        0.95. Every consumer that takes the most confident record,
+        `get_primary_license` and the KissBOM writer among them, then
+        reported the licence the correction was made to replace.
+
+        Only the notice's own file. A manifest naming the family elsewhere is
+        a different claim about a different scope, and per-file marking is
+        exactly how Exhibit B works: some files in a project carry it and
+        others do not.
+        """
+        # In a fixed order, because what is settled here goes on to answer
+        # for other files, and `found_in` is filled in as the threads finish.
+        for _, results in sorted(found_in.items(), key=lambda held: str(held[0])):
+            for license in results:
+                if license.detection_method != DetectionMethod.TAG.value:
+                    continue
+                if license.confidence < 1.0:
+                    continue
+                if id(license) in quoting_the_licence_text:
+                    continue
+                if not is_the_projects_own(license):
+                    continue
+                if license.category != LicenseCategory.DECLARED.value:
+                    continue
+                notices = notices_in_files.get(license.source_file)
+                if not notices:
+                    continue
+
+                stated = self._to_modern_spdx_id(license.spdx_id)
+                # A notice fills in what an identifier left out. A file that
+                # already names a member has answered the question itself,
+                # and qualifying it let a notice quietly replace the
+                # identifier the file actually wrote: a document declaring
+                # `GFDL-1.3-no-invariants-only` above a notice naming its
+                # invariant sections was reported as the invariants member,
+                # with the contradiction gone from the record. Left alone,
+                # the two disagree where the scan can see it.
+                if family_notices.names_a_member(stated):
+                    continue
+                others = self._the_rest_of_the_family_of(stated)
+                if not others:
+                    continue
+                named = family_notices.the_member_named(
+                    stated, others, {notice.marker: notice for notice in notices}
+                )
+                if named and named[0] != stated:
+                    self._settle_on(
+                        license, named[0],
+                        where=named[1].source_file, what=named[1].phrase,
+                    )
+                    # Settling the header drops it below certainty, which
+                    # takes it out of the set of licences a file is held to
+                    # have stated -- so a copy of the plain licence text in
+                    # the same file was no longer read as a guess at it, and
+                    # a 0.99 score for the family could outrank the header
+                    # that named the member.
+                    # This file only. A document that appends the licence it
+                    # is under scores against the plain family text, and that
+                    # score outranks the 0.95 this correction leaves, so the
+                    # file has to be aligned with itself.
+                    #
+                    # What it says about *other* files waits. Qualifying a
+                    # header changes what the file declares, and until every
+                    # header has been read the scan does not know whether the
+                    # project agrees with itself: in a tree where one source
+                    # file carries Exhibit B and another does not, answering
+                    # early gave the shared LICENSE the exception on the
+                    # strength of the first file read. The ambiguous records
+                    # are settled below, once the declarations are final.
+                    self._bring_the_rest_of_the_family_along(
+                        found_in, is_the_projects_own, license,
+                        [stated, *others], named[0],
+                        in_its_own_file_only=True,
+                    )
+
+    # How much of a licence text is enough to recognise where it starts. Long
+    # enough not to appear by chance, short enough to survive a file that
+    # rewrapped it.
+    _ENOUGH_TO_RECOGNISE_IT_BY = 60
+
+    def _before_the_licence_begins(self, source_file: str,
+                                   matched: List[str]) -> Optional[str]:
+        """The file's own words, before the licence text it carries starts.
+
+        An empty string when the licence starts at the top: there is no
+        preface, so nothing in the file is the project's own.
+
+        None when that cannot be established -- the file will not read, or
+        the licence's opening is not in it because the text was edited. Not
+        the same as having no preface, and answering as though it were
+        discarded a real declaration: a LICENSE stating
+        `SPDX-License-Identifier: GPL-3.0-only OR AGPL-3.0-only` above a
+        lightly edited GPL text lost the AGPL half. Not knowing where the
+        licence starts is a reason to leave what the file says alone.
+        """
+        try:
+            content = Path(source_file).read_text(
+                encoding='utf-8', errors='ignore'
+            )
+        except OSError:
+            return None
+
+        begins_at = None
+        for licence_id in matched:
+            text = (self.spdx_data.get_license_text(licence_id) or '').strip()
+            if not text:
+                continue
+            # Matched on the licence's opening words with any run of
+            # whitespace allowed between them, because a file that carries a
+            # licence very often rewraps it.
+            opening = re.escape(text[:self._ENOUGH_TO_RECOGNISE_IT_BY])
+            found = re.search(
+                re.sub(r'(?:\\[ \t]|\\\n|\s)+', r'\\s+', opening),
+                content, re.IGNORECASE,
+            )
+            if found and (begins_at is None or found.start() < begins_at):
+                begins_at = found.start()
+
+        return None if begins_at is None else content[:begins_at]
+
+    def _identifiers_the_text_prints(self, licence_id: str) -> Dict[str, int]:
+        """How often the tag reader finds each identifier in this licence's text.
+
+        Asked by running the reader over the bundled text, so that the answer
+        is the same question the scan asks of a file. Written any other way
+        the two drift: a first attempt looked only for
+        `SPDX-License-Identifier:` lines and missed FSL-1.1-ALv2, which names
+        the licence a work converts to as "Licensed under the Apache License,
+        Version 2.0" -- a form the reader does treat as a declaration.
+
+        The CAL prints both of its own identifiers in its section on how to
+        mark a file, and `Community-Spec-1.0` prints `CC-BY-4.0`. Worked out
+        once per licence the scan actually meets.
+        """
+        if licence_id not in self._identifiers_printed_by:
+            text = self.spdx_data.get_license_text(licence_id) or ''
+            counted: Dict[str, int] = {}
+            self._detect_spdx_tags(text, Path('LICENSE'), counted)
+            # Only what is really a licence. Run over prose the reader also
+            # answers with the odd fragment -- "this", "The", "CCPL" -- and
+            # those name nothing, so keeping them would put words in a map
+            # whose whole purpose is to say which identifiers not to believe.
+            self._identifiers_printed_by[licence_id] = {
+                named: times for named, times in counted.items()
+                if self._names_a_licence(named)
+            }
+        return self._identifiers_printed_by[licence_id]
+
+    def _some_source_file_declares(self, files) -> bool:
+        """Whether any of these files marks a source form rather than a package.
+
+        A manifest describes what is being shipped; a source file carries the
+        terms. Only the second can disagree with a per-file notice.
+        """
+        return any(not names_package_metadata(Path(named)) for named in files)
+
+    def _names_a_licence(self, spdx_id: str) -> bool:
+        """Whether the SPDX licence list carries this identifier.
+
+        The exception list is kept apart from it, which is what makes this
+        the right question to ask of an identifier spelled like an exception.
+        """
+        return bool(
+            self.spdx_data.get_license_info(spdx_id)
+            or self.spdx_data.get_license_info(self._to_modern_spdx_id(spdx_id))
+        )
+
+    def _the_rest_of_the_family_of(self, spdx_id: str) -> List[str]:
+        """The licences sharing this one's text that oblige something else.
+
+        Asked of the SPDX list rather than of a file, because this answers
+        for an identifier a file merely stated: there is no matched text to
+        take the ambiguity from, only the name.
+        """
+        sha256_hash = self.spdx_data.get_license_hash(spdx_id, 'sha256')
+        if not sha256_hash:
+            return []
+        return self._others_obliging_differently(
+            spdx_id, sha256_hash, self.spdx_data.get_license_text(spdx_id) or ''
+        )
+
+    def _settle_on(self, license: DetectedLicense, member: str,
+                   where: Optional[str], what: str) -> None:
+        """Report this member of the family, and say what named it."""
+        logger.debug(
+            f"{license.source_file} carries {member} rather than "
+            f"{license.spdx_id}: {where} says {what!r}"
+        )
+        info = self.spdx_data.get_license_info(member) or {}
+        license.spdx_id = member
+        # The name travels with the identifier. Left as it was, the record
+        # read "Mozilla Public License 2.0" beside an identifier that means
+        # the opposite about relicensing.
+        license.name = info.get('name', member)
+        license.confidence = self.NAMED_BY_NOTICE_CONFIDENCE
+        # Named for how this record found the licence in the first place, so
+        # that a reader can see whether the text was matched exactly, scored,
+        # or simply declared, and still see that a notice named the member.
+        if license.detection_method == DetectionMethod.HASH.value:
+            license.match_type = "exact_hash_named_by_notice"
+        elif license.detection_method == DetectionMethod.TAG.value:
+            license.match_type = "spdx_identifier_named_by_notice"
+        else:
+            license.match_type = "text_similarity_named_by_notice"
+        license.ambiguous_with = None
+        license.resolved_by = {"file": where or "", "notice": what}
+
+    def _detect_from_each(self, files_to_scan: List[Path], single_file_mode: bool,
+                          notices: Optional[Dict[str, list]] = None,
+                          times_named: Optional[Dict[str, dict]] = None):
         """Every file paired with what it yielded, in no particular order.
 
         The caller puts them back in order. Threads are used only to read the
         files, not to decide what the answer looks like.
+
+        `notices` is filled in as a side effect rather than yielded, because
+        the family notices a scan finds are about the scan rather than about
+        the file they were read in, and the caller reads them once at the end.
         """
         max_workers = min(
             self.config.thread_count if hasattr(self.config, 'thread_count') else 4,
@@ -1148,7 +1870,8 @@ class LicenseDetector:
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
                 future_to_file = {
                     executor.submit(
-                        self._detect_licenses_in_file_safe, file_path, single_file_mode
+                        self._detect_licenses_in_file_safe, file_path,
+                        single_file_mode, notices, times_named
                     ): file_path
                     for file_path in files_to_scan
                 }
@@ -1164,15 +1887,19 @@ class LicenseDetector:
             for file_path in files_to_scan:
                 try:
                     yield file_path, self._detect_licenses_in_file(
-                        file_path, single_file_mode
+                        file_path, single_file_mode, notices, times_named
                     )
                 except Exception as e:
                     logger.warning(f"Error processing {file_path}: {e}")
 
-    def _detect_licenses_in_file_safe(self, file_path: Path, single_file_mode: bool = False) -> List[DetectedLicense]:
+    def _detect_licenses_in_file_safe(self, file_path: Path, single_file_mode: bool = False,
+                                      notices: Optional[Dict[str, list]] = None,
+                                      times_named: Optional[Dict[str, dict]] = None) -> List[DetectedLicense]:
         """Thread-safe wrapper for file license detection."""
         try:
-            return self._detect_licenses_in_file(file_path, single_file_mode)
+            return self._detect_licenses_in_file(
+                file_path, single_file_mode, notices, times_named
+            )
         except Exception as e:
             logger.debug(f"Error in file {file_path}: {e}")
             return []
@@ -1564,8 +2291,63 @@ class LicenseDetector:
         except (OSError, IOError):
             return False
     
-    def _detect_licenses_in_file(self, file_path: Path, single_file_mode: bool = False) -> List[DetectedLicense]:
-        """Detect licenses in a single file."""
+    def _is_where_that_notice_belongs(self, notice, file_path: Path) -> bool:
+        """Whether this kind of notice, in this kind of file, is a declaration.
+
+        Each notice has a place the licence asking for it says to put it, and
+        the same words somewhere else are about somebody else's work or about
+        the notice itself.
+
+        Exhibit B is attached to a source file. A CONTRIBUTING.md showing the
+        header in a fenced code block -- to tell contributors *not* to add it
+        -- opens a line with it exactly as the real thing does, and settled
+        the whole project as carrying the exception on a default scan.
+
+        A reserved font name is written "after the copyright statement", which
+        is the licence's own copyright line. A README crediting a bundled font
+        names the dependency's reserved name, not this project's.
+
+        Invariant Sections are the exception that proves it: the GFDL's notice
+        belongs in the document, so documentation is exactly where it counts.
+        """
+        # A manifest is never where any of them is applied. It describes a
+        # package rather than carrying its terms, and a `pyproject.toml`
+        # long description showing contributors the Exhibit B header settled
+        # the LICENSE beside it as carrying the exception it was quoting.
+        if names_package_metadata(file_path):
+            return False
+        if notice.marker == family_notices.RESERVED_FONT_NAME:
+            return self._is_license_file(file_path)
+        if notice.marker == family_notices.EXHIBIT_B:
+            # Attached to a source file, and the notice says so in its own
+            # first words: "This Source Code Form is ...". A NOTICE listing
+            # the header for contributors to copy is not a source code form,
+            # and it is read as a licence file rather than as a document, so
+            # ruling out prose alone let it through and settled the project.
+            return not (
+                self._reads_as_a_document(file_path)
+                or self._is_license_file(file_path)
+            )
+        # Invariant Sections are stated in the document the licence covers,
+        # so prose is where they count and code is not. Under `--deep` every
+        # file is read, and a build script commenting that "the generated
+        # manual ships with no Invariant Sections" rewrote the licence of a
+        # document it only describes.
+        return _has_a_document_suffix(file_path)
+
+    def _detect_licenses_in_file(self, file_path: Path, single_file_mode: bool = False,
+                                 notices: Optional[Dict[str, list]] = None,
+                                 times_named: Optional[Dict[str, dict]] = None) -> List[DetectedLicense]:
+        """Detect licenses in a single file.
+
+        `notices` is where the family notices this file carries are left, when
+        the caller is collecting them. Read here rather than in a second pass
+        because here is where the file's text is already in hand: the notice
+        that names which member of a shared-text family a project carries can
+        be in any file, and re-reading the scan to look for it would double
+        the I/O of every scan to answer a question seven licence families ask
+        (issue #144).
+        """
         licenses = []
 
         targets = self.config.scan_targets()
@@ -1589,7 +2371,26 @@ class LicenseDetector:
         
         if not content:
             return licenses
-        
+
+        # What this file says about which member of a shared-text family the
+        # project carries. Kept apart from the licences found here, because a
+        # notice in `src/main.c` is evidence about the `LICENSE` beside it
+        # rather than about `src/main.c`.
+        # A bundled third-party notice is a dependency's paperwork, not this
+        # project's (issue #78). A vendored font's THIRD_PARTY_NOTICES naming
+        # its own reserved font name would otherwise settle the project's own
+        # OFL.txt, which is the category confusion #78 exists to prevent.
+        if notices is not None and not self._is_third_party_notice_file(file_path):
+            found = [
+                notice
+                for notice in family_notices.notices_in(content, str(file_path))
+                if self._is_where_that_notice_belongs(notice, file_path)
+            ]
+            if found:
+                # One key per file, written once by the thread that read it,
+                # so the threads never touch each other's entries.
+                notices[str(file_path)] = found
+
         # Method 0: Extract from package metadata files first (highest priority).
         # Skipped when metadata is disregarded, so a scan cannot report declared
         # licenses from a manifest it was told to ignore (issue #79).
@@ -1598,8 +2399,26 @@ class LicenseDetector:
             licenses.extend(metadata_licenses)
 
         # Method 1: Detect SPDX tags
-        tag_licenses = self._detect_spdx_tags(content, file_path)
+        # How often each identifier was read here, kept beside what was
+        # found, so that an identifier a licence text prints can be told
+        # from one this file states over and above it (issue #144).
+        read_here: Dict[str, int] = {}
+        tag_licenses = self._detect_spdx_tags(content, file_path, read_here)
         licenses.extend(tag_licenses)
+        if times_named is not None:
+            times_named[str(file_path)] = read_here
+
+        # How often each identifier the tag reader answered for actually
+        # occurs in this file. A licence that prints an identifier prints it
+        # a fixed number of times, so a file holding more of them than the
+        # licence does is saying one of them itself (issue #144).
+        # Counted without regard to case, because the identifier on the
+        # record has been normalised and the file's own spelling has not.
+        # `SPDX-License-Identifier: cal-1.0-combined-work-exception` is a
+        # declaration the tag reader accepts, and counting the canonical
+        # spelling found only the copy the licence text prints -- so the
+        # project's own grant was read as the licence quoting itself.
+
 
         # Method 2: Detect license keywords (base licenses) with enhanced patterns
         keyword_licenses = self._detect_license_keywords(content, file_path)
@@ -2319,8 +3138,18 @@ class LicenseDetector:
             return LicenseCategory.REFERENCED.value, "prose_reference"
         return self._categorize_license(file_path, DetectionMethod.TAG.value)
 
-    def _detect_spdx_tags(self, content: str, file_path: Path) -> List[DetectedLicense]:
-        """Detect SPDX license identifiers in content."""
+    def _detect_spdx_tags(self, content: str, file_path: Path,
+                          times_named: Optional[Dict[str, int]] = None) -> List[DetectedLicense]:
+        """Detect SPDX license identifiers in content.
+
+        `times_named` counts how many times each identifier was read,
+        rather than how many records came of it. Counted here so that a
+        file and a licence text are counted by one reader: a declaration
+        written in prose -- "Licensed under the Apache License, Version
+        2.0" -- is one occurrence just as a canonical identifier is, and
+        counting the identifiers themselves could not see it at all
+        (issue #144).
+        """
         licenses = []
         found_ids = set()
         
@@ -2368,12 +3197,36 @@ class LicenseDetector:
                 license_ids = self._parse_license_expression(license_id)
                 
                 for lid in license_ids:
+                    if times_named is not None:
+                        # Counted under the identifier the record will carry,
+                        # not the spelling the file used. The reader answers
+                        # "Apache" for a prose declaration and normalises it
+                        # to `Apache-2.0` a few lines below, so counting the
+                        # raw answer filed the occurrence under a name
+                        # nothing would ever look up.
+                        counted_as = self._to_modern_spdx_id(
+                            self._normalize_license_id(lid)
+                        )
+                        times_named[counted_as] = times_named.get(counted_as, 0) + 1
                     if lid not in found_ids:
                         found_ids.add(lid)
 
                         # Skip SPDX exceptions (they modify licenses, not standalone)
                         # Common exceptions end with "-exception" or are known exception IDs
-                        if 'exception' in lid.lower() and not lid.startswith('Font-exception'):
+                        #
+                        # Asked of the licence list rather than of the
+                        # spelling. Two licences carry "Exception" in their
+                        # own names -- `CAL-1.0-Combined-Work-Exception` and
+                        # `MPL-2.0-no-copyleft-exception` -- and they are
+                        # licences, not operators in a WITH expression. The
+                        # word alone dropped them, so a source header
+                        # declaring the CAL's exception member was never read
+                        # and the LICENSE beside it stayed ambiguous (#144).
+                        if (
+                            'exception' in lid.lower()
+                            and not lid.startswith('Font-exception')
+                            and not self._names_a_licence(lid)
+                        ):
                             continue
 
                         # Normalize license ID
