@@ -27,6 +27,24 @@ from osslili import LicenseCopyrightDetector
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
+def _scanned(detector, root):
+    """The licences a scan of this directory reports, source files included."""
+    detector.config.deep_scan = True
+    detector.config.license_files_only = False
+    try:
+        return detector.process_local_path(str(root)).licenses
+    finally:
+        detector.config.deep_scan = False
+        detector.config.license_files_only = True
+
+
+@pytest.fixture(scope="module")
+def detector():
+    made = LicenseCopyrightDetector()
+    made.license_detector.spdx_data.get_all_license_ids()
+    return made
+
+
 @pytest.fixture(scope="module")
 def spdx():
     made = LicenseCopyrightDetector()
@@ -104,3 +122,110 @@ class TestTheDownloaderFetchesIt:
 
         assert "exceptions.json" in script
         assert '"exceptions"' in script
+
+
+class TestAnExceptionIsReportedWithItsLicence:
+    """One record, because there is one licence and a condition on it.
+
+    OR and AND join two licences and give two records. WITH qualifies one, so
+    the licence goes in `spdx_id` and the condition in `exception`.
+    """
+
+    @pytest.mark.parametrize(
+        "declared,licence,exception",
+        [
+            ("GPL-2.0-only WITH Classpath-exception-2.0",
+             "GPL-2.0-only", "Classpath-exception-2.0"),
+            ("Apache-2.0 WITH LLVM-exception",
+             "Apache-2.0", "LLVM-exception"),
+            ("GPL-3.0-or-later WITH GCC-exception-3.1",
+             "GPL-3.0-or-later", "GCC-exception-3.1"),
+            # The deprecated plus form keeps its grant as well as its
+            # exception. Losing the plus reported the opposite permission.
+            ("GPL-2.0+ WITH Classpath-exception-2.0",
+             "GPL-2.0-or-later", "Classpath-exception-2.0"),
+        ],
+    )
+    def test_the_licence_and_the_exception_are_both_kept(
+        self, detector, tmp_path, declared, licence, exception
+    ):
+        (tmp_path / "widget.c").write_text(
+            f"// SPDX-License-Identifier: {declared}\nint w(void){{return 0;}}\n"
+        )
+
+        found = _scanned(detector, tmp_path)
+
+        assert [(lic.spdx_id, lic.exception) for lic in found] == \
+            [(licence, exception)], found
+
+    def test_the_exception_is_not_a_record_of_its_own(self, detector, tmp_path):
+        """It is not a licence, so it must not be reported as one."""
+        (tmp_path / "widget.c").write_text(
+            "// SPDX-License-Identifier: GPL-2.0-only WITH Classpath-exception-2.0\n"
+        )
+
+        found = _scanned(detector, tmp_path)
+
+        assert "Classpath-exception-2.0" not in {lic.spdx_id for lic in found}
+
+    def test_a_choice_written_after_an_exception_still_survives(
+        self, detector, tmp_path
+    ):
+        """What #120 was protecting. The MIT must not be lost to the WITH."""
+        (tmp_path / "widget.c").write_text(
+            "// SPDX-License-Identifier: GPL-2.0-only WITH"
+            " Classpath-exception-2.0 or MIT\n"
+        )
+
+        found = _scanned(detector, tmp_path)
+
+        assert {lic.spdx_id for lic in found} == {"GPL-2.0-only", "MIT"}, found
+        granted = {lic.spdx_id: lic.exception for lic in found}
+        assert granted["GPL-2.0-only"] == "Classpath-exception-2.0", granted
+        assert granted["MIT"] is None, granted
+
+    def test_a_licence_after_with_is_not_an_exception(self, detector, tmp_path):
+        """`GPL-2.0-only WITH MIT` is malformed, and MIT is not an exception.
+
+        Taken as one, a licence would be filed under a field nothing reports
+        as a licence.
+        """
+        licence, exception = detector.license_detector._the_licence_and_its_exception(
+            "GPL-2.0-only WITH MIT"
+        )
+
+        assert exception is None
+        assert licence == "GPL-2.0-only WITH MIT"
+
+    def test_a_licence_with_no_exception_carries_none(self, detector, tmp_path):
+        (tmp_path / "widget.c").write_text(
+            "// SPDX-License-Identifier: MIT\nint w(void){return 0;}\n"
+        )
+
+        found = _scanned(detector, tmp_path)
+
+        assert [(lic.spdx_id, lic.exception) for lic in found] == [("MIT", None)]
+
+
+class TestTheReportCarriesTheExpression:
+    def test_the_evidence_names_both(self, detector, tmp_path):
+        (tmp_path / "widget.c").write_text(
+            "// SPDX-License-Identifier: GPL-2.0-only WITH Classpath-exception-2.0\n"
+        )
+
+        written = [
+            entry.to_dict() for entry in _scanned(detector, tmp_path)
+        ]
+
+        assert written[0]["exception"] == "Classpath-exception-2.0", written
+
+    def test_a_record_with_no_exception_carries_no_such_field(
+        self, detector, tmp_path
+    ):
+        (tmp_path / "widget.c").write_text(
+            "// SPDX-License-Identifier: MIT\nint w(void){return 0;}\n"
+        )
+
+        written = [entry.to_dict() for entry in _scanned(detector, tmp_path)]
+
+        assert "exception" not in written[0], written

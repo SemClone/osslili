@@ -14,7 +14,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 86 exceptions, and none of them is on the licence list, which is what makes asking worth anything. `SPDXLicenseData.names_an_exception` answers it
   - No text is stored. An exception is read as an identifier inside an expression, never matched as a document the way a licence text is
   - `scripts/download_spdx_licenses.py` fetches it alongside the licence list, so it is refreshed with everything else
-  - Nothing reads it yet. Reporting an exception beside the licence it qualifies is #24, and this is the piece that has to exist first
+  - 86 exceptions, and none of them is on the licence list, which is what makes asking worth anything. `SPDXLicenseData.names_an_exception` answers it
+  - No text is stored. An exception is read as an identifier inside an expression, never matched as a document the way a licence text is
+  - `scripts/download_spdx_licenses.py` fetches it alongside the licence list, so it is refreshed with everything else
+
+### Fixed
+- **An exception granted with a licence was dropped, so the work was reported as more encumbered than it is** (Issue #24). `GPL-2.0-only WITH Classpath-exception-2.0` was reported as plain `GPL-2.0-only`. The exception is what makes the licence less restrictive, and OpenJDK, LLVM and libstdc++ are all licensed this way. The Classpath exception is precisely what lets a program link against OpenJDK without the GPL reaching the program, and a reader given only the licence concludes the opposite
+
+  | declared | before | now |
+  |---|---|---|
+  | `GPL-2.0-only WITH Classpath-exception-2.0` | `GPL-2.0-only` | licence and exception both |
+  | `Apache-2.0 WITH LLVM-exception` | `Apache-2.0` | licence and exception both |
+  | `GPL-3.0-or-later WITH GCC-exception-3.1` | `GPL-3.0-or-later` | licence and exception both |
+
+  - **One record, because there is one licence.** `OR` and `AND` join two licences and give two records; `WITH` qualifies one and gives one. The licence stays in `spdx_id` and the condition goes in a new `exception` field, so nothing that reads an identifier meets a string it does not understand
+  - The two used to come apart in the expression parser, and the exception then had nowhere to go: it is not a licence, so the reader after it threw it away. They are kept together now, which is what the parser's own grammar already said
+  - A licence after `WITH` is not an exception. `GPL-2.0-only WITH MIT` is malformed, and reading MIT as an exception would file a licence under a field nothing reports as a licence, so the term is left whole
+  - A choice written after an exception still survives, which is what #120 was protecting: `GPL-2.0-only WITH Classpath-exception-2.0 or MIT` reports both
+  - The evidence output carries `exception` and the expression the two make. CycloneDX writes it in the `expression` slot it has for exactly this, and KissBOM writes the expression
+  - **Known limit**: a grant written in words beside an exception, `GPL-2.0 or later WITH Classpath-exception-2.0`, still loses the exception and reports the wrong grant. That predates this change and is filed separately
 
 ## [1.10.0] - 2026-08-31
 

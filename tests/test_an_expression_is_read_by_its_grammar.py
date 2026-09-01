@@ -73,18 +73,27 @@ class TestTheShapesOfAnExpression:
         assert detector._parse_license_expression(expression) == expected
 
     def test_an_exception_is_named_with_its_licence(self, detector):
+        """The two come back as the one term the expression wrote.
+
+        They used to come apart here, and the exception then had nowhere to
+        go: it is not a licence, so the reader after this threw it away and a
+        work under `GPL-2.0 WITH Classpath-exception-2.0` was reported as
+        plain GPL, which is the more restrictive of the two (issue #24). OR
+        and AND join two licences and give two terms; WITH qualifies one and
+        gives one.
+        """
         named = detector._parse_license_expression(
             "GPL-2.0 WITH Classpath-exception-2.0"
         )
 
-        assert named == ["GPL-2.0", "Classpath-exception-2.0"], named
+        assert named == ["GPL-2.0 WITH Classpath-exception-2.0"], named
 
     def test_the_kernel_writes_it_nested(self, detector):
         named = detector._parse_license_expression(
             "((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause)"
         )
 
-        assert named == ["GPL-2.0", "Linux-syscall-note", "BSD-2-Clause"], named
+        assert named == ["GPL-2.0 WITH Linux-syscall-note", "BSD-2-Clause"], named
 
     def test_a_reference_to_a_licence_held_elsewhere(self, detector):
         named = detector._parse_license_expression(
