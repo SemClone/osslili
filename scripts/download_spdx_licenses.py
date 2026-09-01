@@ -21,6 +21,7 @@ def download_spdx_licenses():
     SPDX_API_BASE = "https://raw.githubusercontent.com/spdx/license-list-data/main/json"
     LICENSES_URL = f"{SPDX_API_BASE}/licenses.json"
     DETAILS_URL = f"{SPDX_API_BASE}/details/"
+    EXCEPTIONS_URL = f"{SPDX_API_BASE}/exceptions.json"
     
     # Download main license list
     print(f"Fetching license list from {LICENSES_URL}")
@@ -87,6 +88,35 @@ def download_spdx_licenses():
         missing = [k for k, v in bundled_data["licenses"].items() if not v.get("text")]
         print(f"  Without text: {', '.join(missing[:20])}")
     
+    # The exceptions, which SPDX keeps on a list of its own because they are
+    # not licences. What follows WITH in an expression is one of these, and
+    # telling it from a licence by the word "exception" in its name is what
+    # dropped `CAL-1.0-Combined-Work-Exception` and
+    # `MPL-2.0-no-copyleft-exception`, both of which are licences (issue #24).
+    #
+    # No text. An exception is read as an identifier in an expression, never
+    # matched as a document the way a licence text is, so its text would be
+    # weight the scan never picks up.
+    print(f"Fetching exception list from {EXCEPTIONS_URL}")
+    response = requests.get(EXCEPTIONS_URL, timeout=30)
+    response.raise_for_status()
+    exceptions_data = response.json()
+
+    bundled_data["exceptions"] = {}
+    for exception_info in exceptions_data.get("exceptions", []):
+        exception_id = exception_info.get("licenseExceptionId")
+        if not exception_id:
+            continue
+        bundled_data["exceptions"][exception_id] = {
+            "name": exception_info.get("name", exception_id),
+            "reference": exception_info.get("reference", ""),
+            "isDeprecatedLicenseId": exception_info.get(
+                "isDeprecatedLicenseId", False
+            ),
+            "seeAlso": exception_info.get("seeAlso", []),
+        }
+    print(f"Processed {len(bundled_data['exceptions'])} exceptions")
+
     # Create license name mappings and aliases
     bundled_data["name_mappings"] = create_name_mappings(bundled_data["licenses"])
     bundled_data["aliases"] = create_common_aliases()

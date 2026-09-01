@@ -55,6 +55,7 @@ class SPDXLicenseData:
         self._aliases = {}
         self._name_mappings = {}
         self._license_hashes = {}  # Store SHA-256 and MD5 hashes
+        self._exceptions = None
     
     @property
     def licenses(self) -> Dict[str, Any]:
@@ -216,6 +217,34 @@ class SPDXLicenseData:
                         **license_info
                     }
     
+    @property
+    def exceptions(self) -> Dict[str, Any]:
+        """The SPDX licence exceptions, which are not licences.
+
+        SPDX keeps them on a list of its own, and what follows WITH in an
+        expression is one of these. Kept apart here for the same reason: told
+        apart by the word "exception" in the name instead, two licences that
+        carry it in theirs were dropped, `CAL-1.0-Combined-Work-Exception`
+        and `MPL-2.0-no-copyleft-exception` (issue #24).
+        """
+        if self._exceptions is None:
+            _ = self.licenses  # the bundled data is read once, for both
+            self._exceptions = (self._bundled_data or {}).get("exceptions", {})
+        return self._exceptions
+
+    def names_an_exception(self, spdx_id: str) -> bool:
+        """Whether this identifier is on the exception list.
+
+        Asked of the list rather than of the spelling, which is the whole
+        point of shipping it.
+        """
+        if not spdx_id:
+            return False
+        if spdx_id in self.exceptions:
+            return True
+        folded = spdx_id.strip().lower()
+        return any(folded == known.lower() for known in self.exceptions)
+
     def get_license_info(self, license_id: str) -> Optional[Dict[str, Any]]:
         """
         Get license information by ID.
