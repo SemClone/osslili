@@ -5,6 +5,17 @@ All notable changes to osslili will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **The SPDX licence exception list is bundled** (towards Issue #24). SPDX keeps exceptions on a list of their own, and what follows `WITH` in an expression is one of them. osslili had no copy, so it could only tell an exception from a licence by looking for the word "exception" in the identifier, which is a guess about spelling rather than a question about what the identifier is
+
+  - The guess was wrong both ways. Two licences carry the word in their own names, `CAL-1.0-Combined-Work-Exception` and `MPL-2.0-no-copyleft-exception`, and were dropped wherever they were declared until 1.10.0; an exception not carrying the word would have been read as a licence
+  - 86 exceptions, and none of them is on the licence list, which is what makes asking worth anything. `SPDXLicenseData.names_an_exception` answers it
+  - No text is stored. An exception is read as an identifier inside an expression, never matched as a document the way a licence text is
+  - `scripts/download_spdx_licenses.py` fetches it alongside the licence list, so it is refreshed with everything else
+  - Nothing reads it yet. Reporting an exception beside the licence it qualifies is #24, and this is the piece that has to exist first
+
 ## [1.10.0] - 2026-08-31
 
 1.9.1 stopped the scanner claiming it knew which of several licences a shared
