@@ -351,11 +351,17 @@ class TestTheExceptionAndTheGrantTogether:
     grant written in words as well."""
 
     def test_the_grant_and_the_exception_both_survive(self, detector):
+        """Both, and together, which is what makes the exception survive.
+
+        Apart, it was a term of its own, and an exception is not a licence:
+        the reader after this had nothing to do with it but drop it, so the
+        exception only appeared to survive this far (issue #155).
+        """
         named = detector._parse_license_expression(
             "GPL-2.0 or later WITH Classpath-exception-2.0"
         )
 
-        assert named == ["GPL-2.0+", "Classpath-exception-2.0"], named
+        assert named == ["GPL-2.0+ WITH Classpath-exception-2.0"], named
 
     def test_a_comma_list_carrying_a_grant(self, detector):
         named = detector._parse_license_expression("GPL-2.0 or later, MIT")

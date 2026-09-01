@@ -229,3 +229,72 @@ class TestTheReportCarriesTheExpression:
         written = [entry.to_dict() for entry in _scanned(detector, tmp_path)]
 
         assert "exception" not in written[0], written
+
+
+class TestAGrantWrittenInWordsIsPartOfTheExpression:
+    """"GPL-2.0 or later" in a header was trimmed to "GPL-2.0".
+
+    The line was cut before the parser or the normaliser saw it, by the step
+    that strips whatever else is on a header line: a closing comment marker,
+    a note such as "(see LICENSE)". A grant is not that. It was reported as
+    `-only`, the opposite permission, which is what #118 costs (issue #155).
+    """
+
+    @pytest.mark.parametrize(
+        "declared,expected",
+        [
+            ("GPL-2.0 or later", [("GPL-2.0-or-later", None)]),
+            ("GPL-2.0 or any later version", [("GPL-2.0-or-later", None)]),
+            # The hyphenated and plus forms were never affected, and must
+            # stay where they were.
+            ("GPL-2.0-or-later", [("GPL-2.0-or-later", None)]),
+            ("GPL-2.0+", [("GPL-2.0-or-later", None)]),
+            # And the grant carries its exception across, which is what the
+            # issue was originally filed about.
+            ("GPL-2.0 or later WITH Classpath-exception-2.0",
+             [("GPL-2.0-or-later", "Classpath-exception-2.0")]),
+            ("GPL-2.0-or-later WITH Classpath-exception-2.0",
+             [("GPL-2.0-or-later", "Classpath-exception-2.0")]),
+            ("GPL-2.0+ WITH Classpath-exception-2.0",
+             [("GPL-2.0-or-later", "Classpath-exception-2.0")]),
+        ],
+    )
+    def test_the_grant_survives_the_header(
+        self, detector, tmp_path, declared, expected
+    ):
+        (tmp_path / "widget.c").write_text(
+            f"// SPDX-License-Identifier: {declared}\nint w(void){{return 0;}}\n"
+        )
+
+        found = _scanned(detector, tmp_path)
+
+        assert [(lic.spdx_id, lic.exception) for lic in found] == expected, found
+
+    def test_and_never_reads_as_only(self, detector, tmp_path):
+        (tmp_path / "widget.c").write_text(
+            "// SPDX-License-Identifier: GPL-2.0 or later\n"
+        )
+
+        found = {lic.spdx_id for lic in _scanned(detector, tmp_path)}
+
+        assert "GPL-2.0-only" not in found and "GPL-2.0" not in found, found
+
+    def test_a_note_after_the_licence_is_still_trimmed(self, detector, tmp_path):
+        """What the trimming is for. Only a grant is spared, not prose."""
+        (tmp_path / "widget.c").write_text(
+            "// SPDX-License-Identifier: BSD-2-Clause see LICENSE\n"
+        )
+
+        found = {lic.spdx_id for lic in _scanned(detector, tmp_path)}
+
+        assert found == {"BSD-2-Clause"}, found
+
+    def test_a_real_choice_is_not_read_as_a_grant(self, detector, tmp_path):
+        """"or" before a licence is still an operator."""
+        (tmp_path / "widget.c").write_text(
+            "// SPDX-License-Identifier: MIT or Apache-2.0\n"
+        )
+
+        found = {lic.spdx_id for lic in _scanned(detector, tmp_path)}
+
+        assert found == {"MIT", "Apache-2.0"}, found
